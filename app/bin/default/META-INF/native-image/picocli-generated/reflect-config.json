@@ -1,0 +1,14 @@
+[
+  {
+    "name" : "org.example.TranspileCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "inputFile" },
+      { "name" : "outputDir" },
+      { "name" : "verbose" }
+    ]
+  }
+]
