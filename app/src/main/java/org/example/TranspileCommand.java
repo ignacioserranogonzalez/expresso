@@ -10,52 +10,43 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@Command(name = "transpile", description = "Transpila un archivo .expresso a .java")
+@Command(name = "transpile")
 public class TranspileCommand implements Runnable {
-    @Parameters(index = "0", description = "Archivo .expresso a transpilar")
-    private File inputFile;
+    @Parameters(index = "0")
+    private File input;
 
-    @Option(names = {"--out"}, description = "Carpeta de salida (por defecto: .)")
+    @Option(names = {"--out"})
     private String outputDir = ".";
 
-    @Option(names = {"--verbose"}, description = "Muestra pasos del proceso")
+    @Option(names = {"--verbose"})
     private boolean verbose;
 
     @Override
     public void run() {
-        if (!inputFile.exists() || inputFile.length() == 0 || !inputFile.getName().endsWith(".expresso")) {
-            System.err.println("Error: Archivo .expresso no existe o está vacío");
+
+        if (!input.exists() || input.length() == 0 || !input.getName().endsWith(".expresso")) {
+            System.err.println("ERROR - Archivo .expresso no existe o esta vacio");
             return;
         }
 
-        
         Path templatePath = Paths.get("resources/template/HelloWorld.java");
-        System.out.println(templatePath.toAbsolutePath());
-        try {
-            if (!Files.exists(templatePath) || Files.size(templatePath) == 0) {
-                System.err.println("Error: Plantilla HelloWorld.java no existe o está vacía");
-                return;
-            }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
 
-        String outputPath = outputDir.equals(".") ? inputFile.getParent() : outputDir;
+        String outputPath = outputDir.equals(".") ? input.getParent() : outputDir;
         File outputDirFile = new File(outputPath);
         if (!outputDirFile.exists()) outputDirFile.mkdirs();
 
-        String outputFileName = inputFile.getName().replace(".expresso", ".java");
+        String outputFileName = input.getName().replace(".expresso", ".java");
         File outputFile = new File(outputDirFile, outputFileName);
 
-        if (verbose) System.out.println("Leyendo archivo...");
+        if (verbose) System.out.println("Leyendo .expresso...");
+
         try (FileWriter writer = new FileWriter(outputFile)) {
             if (verbose) System.out.println("Transpilando...");
             String template = new String(Files.readAllBytes(templatePath));
             writer.write(template);
-            if (verbose) System.out.println("Guardando en: " + outputFile.getAbsolutePath());
+            if (verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.getAbsolutePath());
         } catch (IOException e) {
-            System.err.println("Error al escribir el archivo: " + e.getMessage());
+            System.err.println("ERROR - No se pudo escribir el archivo " + e.getMessage());
         }
     }
 }
