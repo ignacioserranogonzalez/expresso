@@ -37,30 +37,29 @@ public class BuildCommand implements Runnable {
 
         Path templatePath = Paths.get("resources/template/HelloWorld.java");
 
-        String outputPath = outputDir.equals(".") ? input.getParent() : outputDir;
+        String outputPath;
+         if (outputDir.equals(".")) {
+            outputPath = input.getParent() != null ? input.getParent() : ".";
+        } else {
+            outputPath = outputDir;
+        }
+
         File outputDirFile = new File(outputPath);
         if (!outputDirFile.exists()) outputDirFile.mkdirs();
 
         String outputFileName = input.getName().replace(".expresso", ".java");
         File outputFile = new File(outputDirFile, outputFileName);
 
- 
-        if (!outputFile.exists()) {
-            if (commonOptions.verbose) System.out.println("Leyendo .expresso...");
+        if (commonOptions.verbose) System.out.println("Leyendo .expresso...");
            
-            try (FileWriter writer = new FileWriter(outputFile)) {
-                if (commonOptions.verbose) System.out.println("Transpilando...");
-                String template = new String(Files.readAllBytes(templatePath));
-                writer.write(template);
-                if (commonOptions.verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.getAbsolutePath());
-            } catch (IOException e) {
-                System.err.println("ERROR - No se pudo escribir el archivo " + e.getMessage());
-                return;
-            }
-        } else {
-            if (commonOptions.verbose) System.out.println("Archivo .java existente, omitiendo transpilacion.");
+        try (FileWriter writer = new FileWriter(outputFile)) {
+            if (commonOptions.verbose) System.out.println("Transpilando...");
+            String template = new String(Files.readAllBytes(templatePath));
+            writer.write(template);
+            if (commonOptions.verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.getAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("ERROR - No se pudo escribir el archivo " + e.getMessage());
         }
-
         
         if (commonOptions.verbose) System.out.println("Compilando " + outputFile.getName() + " a .class...");
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();

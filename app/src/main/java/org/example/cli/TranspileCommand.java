@@ -37,7 +37,12 @@ public class TranspileCommand implements Runnable {
 
         Path templatePath = Paths.get("resources/template/HelloWorld.java");
 
-        String outputPath = outputDir.equals(".") ? input.getParent() : outputDir;
+         String outputPath;
+         if (outputDir.equals(".")) {
+            outputPath = input.getParent() != null ? input.getParent() : ".";
+        } else {
+            outputPath = outputDir;
+        }
         File outputDirFile = new File(outputPath);
         if (!outputDirFile.exists()) outputDirFile.mkdirs();
 
