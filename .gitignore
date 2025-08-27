@@ -16,3 +16,6 @@ output/
 # Ignore temporary files
 *.log
 *.tmp
+
+# Ignore bin
+/app/bin

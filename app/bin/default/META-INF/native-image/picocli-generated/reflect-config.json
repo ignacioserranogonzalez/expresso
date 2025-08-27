@@ -1,5 +1,36 @@
 [
   {
+    "name" : "org.example.App",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.example.BuildCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "input" },
+      { "name" : "outputDir" },
+      { "name" : "verbose" }
+    ]
+  },
+  {
+    "name" : "org.example.RunCommand",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "input" },
+      { "name" : "outputDir" },
+      { "name" : "verbose" }
+    ]
+  },
+  {
     "name" : "org.example.cli.CommonOptions",
     "allDeclaredConstructors" : true,
     "allPublicConstructors" : true,
