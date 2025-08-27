@@ -68,7 +68,7 @@ public class BuildCommand implements Runnable {
         if (result == 0) {
             if (verbose) System.out.println("SUCCESS - Compilado a .class en: " + outputDirFile.getAbsolutePath());
         } else {
-            System.err.println("ERROR - Fallo en la compilación.");
+            System.err.println("ERROR - Fallo en la compilacion.");
         }
     }
 }

@@ -1,12 +1,14 @@
 package org.example;
 
+import org.example.cli.TranspileCommand;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "expressor", subcommands = { TranspileCommand.class, BuildCommand.class, RunCommand.class }, description = "Transpilador Expresso")
+@Command(name = "expressor", subcommands = { TranspileCommand.class, BuildCommand.class, RunCommand.class })
 public class App {
-    @Option(names = {"--verbose"}, description = "Muestra pasos del proceso")
+    @Option(names = {"--verbose"})
     boolean verbose;
 
     public static void main(String[] args) {

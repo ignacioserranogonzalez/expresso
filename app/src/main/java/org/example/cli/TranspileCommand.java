@@ -1,7 +1,9 @@
-package org.example;
+package org.example.cli;
 
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
+import picocli.CommandLine.ParentCommand;
 import picocli.CommandLine.Option;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,16 +12,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.example.App;
+
 @Command(name = "transpile")
 public class TranspileCommand implements Runnable {
+
+    @Mixin
+    private CommonOptions commonOptions;
+
     @Parameters(index = "0")
     private File input;
 
     @Option(names = {"--out"})
     private String outputDir = ".";
 
-    @Option(names = {"--verbose"})
-    private boolean verbose;
 
     @Override
     public void run() {
@@ -38,13 +44,13 @@ public class TranspileCommand implements Runnable {
         String outputFileName = input.getName().replace(".expresso", ".java");
         File outputFile = new File(outputDirFile, outputFileName);
 
-        if (verbose) System.out.println("Leyendo .expresso...");
+        if (commonOptions.verbose) System.out.println("Leyendo .expresso...");
 
         try (FileWriter writer = new FileWriter(outputFile)) {
-            if (verbose) System.out.println("Transpilando...");
+            if (commonOptions.verbose) System.out.println("Transpilando...");
             String template = new String(Files.readAllBytes(templatePath));
             writer.write(template);
-            if (verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.getAbsolutePath());
+            if (commonOptions.verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.getAbsolutePath());
         } catch (IOException e) {
             System.err.println("ERROR - No se pudo escribir el archivo " + e.getMessage());
         }

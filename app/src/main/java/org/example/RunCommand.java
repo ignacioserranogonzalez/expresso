@@ -31,7 +31,7 @@ public class RunCommand implements Runnable {
             return;
         }
 
-        // Transpilación
+        // Transpilacion
         String outputPath = outputDir.equals(".") ? input.getParent() : outputDir;
         File outputDirFile = new File(outputPath);
         if (!outputDirFile.exists()) outputDirFile.mkdirs();
@@ -53,10 +53,10 @@ public class RunCommand implements Runnable {
                 return;
             }
         } else if (verbose) {
-            System.out.println("Archivo .java existente, omitiendo transpilación.");
+            System.out.println("Archivo .java existente, omitiendo transpilacion.");
         }
 
-        // Compilación
+        // Compilacion
         if (verbose) System.out.println("Compilando " + outputFile.getName() + " a .class...");
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
@@ -65,12 +65,12 @@ public class RunCommand implements Runnable {
         }
         int result = compiler.run(null, null, null, outputFile.getAbsolutePath());
         if (result != 0) {
-            System.err.println("ERROR - Fallo en la compilación.");
+            System.err.println("ERROR - Fallo en la compilacion.");
             return;
         }
         if (verbose) System.out.println("SUCCESS - Compilado a .class en: " + outputDirFile.getAbsolutePath());
 
-        // Ejecución
+        // Ejecucion
         if (verbose) System.out.println("Ejecutando " + outputFileName.replace(".java", "") + "...");
         try {
             ProcessBuilder pb = new ProcessBuilder("java", "-cp", outputDir, outputFileName.replace(".java", ""));
@@ -78,9 +78,9 @@ public class RunCommand implements Runnable {
             Process process = pb.start();
             int exitCode = process.waitFor();
             if (exitCode == 0) {
-                if (verbose) System.out.println("SUCCESS - Ejecución completada");
+                if (verbose) System.out.println("SUCCESS - Ejecucion completada");
             } else {
-                System.err.println("ERROR - Fallo en la ejecución");
+                System.err.println("ERROR - Fallo en la ejecucion");
             }
         } catch (IOException | InterruptedException e) {
             System.err.println("ERROR - No se pudo ejecutar: " + e.getMessage());
