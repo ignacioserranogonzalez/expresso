@@ -1,6 +1,8 @@
 package org.example;
 
 import org.example.cli.TranspileCommand;
+import org.example.cli.BuildCommand;
+import org.example.cli.RunCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 

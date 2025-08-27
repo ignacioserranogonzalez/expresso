@@ -1,10 +1,12 @@
-package org.example;
+package org.example.cli;
 
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Option;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,14 +16,16 @@ import java.nio.file.Paths;
 
 @Command(name = "build")
 public class BuildCommand implements Runnable {
+
+    @Mixin
+    private CommonOptions commonOptions;
+
     @Parameters(index = "0")
     private File input;
 
     @Option(names = {"--out"})
     private String outputDir = ".";
 
-    @Option(names = {"--verbose"})
-    private boolean verbose;
 
     @Override
     public void run() {
@@ -42,23 +46,23 @@ public class BuildCommand implements Runnable {
 
  
         if (!outputFile.exists()) {
-            if (verbose) System.out.println("Leyendo .expresso...");
+            if (commonOptions.verbose) System.out.println("Leyendo .expresso...");
            
             try (FileWriter writer = new FileWriter(outputFile)) {
-                if (verbose) System.out.println("Transpilando...");
+                if (commonOptions.verbose) System.out.println("Transpilando...");
                 String template = new String(Files.readAllBytes(templatePath));
                 writer.write(template);
-                if (verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.getAbsolutePath());
+                if (commonOptions.verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.getAbsolutePath());
             } catch (IOException e) {
                 System.err.println("ERROR - No se pudo escribir el archivo " + e.getMessage());
                 return;
             }
         } else {
-            if (verbose) System.out.println("Archivo .java existente, omitiendo transpilacion.");
+            if (commonOptions.verbose) System.out.println("Archivo .java existente, omitiendo transpilacion.");
         }
 
         
-        if (verbose) System.out.println("Compilando " + outputFile.getName() + " a .class...");
+        if (commonOptions.verbose) System.out.println("Compilando " + outputFile.getName() + " a .class...");
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
             System.err.println("ERROR - JavaCompiler no disponible");
@@ -66,7 +70,7 @@ public class BuildCommand implements Runnable {
         }
         int result = compiler.run(null, null, null, outputFile.getAbsolutePath());
         if (result == 0) {
-            if (verbose) System.out.println("SUCCESS - Compilado a .class en: " + outputDirFile.getAbsolutePath());
+            if (commonOptions.verbose) System.out.println("SUCCESS - Compilado a .class en: " + outputDirFile.getAbsolutePath());
         } else {
             System.err.println("ERROR - Fallo en la compilacion.");
         }
