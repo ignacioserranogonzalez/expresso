@@ -3,7 +3,6 @@ package org.example.cli;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
-import picocli.CommandLine.Option;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -13,22 +12,19 @@ import java.nio.file.*;
 public class TranspileCommand implements Runnable {
     @Mixin private CommonOptions commonOptions;
     @Parameters(index = "0") private Path input;
-    @Option(names = {"--out"}) private Path outputDir = Paths.get(".");
     
     @Override
     public void run() {
-        transpileCommon(commonOptions, input, outputDir, "transpile");
+        transpileCommon(commonOptions, input, commonOptions.outputDir);
     }
 
-    protected static Path transpileCommon(CommonOptions commonOptions, Path input, Path outputDir, String context) {
+    protected static Path transpileCommon(CommonOptions commonOptions, Path input, Path outputDir) {
         try {
             validateInput(input);
             Path outputFile = prepareOutputFile(input, outputDir);
             transpile(commonOptions, outputFile);
             
-            if (commonOptions.verbose) {
-                System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.toAbsolutePath());
-            }
+            if (commonOptions.verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.toAbsolutePath());
             return outputFile;
             
         } catch (Exception e) {
