@@ -76,5 +76,6 @@ task jpackageImage(type: Exec) {
         '--dest', 'build/jpackage',
         '--verbose',
         '--win-console',
-        '--java-options', '-Dfile.encoding=UTF-8 -DPROJECT_ROOT=../../../../'
+        '--java-options', '-Dfile.encoding=UTF-8',
+        '--java-options', '-DPROJECT_ROOT=../../../../'
 }
