@@ -43,7 +43,7 @@ public class TranspileCommand implements Runnable {
 
     protected static Path transpileCommon(CommonOptions commonOptions, Path input, Path outputDir) {
         try {
-            validateInput(input);
+            validateInput(commonOptions, input);
             Path outputFile = prepareOutputFile(input, outputDir);
             transpile(commonOptions, outputFile);
             
@@ -56,7 +56,8 @@ public class TranspileCommand implements Runnable {
         }
     }
     
-    private static void validateInput(Path input) throws IOException {
+    private static void validateInput(CommonOptions commonOptions, Path input) throws IOException {
+        if (commonOptions.verbose) System.out.println("Leyendo .expresso...");
         String filename = input.getFileName().toString();
         if (!Files.exists(input) || Files.size(input) == 0 || !filename.toLowerCase().endsWith(".expresso")) {
             throw new IllegalArgumentException("Archivo .expresso no existe o esta vacio");
@@ -75,7 +76,7 @@ public class TranspileCommand implements Runnable {
             System.getProperty("PROJECT_ROOT"), 
             "resources/template/HelloWorld.java");
 
-        if (commonOptions.verbose) System.out.println("Leyendo...\nBuscando template en: " + templatePath);
+        if (commonOptions.verbose) System.out.println("Buscando template en: " + templatePath);
         if (!Files.exists(templatePath)) throw new IOException("No se encontro el template en: " + templatePath);
         
         String template = Files.readString(templatePath, StandardCharsets.UTF_8);
