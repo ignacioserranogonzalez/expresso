@@ -7,11 +7,14 @@ import picocli.CommandLine.Parameters;
 import java.io.IOException;
 import java.nio.file.*;
 
-// TranspileCommand.java
 @Command(name = "transpile")
 public class TranspileCommand implements Runnable {
-    @Mixin private CommonOptions commonOptions;
-    @Parameters(index = "0") private Path input;
+
+    @Mixin 
+    private CommonOptions commonOptions;
+    
+    @Parameters(index = "0") 
+    private Path input;
     
     @Override
     public void run() {

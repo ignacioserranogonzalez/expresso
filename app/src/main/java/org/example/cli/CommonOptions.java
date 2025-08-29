@@ -7,6 +7,5 @@ import picocli.CommandLine.Option;
 
 public class CommonOptions {
     @Option(names = {"--verbose"}) protected boolean verbose;
-
     @Option(names = {"--out"}) protected Path outputDir = Paths.get(".");
 }

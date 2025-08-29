@@ -10,10 +10,10 @@ import java.nio.file.Path;
 @Command(name = "build")
 public class BuildCommand implements Runnable {
 
-    @Mixin
+    @Mixin 
     private CommonOptions commonOptions;
 
-    @Parameters(index = "0")
+    @Parameters(index = "0") 
     private Path input;
 
     @Override

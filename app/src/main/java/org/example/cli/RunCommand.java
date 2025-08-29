@@ -20,15 +20,15 @@ public class RunCommand implements Runnable {
     @Override
     public void run() {
         try {
-            // Transpilar
+            // transpile
             Path javaFile = TranspileCommand.transpileCommon(commonOptions, input, commonOptions.outputDir);
             if (javaFile == null) return;
 
-            // Compilar
+            // compile
             boolean compiled = BuildCommand.buildCommon(commonOptions, javaFile, commonOptions.outputDir);
             if (!compiled) return;
 
-            // Ejecutar
+            // run
             executeCommon(javaFile, commonOptions.outputDir);
 
         } catch (Exception e) {
