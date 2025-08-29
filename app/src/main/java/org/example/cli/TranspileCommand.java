@@ -5,6 +5,7 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
 @Command(name = "transpile")
@@ -50,10 +51,22 @@ public class TranspileCommand implements Runnable {
     }
     
     private static void transpile(CommonOptions commonOptions, Path outputFile) throws IOException {
-        if (commonOptions.verbose) System.out.println("Leyendo .expresso...");
-        String template = Files.readString(Paths.get("resources/template/HelloWorld.java"));
+        if (commonOptions.verbose) System.out.println("Leyendo...");
+
+        Path projectRoot = Paths.get("").toAbsolutePath()
+            .getParent()    // jpackage\
+            .getParent()    // build\
+            .getParent()    // app\
+            .getParent();   // expresso\ RAIZ DEL PROYECTO
+        
+        Path templatePath = projectRoot.resolve("resources/template/HelloWorld.java");
+        
+        if (commonOptions.verbose) System.out.println("Buscando template en: " + templatePath);
+        if (!Files.exists(templatePath)) throw new IOException("No se encontro el template en: " + templatePath);
+        
+        String template = Files.readString(templatePath, StandardCharsets.UTF_8);
         
         if (commonOptions.verbose) System.out.println("Transpilando...");
-        Files.writeString(outputFile, template);
+        Files.writeString(outputFile, template, StandardCharsets.UTF_8);
     }
 }

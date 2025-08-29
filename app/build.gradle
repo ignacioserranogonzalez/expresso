@@ -37,3 +37,23 @@ application {
     // Define the main class for the application.
     mainClass = 'org.example.App'
 }
+
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into 'build/libs' 
+}
+task jpackageImage(type: Exec) {
+    dependsOn jar
+    dependsOn copyDependencies
+    
+    commandLine 'jpackage',
+        '--name', 'expressor',
+        '--input', 'build/libs',
+        '--main-jar', "${jar.archiveFileName.get()}",
+        '--main-class', 'org.example.App',
+        '--type', 'app-image',
+        '--dest', 'build/jpackage',
+        '--verbose',
+        '--win-console',
+        '--java-options', '-Dfile.encoding=UTF-8'
+}
