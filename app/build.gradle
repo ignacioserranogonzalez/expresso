@@ -62,6 +62,7 @@ task copyDependencies(type: Copy) {
     from configurations.runtimeClasspath
     into 'build/libs' 
 }
+
 task jpackageImage(type: Exec) {
     dependsOn jar
     dependsOn copyDependencies
@@ -75,5 +76,5 @@ task jpackageImage(type: Exec) {
         '--dest', 'build/jpackage',
         '--verbose',
         '--win-console',
-        '--java-options', '-Dfile.encoding=UTF-8'
+        '--java-options', '-Dfile.encoding=UTF-8 -DPROJECT_ROOT=../../../../'
 }

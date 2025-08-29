@@ -70,17 +70,12 @@ public class TranspileCommand implements Runnable {
     }
     
     private static void transpile(CommonOptions commonOptions, Path outputFile) throws IOException {
-        if (commonOptions.verbose) System.out.println("Leyendo...");
 
-        Path projectRoot = Paths.get("").toAbsolutePath()
-            .getParent()    // jpackage\
-            .getParent()    // build\
-            .getParent()    // app\
-            .getParent();   // expresso\ RAIZ DEL PROYECTO
-        
-        Path templatePath = projectRoot.resolve("resources/template/HelloWorld.java");
-        
-        if (commonOptions.verbose) System.out.println("Buscando template en: " + templatePath);
+        Path templatePath = Paths.get(
+            System.getProperty("PROJECT_ROOT"), 
+            "resources/template/HelloWorld.java");
+
+        if (commonOptions.verbose) System.out.println("Leyendo...\nBuscando template en: " + templatePath);
         if (!Files.exists(templatePath)) throw new IOException("No se encontro el template en: " + templatePath);
         
         String template = Files.readString(templatePath, StandardCharsets.UTF_8);
