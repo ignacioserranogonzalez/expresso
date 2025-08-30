@@ -12,10 +12,6 @@ Paradigmas de Programación
 ## Descripción
 CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula la transpilación, compilación y ejecución de archivos `.expresso` a Java, generando archivos `.java` y `.class` en el directorio especificado. Usa Picocli para manejar argumentos, Gradle para la construcción, y `jpackage` para generar una imagen ejecutable en consola pura (Windows/cmd). El diseño sigue principios de OOP (clases por subcomando, encapsulación), modularidad (paquete `org.example.cli`), y DRY (métodos comunes `transpileCommon`, `buildCommon`) con manejo robusto de errores, alineado con el principio de Knuth para simplicidad.
 
-## Requisitos
-- Java 23+ (incluye `jpackage`)  
-- Gradle  
-- Picocli 4.7.6 (incluido en `build.gradle`)
 
 ## Compilación
 Ejecute los siguientes comandos desde un terminal Windows (cmd) sin IDE:
