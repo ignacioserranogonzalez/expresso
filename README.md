@@ -17,10 +17,10 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 2. Gradle 9.0.0
    
 ## Compilación
-Ejecute los siguientes comandos desde un terminal Windows (cmd) para poder utilizar expressor:
+Ejecute los siguientes comandos en la raiz del proyecto (expresso/) desde un terminal Windows (cmd) para poder utilizar expressor:
 ```bash
-.\gradlew build
-.\gradlew jpackageImage
+.\gradle build
+.\gradle jpackageImage
 ```
 ## Manual de uso de los comandos soportados por expressor
 1. *Transpile*: Lee de disco el archivo HelloWorld.expresso que no está vacío, salva textualmente HelloWorld.java en la carpeta seleccionado, si no se selecciona alguna en particular, salva en la misma carpeta donde se ejecuta el comando expressor. Este se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
