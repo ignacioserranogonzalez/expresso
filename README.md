@@ -14,14 +14,29 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 ## Versiones de las herramientas utilizadas
 1. JDK 23.0.2
 2. Gradle 9.0.0
-   
-## Compilación
-Ejecute los siguientes comandos en la raiz del proyecto (expresso/) desde un terminal Windows (cmd) para poder utilizar expressor:
+
+---
+
+# Manual de Uso
+## Pasos para Compilación/Ejecución
+
+Nota: en caso de utilizar Graddle Wrapper se utiliza el comando `wgradle` en lugar de `gradle`
+
+1. Ubicado en la raiz del proyecto, abrir una instancia de Windows cmd y contruir el proyecto con:
 ```bash
-.\gradle build
-.\gradle jpackageImage
+gradle clean build
 ```
-## Manual de uso de los comandos soportados por expressor
+
+2. Para generar el ejecutable y comenzar a usar expressor como programa de linea de comandos, ejecutar:
+```bash
+gradle jpackageImage
+```
+Se generara un archivo ejecutable (.exe) en la siguiente ruta: `\app\build\jpackage\expressor`
+
+3. Ubicarse en la ruta de generacion del ejecuatable de expressor (`\app\build\jpackage\expressor\expressor.exe`) y abrir una instancia de cmd
+
+## Comandos soportados por expressor
+
 1. **transpile**: Lee de disco el archivo HelloWorld.expresso que no está vacío, salva textualmente HelloWorld.java en la carpeta seleccionado, si no se selecciona alguna en particular, salva en la misma carpeta donde se ejecuta el comando expressor. Este se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
    
  ```bash
@@ -43,12 +58,11 @@ expressor run HelloWorld.expresso
 
 **Opciones Comunes**
 
-`--out`: para definir una ruta de carpeta en la que se guarda la salida en .java, si esa carpeta no existiera la crea en el directorio desde donde se esta ejecutando
+`--out`: define una ruta de carpeta en la que se guarda la salida en .java, si esa carpeta no existiera la crea en el directorio desde donde se esta ejecutando (ej. --out outputFolder)
    
 `--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
 
-**NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas.
-
+**NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas. `expressor.exe` requiere que exista la carpeta `resources/template` y un archivo .java contenido dentro a manera de template (incluido en el proyecto: `HelloWorld.java`).
 
 ## Prompts de IA (Íntegros)
 
