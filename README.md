@@ -68,6 +68,9 @@ expressor run --verbose --out output HelloWorld.expresso
 expressor run HelloWorld.expresso
 ```
 
+Las rutas del `.expresso` que se usen como input en los comando que contengan espacios en blanco debe ser encerradas entre comillas ("")
+Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/proyecto/HelloWorld.expresso"`
+
 **Opciones Comunes**
 
 `--out`: define una ruta de carpeta en la que se guarda la salida en .java, si esa carpeta no existiera la crea en el directorio desde donde se esta ejecutando (ej. --out outputFolder)
