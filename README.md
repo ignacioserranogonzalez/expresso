@@ -80,37 +80,6 @@ expressor run HelloWorld.expresso
 
 Modelos de inteligencia artificial consultados: Grok, DeepSeek, Gemini, ChatGPT
 
-- Vamos a hacer un proyecto Java dividido en sprint llamado **“Expresso”**, que es un mini lenguaje funcional que se transpila a Java.  
-   Vamos a utilizar **Java 23.0.2**, **picocli** y **Gradle**.  
-   Te voy a pasar una serie de documentos para que los analices y entiendas mejor el contexto del Sprint1.  
-   *(Nota: le pasé los tres documentos que hablaban sobre el proyecto).*
-
-- Los compañeros ya avanzaron con el proyecto, analiza el código adjunto y dime en qué puedo intervenir.  
-   *(Aquí la IA me dijo varias cosas como que faltaba la clase `RunCommand`, el README, cumplimiento de DRY, etc.)*
-
-- Voy a empezar con la implementación del subcomando **run** en una nueva rama llamada `comando-run`.  
-   Es importante tener en cuenta esta asignación que me dio el coordinador:  
-   *"Este mock equivale a la secuencia de los dos anteriores más la ejecución de la clase HelloWorld. Importante: usar el mismo proceso de ejecución del CLI para la ejecución del `.expresso`/`.java`".*
-
-- Antes de agregar esto a mi proyecto, me gustaría entender paso a paso qué hace la parte de ejecución del método `run()`.
-
-- ¿Qué es **ProcessBuilder** y para qué sirve?
-
-- ¿Qué deberíamos agregar al **README** del proyecto?
-
-- Siguiendo como referencia la estructura del comando `transpile`, explícame de qué manera puedo implementar un comando **build** usando la librería **picocli** y **javax.tools.JavaCompiler**.  
-   Es decir, explícame cómo los elementos de estas librerías pueden ayudarme a construir el comando `build`, el cual debe realizar el proceso que ya hace `transpile` y además, ser capaz de pasar un archivo `.java` a uno `.class`. el comando debe ejecutarse con:
-```bash
-expressor build HelloWorld.expresso
-expressor build --verbose --out output HelloWorld.expresso
-```
-- Tal vez no me especifiqué bien en la manera que quiero que trabajen los argumentos `--out` debe permitir establecer el directorio en el cual se guarda el `.class`. Si no se establece, el `.class` debe guardarse en la misma ruta que el archivo `.expresso`. Mientras que `--verbose` debe mostrar comentarios sobre cómo avanza el proceso de **transpilado**, **compilado** y/o **ejecución** en el caso del comando `run`.
-
-- Tengo un problema con un **NullPointerException** al no poner el argumento `--out`.  
-Es decir, si no defino el `outputDir`, este se vuelve `null` y me genera el error.  
-¿Cómo puedo asignar correctamente la ruta por defecto (donde esté el `.expresso`) si el `--out` no se define?
-
-
 - como creo un proyecto en gradle de cero en cmd ?
 
 - quiero crear una aplicacion de cmd en java (donde se le pueden pasar comandos personalizados) usando picocli. como puedo hacer
@@ -162,7 +131,32 @@ la otra manera que pienso copiar el resources al directorio del exe, de manera q
 
 -  Todo fuente (incl README): comentario identifica proyecto, curso, autores, código grupo. dame un tempalte de comentario para poer en todo fuente
 
+- Siguiendo como referencia la estructura del comando `transpile`, explícame de qué manera puedo implementar un comando **build** usando la librería **picocli** y **javax.tools.JavaCompiler**.  
+   Es decir, explícame cómo los elementos de estas librerías pueden ayudarme a construir el comando `build`, el cual debe realizar el proceso que ya hace `transpile` y además, ser capaz de pasar un archivo `.java` a uno `.class`. el comando debe ejecutarse con:
+```bash
+expressor build HelloWorld.expresso
+expressor build --verbose --out output HelloWorld.expresso
+```
+- Tal vez no me especifiqué bien en la manera que quiero que trabajen los argumentos `--out` debe permitir establecer el directorio en el cual se guarda el `.class`. Si no se establece, el `.class` debe guardarse en la misma ruta que el archivo `.expresso`. Mientras que `--verbose` debe mostrar comentarios sobre cómo avanza el proceso de **transpilado**, **compilado** y/o **ejecución** en el caso del comando `run`.
 
+- Tengo un problema con un **NullPointerException** al no poner el argumento `--out`.  
+Es decir, si no defino el `outputDir`, este se vuelve `null` y me genera el error.  
+¿Cómo puedo asignar correctamente la ruta por defecto (donde esté el `.expresso`) si el `--out` no se define?
 
+- ¿Qué deberíamos agregar al **README** del proyecto?
+  
+- Vamos a hacer un proyecto Java dividido en sprint llamado **“Expresso”**, que es un mini lenguaje funcional que se transpila a Java.  
+   Vamos a utilizar **Java 23.0.2**, **picocli** y **Gradle**.  
+   Te voy a pasar una serie de documentos para que los analices y entiendas mejor el contexto del Sprint1.  
+   *(Nota: le pasé los tres documentos que hablaban sobre el proyecto).*
 
+- Los compañeros ya avanzaron con el proyecto, analiza el código adjunto y dime en qué puedo intervenir.  
+   *(Aquí la IA me dijo varias cosas como que faltaba la clase `RunCommand`, el README, cumplimiento de DRY, etc.)*
 
+- Voy a empezar con la implementación del subcomando **run** en una nueva rama llamada `comando-run`.  
+   Es importante tener en cuenta esta asignación que me dio el coordinador:  
+   *"Este mock equivale a la secuencia de los dos anteriores más la ejecución de la clase HelloWorld. Importante: usar el mismo proceso de ejecución del CLI para la ejecución del `.expresso`/`.java`".*
+
+- Antes de agregar esto a mi proyecto, me gustaría entender paso a paso qué hace la parte de ejecución del método `run()`.
+
+- ¿Qué es **ProcessBuilder** y para qué sirve?
