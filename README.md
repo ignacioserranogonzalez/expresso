@@ -19,6 +19,7 @@ Ejecute los siguientes comandos desde un terminal Windows (cmd) sin IDE:
 ./gradlew build
 ./gradlew jpackageImage
 
+
 ## PROMPT Grok(AI)
 
 1. Vamos a hacer un proyecto Java dividido en sprint llamado “Expresso” que es un mini lenguaje funcional que se transpila a Java. Vamos a utilizar Java 23.0.2, picocli y gradle. Te voy a pasar una serie de documentos para que los analices y entiendas mejor el contexto del Sprint 1. (Nota: le pase los tres documentos que hablaban sobre el proyecto).
