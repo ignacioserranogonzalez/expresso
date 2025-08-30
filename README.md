@@ -1,7 +1,6 @@
 # Expresso - Sprint Inicial
-Curso: EIF400-II-2025, Grupo: 02-1PM  
-Universidad Nacional de Costa Rica, Escuela de Informática  
-Paradigmas de Programación
+EIF400-II-2025 Paradigmas de Programación, Grupo 02-1PM  
+Universidad Nacional de Costa Rica, Escuela de Informática
 
 ## Autores
 - Kendall Miso Chinchilla Araya - 119310542  
@@ -10,9 +9,9 @@ Paradigmas de Programación
 - Pablo Chavarria Alvarez - 117810573  
 
 ## Descripción
-CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula la transpilación, compilación y ejecución de archivos `.expresso` a Java, generando archivos `.java` y `.class` en el directorio especificado. Usa Picocli para manejar argumentos, Gradle para la construcción, y `jpackage` para generar una imagen ejecutable en consola pura (Windows/cmd). El diseño sigue principios de OOP (clases por subcomando, encapsulación), modularidad (paquete `org.example.cli`), y DRY (métodos comunes `transpileCommon`, `buildCommon`) con manejo robusto de errores, alineado con el principio de Knuth para simplicidad.
+CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula la transpilación, compilación y ejecución de archivos `.expresso` a Java, generando archivos `.java` y `.class` en el directorio especificado. Usa Picocli para manejar argumentos, Gradle para la construcción, y `jpackage` para generar una imagen ejecutable en consola pura (Windows/cmd). El diseño sigue principios de OOP (clases por subcomando, encapsulación), modularidad (paquete `org.example.cli`), y estilo DRY con manejo de errores alinead con los principio de Knuth.
 
-## Versiones de las diferentes herramientas utilizadas
+## Versiones de las herramientas utilizadas
 1. JDK 23.0.2
 2. Gradle 9.0.0
    
@@ -23,42 +22,37 @@ Ejecute los siguientes comandos en la raiz del proyecto (expresso/) desde un ter
 .\gradle jpackageImage
 ```
 ## Manual de uso de los comandos soportados por expressor
-1. *Transpile*: Lee de disco el archivo HelloWorld.expresso que no está vacío, salva textualmente HelloWorld.java en la carpeta seleccionado, si no se selecciona alguna en particular, salva en la misma carpeta donde se ejecuta el comando expressor. Este se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
-   
-    -out: define la ruta de carpeta en la que se guarda el HelloWorld.java, si esa carpeta no existiera la crea.
-   
-    -verbose: nos permite observar los pasos que se estan realizando al momento de la ejecución del comando.
+1. **transpile**: Lee de disco el archivo HelloWorld.expresso que no está vacío, salva textualmente HelloWorld.java en la carpeta seleccionado, si no se selecciona alguna en particular, salva en la misma carpeta donde se ejecuta el comando expressor. Este se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
    
  ```bash
 expressor transpile --verbose --out output HelloWorld.expresso
 expressor transpile HelloWorld.expresso
 ```  
-2. *Build*: Realiza el proceso de transpile de ser necesario y además permite compilar el archivo .java generado en la transpilación y generar el .class de este. Se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
-   
-    -out: define la ruta de carpeta en la que se guarda el HelloWorld.java, si esa carpeta no existiera la crea.
-   
-    -verbose: nos permite observar los pasos que se estan realizando al momento de la ejecución del comando.
+2. **build**: Realiza el proceso de transpile de ser necesario y además permite compilar el archivo .java generado en la transpilación y generar el .class de este. Se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
 
  ```bash
 expressor build --verbose --out output HelloWorld.expresso
 expressor build HelloWorld.expresso
 ```
-3. *Run*: Realiza el proceso de build si este no se realizo anteriormente y además permite ejecutar el archivo .class generado en la compilación (build) y mostrar el contenido de este. Se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
-   
-    -out: define la ruta de carpeta en la que se guarda el HelloWorld.java, si esa carpeta no existiera la crea.
-   
-    -verbose: nos permite observar los pasos que se estan realizando al momento de la ejecución del comando
+3. **run**: Realiza el proceso de build si este no se realizo anteriormente y además permite ejecutar el archivo .class generado en la compilación (build) y mostrar el contenido de este. Se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
+
  ```bash
 expressor run --verbose --out output HelloWorld.expresso
 expressor run HelloWorld.expresso
 ```
-## Aspectos importantes del proyecto
-Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la transpilación, empleando una propiedad personalizada (`PROJECT_ROOT`) al empaquetar con `jpackage`, conforme a las instrucciones del Sprint Inicial. Esta elección asegura compatibilidad con los requisitos especificados. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`. Esto evitaría el uso de rutas relativas complejas.
+
+**Opciones Comunes**
+
+`--out`: para definir una ruta de carpeta en la que se guarda la salida en .java, si esa carpeta no existiera la crea en el directorio desde donde se esta ejecutando
+   
+`--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
+
+**NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas.
 
 
-## Prompts de IA Íntegros
+## Prompts de IA (Íntegros)
 
-Es importante aclarar que los modelos de inteligencia artificial consultados fueron **Grok**, **DeepSeek**, **Gemini** y **ChatGPT**.
+Modelos de inteligencia artificial consultados: Grok, DeepSeek, Gemini, ChatGPT
 
 1. Vamos a hacer un proyecto Java dividido en sprint llamado **“Expresso”**, que es un mini lenguaje funcional que se transpila a Java.  
    Vamos a utilizar **Java 23.0.2**, **picocli** y **Gradle**.  
