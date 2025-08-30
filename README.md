@@ -11,9 +11,21 @@ Universidad Nacional de Costa Rica, Escuela de Informática
 ## Descripción
 CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula la transpilación, compilación y ejecución de archivos `.expresso` a Java, generando archivos `.java` y `.class` en el directorio especificado. Usa Picocli para manejar argumentos, Gradle para la construcción, y `jpackage` para generar una imagen ejecutable en consola pura (Windows/cmd). El diseño sigue principios de OOP (clases por subcomando, encapsulación), modularidad (paquete `org.example.cli`), y estilo DRY con manejo de errores alinead con los principio de Knuth.
 
-## Versiones de las herramientas utilizadas
-1. JDK 23.0.2
-2. Gradle 9.0.0
+#### Versiones de las herramientas utilizadas
+- JDK: 23.0.2
+- Gradle: 9.0.0
+- Picocli: 4.7.6 (para la implementación del CLI)
+- jpackage (utilizado para generar un paquete ejecutable opcional)
+
+#### Referencias usadas
+- Picocli: https://picocli.info/ (versión 4.7.6 para manejo de comandos CLI)
+- jpackage: Parte del jdk 23 y usado para empaquetado nativo
+- Documentación Gradle: https://docs.gradle.org/9.0.0/userguide/building_java_projects.html
+
+#### Notas Adicionales
+- El proyecto se desarrolló usando Gradle como sistema de build.
+- La carpeta `resources/template` contiene el archivo `HelloWorld.java` requerido, ubicado en la raíz del proyecto.
+- Consultar el `build.gradle` para detalles de dependencias y configuración.
 
 ---
 
@@ -62,7 +74,7 @@ expressor run HelloWorld.expresso
    
 `--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
 
-**NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas. `expressor.exe` requiere que exista la carpeta `resources/template` y un archivo .java contenido dentro a manera de template (incluido en el proyecto: `HelloWorld.java`).
+**NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas.
 
 ## Prompts de IA (Íntegros)
 
