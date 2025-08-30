@@ -19,11 +19,3 @@ Ejecute los siguientes comandos desde un terminal Windows (cmd) sin IDE:
 ./gradlew build
 ./gradlew jpackageImage
 
-  
-## prompt Grok(AI)
-1. Vamos a hacer un proyecto Java dividido en sprint llamado “Expresso” que es un mini lenguaje funcional que se transpila a Java. Vamos a utilizar Java 23.0.2, picocli y gradle. Te voy a pasar una serie de documentos para que los analices y entiendas mejor el contexto del Sprint 1. (Nota: le pase los tres documentos que hablaban sobre el proyecto).
-2. Los compañeros ya avanzaron con el proyecto, analiza el código adjunto y dime en que puedo intervenir (Aquí la IA me dijo varias cosas como que faltada la clase RunCommand, el READMI, cumplimiento de DRY, etc )
-3. Voy a empezar con la implementación del subcomando run en una nueva rama llamada comando-run. Es importante tener en cuenta esta asignación que me dio el coordinador: "Este mock equivale a la secuencia de los dos anteriores más la ejecución de la clase Helloworld. Importante: usar el mismo proceso de ejecución del cli para la ejecución el .expresso/.java"
-4. Antes de agregar esto a mi proyecto, me gustaria entender paso a paso que hace esta parte de ejecución del método run()
-5. Que es ProcessBuilder y para que sirve
-6. Que deberíamos agregar al README del proyecto
