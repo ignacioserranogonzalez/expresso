@@ -21,6 +21,7 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 - Picocli: https://picocli.info/ (versión 4.7.6 para manejo de comandos CLI)
 - jpackage: Parte del jdk 23 y usado para empaquetado nativo
 - Documentación Gradle: https://docs.gradle.org/9.0.0/userguide/building_java_projects.html
+- Clase ProcessBuilder: https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html
 
 #### Notas Adicionales
 - El proyecto se desarrolló usando Gradle como sistema de build.
