@@ -33,7 +33,7 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 # Manual de Uso
 ## Pasos para Compilación/Ejecución
 
-Nota: en caso de utilizar Graddle Wrapper se utiliza el comando `wgradle` en lugar de `gradle`
+Nota: en caso de utilizar Graddle Wrapper se utiliza el comando `gradlew` en lugar de `gradle`
 
 1. Ubicado en la raiz del proyecto, abrir una instancia de Windows cmd y contruir el proyecto con:
 ```bash
