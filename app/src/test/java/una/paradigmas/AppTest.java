@@ -1,4 +1,4 @@
-package org.example;
+package una.paradigmas;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
