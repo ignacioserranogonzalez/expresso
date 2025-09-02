@@ -30,7 +30,7 @@ import java.nio.file.Path;
 public class BuildCommand implements Runnable {
 
     @Mixin 
-    private CommonOptions commonOptions;
+    private static CommonOptions commonOptions;
 
     @Parameters(index = "0") 
     private Path input;
@@ -38,15 +38,19 @@ public class BuildCommand implements Runnable {
     @Override
     public void run() {
         try {
-            Path javaFile = TranspileCommand.transpileCommon(commonOptions, input, commonOptions.outputDir);
-            if (javaFile != null) buildCommon(commonOptions, javaFile, commonOptions.outputDir);
+            Path javaFile = TranspileCommand.transpileCommon(input, commonOptions.outputDir);
+            if (javaFile != null) buildCommon(javaFile, commonOptions.outputDir);
         } catch (Exception e) {
             System.err.println("ERROR - " + e.getMessage());
         }
     }
 
-    protected static boolean buildCommon(CommonOptions commonOptions, Path javaFile, Path outputDir) {
-        if (commonOptions.verbose) System.out.println("Compilando " + javaFile.getFileName() + " a .class...");
+    private static void log(String msg) {
+        if (commonOptions.verbose) System.out.println(msg);
+    }
+
+    protected static boolean buildCommon(Path javaFile, Path outputDir) {
+        log("Compilando " + javaFile.getFileName() + " a .class...");
         
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
@@ -59,7 +63,7 @@ public class BuildCommand implements Runnable {
                                 javaFile.toString());
 
         if (result == 0) {
-            if (commonOptions.verbose) System.out.println("SUCCESS - Compilado a .class en: " + outputDir.toAbsolutePath());
+            log("SUCCESS - Compilado a .class en: " + outputDir.toAbsolutePath());
             return true;
         } else {
             System.err.println("ERROR - Fallo en la compilacion");

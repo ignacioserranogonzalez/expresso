@@ -4,6 +4,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.Files;
 import java.io.IOException;
 import java.lang.ProcessBuilder;
 import java.lang.Process;
@@ -31,7 +33,7 @@ import java.lang.Process;
 public class RunCommand implements Runnable {
 
     @Mixin
-    private CommonOptions commonOptions;
+    private static CommonOptions commonOptions;
 
     @Parameters(index = "0")
     private Path input;
@@ -39,26 +41,50 @@ public class RunCommand implements Runnable {
     @Override
     public void run() {
         try {
-            // transpile
-            Path javaFile = TranspileCommand.transpileCommon(commonOptions, input, commonOptions.outputDir);
-            if (javaFile == null) return;
+            Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : input.getParent();
+            Path javaFile  = outputDir.resolve(input.getFileName().toString().replace(".expresso", ".java"));
+            Path classFile = outputDir.resolve(input.getFileName().toString().replace(".expresso", ".class"));
 
-            // compile
-            boolean compiled = BuildCommand.buildCommon(commonOptions, javaFile, commonOptions.outputDir);
-            if (!compiled) return;
+            var expTime   = Files.getLastModifiedTime(input);
+            var javaTime  = Files.exists(javaFile)  ? Files.getLastModifiedTime(javaFile)  : null;
+            var classTime = Files.exists(classFile) ? Files.getLastModifiedTime(classFile) : null;
 
-            // run
-            executeCommon(javaFile, commonOptions.outputDir);
+            if (classTime != null && isUpToDate(classTime, expTime, javaTime)) {
+                log("Usando .class existente y actualizado...");
+            } else {
+                if (javaTime != null && (classTime == null || !isUpToDate(classTime, javaTime))) {
+                    log("Compilando .java...");
+                    if (!BuildCommand.buildCommon(javaFile, outputDir)) return;
+                } else {
+                    log("Transpilando .expresso a .java...");
+                    javaFile = TranspileCommand.transpileCommon(input, outputDir);
+                    if (javaFile == null) return;
+                    if (!BuildCommand.buildCommon(javaFile, outputDir)) return;
+                }
+            }
+
+            execute(classFile, outputDir);
 
         } catch (Exception e) {
             System.err.println("ERROR - " + e.getMessage());
         }
     }
 
-    private void executeCommon(Path javaFile, Path outputDir) {
-        String className = javaFile.getFileName().toString().replace(".java", "");
+    private boolean isUpToDate(FileTime newer, FileTime... older) {
+        for (var o : older) {
+            if (o != null && newer.compareTo(o) < 0) return false;
+        }
+        return true;
+    }
+
+    private static void log(String msg) {
+        if (commonOptions.verbose) System.out.println(msg);
+    }
+
+    private void execute(Path classFile, Path outputDir) {
+        String className = classFile.getFileName().toString().replace(".class", "");
         
-        if (commonOptions.verbose) System.out.println("Ejecutando " + className + "...");
+        log("Ejecutando " + className + "...");
         
         try {
             ProcessBuilder pb = new ProcessBuilder("java", "-cp", outputDir.toString(), className);
@@ -67,7 +93,7 @@ public class RunCommand implements Runnable {
             int exitCode = process.waitFor();
             
             if (exitCode == 0) {
-                if (commonOptions.verbose) System.out.println("SUCCESS - Ejecucion completada");
+                log("SUCCESS - Ejecucion completada");
             } else {
                 System.err.println("ERROR - Fallo en la ejecucion (codigo: " + exitCode + ")");
             }

@@ -31,21 +31,21 @@ import java.nio.file.*;
 public class TranspileCommand implements Runnable {
 
     @Mixin 
-    private CommonOptions commonOptions;
+    private static CommonOptions commonOptions;
     
     @Parameters(index = "0") 
     private Path input;
     
     @Override
     public void run() {
-        transpileCommon(commonOptions, input, commonOptions.outputDir);
+        transpileCommon(input, commonOptions.outputDir);
     }
 
-    protected static Path transpileCommon(CommonOptions commonOptions, Path input, Path outputDir) {
+    protected static Path transpileCommon(Path input, Path outputDir) {
         try {
-            validateInput(commonOptions, input);
+            validateInput(input);
             Path outputFile = prepareOutputFile(input, outputDir);
-            transpile(commonOptions, outputFile);
+            transpile(outputFile);
             
             if (commonOptions.verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.toAbsolutePath());
             return outputFile;
@@ -56,8 +56,8 @@ public class TranspileCommand implements Runnable {
         }
     }
     
-    private static void validateInput(CommonOptions commonOptions, Path input) throws IOException {
-        if (commonOptions.verbose) System.out.println("Leyendo .expresso...");
+    private static void validateInput(Path input) throws IOException {
+        log("Leyendo .expresso...");
         String filename = input.getFileName().toString();
         if (!Files.exists(input) || Files.size(input) == 0 || !filename.toLowerCase().endsWith(".expresso")) {
             throw new IllegalArgumentException("Archivo .expresso no existe o esta vacio");
@@ -69,19 +69,23 @@ public class TranspileCommand implements Runnable {
         String filename = input.getFileName().toString();
         return outputDir.resolve(filename.replaceAll("(?i)\\.expresso$", ".java"));
     }
+
+    private static void log(String msg) {
+        if (commonOptions.verbose) System.out.println(msg);
+    }
     
-    private static void transpile(CommonOptions commonOptions, Path outputFile) throws IOException {
+    private static void transpile(Path outputFile) throws IOException {
 
         Path templatePath = Paths.get(
             System.getProperty("PROJECT_ROOT"), 
             "resources/template/HelloWorld.java");
 
-        if (commonOptions.verbose) System.out.println("Buscando template en: " + templatePath);
+        log("Buscando template en: " + templatePath);
         if (!Files.exists(templatePath)) throw new IOException("No se encontro el template en: " + templatePath);
         
         String template = Files.readString(templatePath, StandardCharsets.UTF_8);
         
-        if (commonOptions.verbose) System.out.println("Transpilando...");
+        log("Transpilando...");
         Files.writeString(outputFile, template, StandardCharsets.UTF_8);
     }
 }
