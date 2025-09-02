@@ -55,7 +55,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.example.App'
+    mainClass = 'una.paradgimas.App'
 }
 
 task copyDependencies(type: Copy) {
@@ -71,7 +71,7 @@ task jpackageImage(type: Exec) {
         '--name', 'expressor',
         '--input', 'build/libs',
         '--main-jar', "${jar.archiveFileName.get()}",
-        '--main-class', 'org.example.App',
+        '--main-class', 'una.paradigmas.App',
         '--type', 'app-image',
         '--dest', 'build/jpackage',
         '--verbose',

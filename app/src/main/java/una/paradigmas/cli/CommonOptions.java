@@ -1,10 +1,9 @@
-package org.example;
+package una.paradigmas.cli;
 
-import org.example.cli.TranspileCommand;
-import org.example.cli.BuildCommand;
-import org.example.cli.RunCommand;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import picocli.CommandLine.Option;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -25,11 +24,7 @@ import picocli.CommandLine.Command;
  * del proyecto.
  */
 
-@Command(name = "expressor", subcommands = { TranspileCommand.class, BuildCommand.class, RunCommand.class })
-public class App {
-
-    public static void main(String[] args) {
-        int exitCode = new CommandLine(new App()).execute(args);
-        System.exit(exitCode);
-    }
+public class CommonOptions {
+    @Option(names = {"--verbose"}) protected boolean verbose;
+    @Option(names = {"--out"}) protected Path outputDir = Paths.get(".");
 }

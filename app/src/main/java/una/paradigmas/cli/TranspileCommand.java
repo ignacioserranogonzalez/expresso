@@ -1,4 +1,4 @@
-package org.example.cli;
+package una.paradigmas.cli;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
