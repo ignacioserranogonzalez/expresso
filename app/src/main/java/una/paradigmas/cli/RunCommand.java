@@ -4,6 +4,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.Files;
 import java.io.IOException;
@@ -42,39 +43,47 @@ public class RunCommand implements Runnable {
     public void run() {
         try {
             Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : input.getParent();
-            Path javaFile  = outputDir.resolve(input.getFileName().toString().replace(".expresso", ".java"));
+            Path templateFile = Paths.get(
+                System.getProperty("PROJECT_ROOT"), 
+                "resources/template/HelloWorld.java");
             Path classFile = outputDir.resolve(input.getFileName().toString().replace(".expresso", ".class"));
 
             var expTime   = Files.getLastModifiedTime(input);
-            var javaTime  = Files.exists(javaFile)  ? Files.getLastModifiedTime(javaFile)  : null;
             var classTime = Files.exists(classFile) ? Files.getLastModifiedTime(classFile) : null;
 
-            if (classTime != null && isUpToDate(classTime, expTime, javaTime)) {
+            if (classTime != null && classTime.compareTo(expTime) >= 0) {
                 log("Usando .class existente y actualizado...");
+                execute(classFile, outputDir);
+
             } else {
-                if (javaTime != null && (classTime == null || !isUpToDate(classTime, javaTime))) {
-                    log("Compilando .java...");
-                    if (!BuildCommand.buildCommon(javaFile, outputDir)) return;
+
+                validateInput(input);
+
+                if (classTime != null && expTime.compareTo(classTime) > 0) {
+                    log("Recompilando...");
+                    if (!BuildCommand.buildCommon(templateFile, outputDir)) return;
                 } else {
                     log("Transpilando .expresso a .java...");
-                    javaFile = TranspileCommand.transpileCommon(input, outputDir);
-                    if (javaFile == null) return;
-                    if (!BuildCommand.buildCommon(javaFile, outputDir)) return;
+                    templateFile = TranspileCommand.transpileCommon(input, outputDir);
+                    if (templateFile == null) return;
+                    log("Compilando .java...");
+                    if (!BuildCommand.buildCommon(templateFile, outputDir)) return;
                 }
+                
+                execute(classFile, outputDir);
             }
-
-            execute(classFile, outputDir);
 
         } catch (Exception e) {
             System.err.println("ERROR - " + e.getMessage());
         }
     }
-
-    private boolean isUpToDate(FileTime newer, FileTime... older) {
-        for (var o : older) {
-            if (o != null && newer.compareTo(o) < 0) return false;
+    
+    private static void validateInput(Path input) throws IOException {
+        log("Leyendo .expresso...");
+        String filename = input.getFileName().toString();
+        if (!Files.exists(input) || Files.size(input) == 0 || !filename.toLowerCase().endsWith(".expresso")) {
+            throw new IllegalArgumentException("Archivo .expresso no existe o esta vacio");
         }
-        return true;
     }
 
     private static void log(String msg) {
