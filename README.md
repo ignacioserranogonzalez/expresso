@@ -16,6 +16,81 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 - Gradle: 9.0.0
 - Picocli: 4.7.6 (para la implementación del CLI)
 
+# Guía de Instalación y Configuración del Entorno
+
+## Requisitos Previos
+
+### 1. Instalación de JDK 23
+**Descarga:**
+- Visite [Oracle JDK 23](https://www.oracle.com/java/technologies/downloads/#java23) o use [OpenJDK 23](https://jdk.java.net/23/)
+- Seleccione la versión adecuada para su sistema operativo Windows
+
+**Instalación:**
+- Ejecute el instalador descargado
+- Siga las instrucciones del asistente de instalación
+- Asegúrese de instalar en una ruta sin espacios (recomendado: `C:\Java\jdk-23.0.2`)
+
+**Configuración de variables de entorno:**
+```cmd
+setx JAVA_HOME "C:\Java\jdk-23.0.2"
+setx PATH "%PATH%;%JAVA_HOME%\bin"
+```
+
+**Verificación:**
+```cmd
+java -version
+# Debería mostrar: java version "23.0.2" 2024-07-16
+```
+
+### 2. Instalación de Gradle 9.0.0
+**Descarga:**
+- Descargue desde [Gradle Releases](https://gradle.org/releases/)
+- Versión: gradle-9.0.0-bin.zip
+
+**Instalación:**
+- Extraiga el archivo ZIP en `C:\Gradle\gradle-9.0.0`
+
+**Configuración de variables de entorno:**
+```cmd
+setx GRADLE_HOME "C:\Gradle\gradle-9.0.0"
+setx PATH "%PATH%;%GRADLE_HOME%\bin"
+```
+
+**Verificación:**
+```cmd
+gradle -version
+# Debería mostrar: Gradle 9.0.0
+```
+
+### Gradle Wrapper
+
+Dentro del proyecto se incluye Gradle Wrapper (version de Gradle solo para el entorno del proyecto), el cual puede usarse para contruir el proyecto sin necesidad de una instalación global de Gradle.
+
+**Verificación de Gradle Wrapper**
+Ubiquese en la raiz del proyecto (`...\expresso`) y ejecute:
+```bash
+gradlew -v
+```
+Debería mostrar: Gradle 9.0.0
+
+### 3. Clonar el proyecto
+**Clonar/descargar el proyecto en alguna ubicacion:**
+```cmd
+git clone <url-del-repositorio>
+```
+
+## Solución de Problemas Comunes
+
+### Si Java no es reconocido:
+- Verifique que JAVA_HOME apunte al directorio correcto
+- Reinicie la consola después de configurar variables
+
+### Si Gradle no es reconocido:
+- Use el wrapper del proyecto: `./gradlew` en lugar de `gradle`
+
+### Permisos insuficientes:
+- Ejecute la consola como Administrador para instalaciones globales
+
 #### Referencias usadas
 - Picocli: https://picocli.info/ (versión 4.7.6 para manejo de comandos CLI)
 - jpackage: Parte del jdk 23 y usado para empaquetado nativo
@@ -23,62 +98,12 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 - Clase ProcessBuilder: https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html
 
 #### Notas Adicionales
-- El proyecto se desarrolló usando Gradle como sistema de build.
 - La carpeta `resources/template` contiene el archivo `HelloWorld.java` requerido, ubicado en la raíz del proyecto.
 - Consultar el `build.gradle` para detalles de dependencias y configuración.
 
 ---
 
 # Manual de Uso
-
-## Requerimientos
-
-- Java 23
-- Gradle 9.0.0 (opcional)
-
-Dentro del proyecto se incluye Gradle Wrapper (version de Gradle solo para el entorno del proyecto), el cual puede usarse para contruir el proyecto sin necesidad de una instalación global de Gradle.
-
-Para verificar que las herramientas están correctamente instaladas, ejecute los siguientes comandos en una consola de Windows (incluye ejemplos de salidas esperadas como referencia):
-
-**Java**
-En cualquier ubicacion, ejecute:
-```bash
-java --version
-```
-ejemplo de salida esperada:
-```bash
-java 23.0.2 2025-01-21
-Java(TM) SE Runtime Environment (build 23.0.2+7-58)
-Java HotSpot(TM) 64-Bit Server VM (build 23.0.2+7-58, mixed mode, sharing)
-```
-
-**Gradle**
-En cualquier ubicacion, ejecute:
-```bash
-gradle -v
-```
-
-**Gradle Wrapper**
-Ubiquese en la raiz del proyecto (`...\expresso`) y ejecute:
-```bash
-gradlew -v
-```
-ejemplo de salida esperada para ambos comandos de Gradle:
-```bash
-------------------------------------------------------------
-Gradle 9.0.0
-------------------------------------------------------------
-
-Build time:    2025-07-31 16:35:12 UTC
-Revision:      328772c6bae126949610a8beb59cb227ee580241
-
-Kotlin:        2.2.0
-Groovy:        4.0.27
-Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
-Launcher JVM:  23.0.2 (Oracle Corporation 23.0.2+7-58)
-Daemon JVM:    C:\Program Files\Java\jdk-23 (no JDK specified, using current Java home)
-OS:            Windows 11 10.0 amd64
-```
 
 ## Pasos para Compilación/Ejecución
 
@@ -127,7 +152,7 @@ BUILD SUCCESSFUL in 16s
 Configuration cache entry reused.
 ```
 
-Se generará un archivo ejecutable (.exe) en la siguiente ruta: `...\expresso\app\build\jpackage\expressor\expressor.exe`
+Se generará un archivo ejecutable (.exe) en la siguiente ruta: `.\expresso\app\build\jpackage\expressor\expressor.exe`
 
 3. Ubicarse en la ruta de generacion del ejecutable de expressor. Ejecute:
 _(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
@@ -151,29 +176,43 @@ Nota: expressor es un programa de CLI que se ejecuta a través de comandos en la
 
 ## Comandos soportados por expressor
 
+Las rutas del archivo `.expresso` que se usen como input en los comando que contengan espacios en blanco deben ser encerradas entre comillas ("")
+Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/HelloWorld.expresso"`
+
 (Se debe reemplazar {ruta__al_.expresso} por la ruta real del archivo)
 
 1. **transpile**: Lee de disco un archivo HelloWorld.expresso que no está vacío, salva textualmente HelloWorld.java en la carpeta seleccionado, si no se selecciona alguna en particular, salva en la misma carpeta donde se ejecuta el comando expressor. Este se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
-ejemplos de uso
+
+Ejemplos de uso:
+
  ```bash
 expressor transpile --verbose --out output {ruta__al_.expresso}
-expressor transpile HelloWorld.expresso
-```  
+```
+ ```bash
+expressor transpile {ruta__al_.expresso}
+```
+
 2. **build**: Realiza el proceso de transpile de ser necesario y además permite compilar el archivo .java generado en la transpilación y generar el .class de este. Se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
+
+Ejemplos de uso:
 
  ```bash
 expressor build --verbose --out output {ruta__al_.expresso}
-expressor build HelloWorld.expresso
 ```
+ ```bash
+expressor build {ruta__al_.expresso}
+```
+
 3. **run**: Realiza el proceso de build si este no se realizo anteriormente y además permite ejecutar el archivo .class generado en la compilación (build) y mostrar el contenido de este. Se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
+
+Ejemplos de uso:
 
  ```bash
 expressor run --verbose --out output {ruta__al_.expresso}
-expressor run HelloWorld.expresso
 ```
-
-Las rutas del archivo `.expresso` que se usen como input en los comando que contengan espacios en blanco debe ser encerradas entre comillas ("")
-Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/HelloWorld.expresso"`
+ ```bash
+expressor run {ruta__al_.expresso}
+```
 
 **Opciones Comunes**
 
