@@ -119,7 +119,7 @@ Gradle Wrapper
 gradlew clean build
 ```
 
-3. Generar un ejecutable y comenzar a usar expressor como programa de linea de comandos. Ejecute:
+2. Generar un ejecutable y comenzar a usar expressor como programa de linea de comandos. Ejecute:
 Gradle
 ```bash
 gradle jpackageImage
