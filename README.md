@@ -15,7 +15,6 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 - JDK: 23.0.2
 - Gradle: 9.0.0
 - Picocli: 4.7.6 (para la implementación del CLI)
-- jpackage (utilizado para generar un paquete ejecutable opcional)
 
 #### Referencias usadas
 - Picocli: https://picocli.info/ (versión 4.7.6 para manejo de comandos CLI)
@@ -31,54 +30,160 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 ---
 
 # Manual de Uso
+
+## Requerimientos
+
+- Java 23
+- Gradle 9.0.0 (opcional)
+
+Dentro del proyecto se incluye Gradle Wrapper (version de Gradle solo para el entorno del proyecto), el cual puede usarse para contruir el proyecto sin necesidad de una instalación global de Gradle.
+
+Para verificar que las herramientas están correctamente instaladas, ejecute los siguientes comandos en una consola de Windows (incluye ejemplos de salidas esperadas como referencia):
+
+**Java**
+En cualquier ubicacion, ejecute:
+```bash
+java --version
+```
+ejemplo de salida esperada:
+```bash
+java 23.0.2 2025-01-21
+Java(TM) SE Runtime Environment (build 23.0.2+7-58)
+Java HotSpot(TM) 64-Bit Server VM (build 23.0.2+7-58, mixed mode, sharing)
+```
+
+**Gradle**
+En cualquier ubicacion, ejecute:
+```bash
+gradle -v
+```
+
+**Gradle Wrapper**
+Ubiquese en la raiz del proyecto (`...\expresso`) y ejecute:
+```bash
+gradlew -v
+```
+ejemplo de salida esperada para ambos comandos de Gradle:
+```bash
+------------------------------------------------------------
+Gradle 9.0.0
+------------------------------------------------------------
+
+Build time:    2025-07-31 16:35:12 UTC
+Revision:      328772c6bae126949610a8beb59cb227ee580241
+
+Kotlin:        2.2.0
+Groovy:        4.0.27
+Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+Launcher JVM:  23.0.2 (Oracle Corporation 23.0.2+7-58)
+Daemon JVM:    C:\Program Files\Java\jdk-23 (no JDK specified, using current Java home)
+OS:            Windows 11 10.0 amd64
+```
+
 ## Pasos para Compilación/Ejecución
 
-Nota: en caso de utilizar Graddle Wrapper se utiliza el comando `gradlew` en lugar de `gradle`
-
-1. Ubicado en la raiz del proyecto, abrir una instancia de Windows cmd y contruir el proyecto con:
+1. Abrir una instancia de consola de Windows
+1. Ubicarse en la raíz del proyecto (`...\expresso`)
+3. Construir el proyecto. Ejecute:
+Gradle
 ```bash
 gradle clean build
 ```
+Gradle Wrapper
+```bash
+gradlew clean build
+```
 
-2. Para generar el ejecutable y comenzar a usar expressor como programa de linea de comandos, ejecutar:
+3. Generar un ejecutable y comenzar a usar expressor como programa de linea de comandos. Ejecute:
+Gradle
 ```bash
 gradle jpackageImage
 ```
-Se generara un archivo ejecutable (.exe) en la siguiente ruta: `\app\build\jpackage\expressor`
 
-3. Ubicarse en la ruta de generacion del ejecuatable de expressor (`\app\build\jpackage\expressor\expressor.exe`) y abrir una instancia de cmd
+Gradle Wrapper
+```bash
+gradlew jpackageImage
+```
+salida esperada:
+```bash
+Reusing configuration cache.
+
+> Task :app:jpackageImage
+[19:23:18.652] Creating app package: expressor in C:\UNA\CICLO II 2025\PARADIGMAS\proyecto\REVISION\EIF400-II-2025_Expresso_Initial_02-1PM_Ignacio_Serrano\expresso\app\build\jpackage
+[19:23:30.135] Command [PID: -1]:
+    jlink --output build\jpackage\expressor\runtime --module-path C:\\Program Files\\Java\\jdk-23\\jmods --add-modules jdk.management.jfr,java.rmi,jdk.jdi,jdk.charsets,jdk.xml.dom,java.xml,java.datatransfer,jdk.jstatd,jdk.httpserver,java.desktop,java.security.sasl,jdk.zipfs,java.base,jdk.javadoc,jdk.management.agent,jdk.jshell,jdk.editpad,jdk.jsobject,java.sql.rowset,jdk.sctp,jdk.unsupported,java.smartcardio,jdk.jlink,java.security.jgss,jdk.nio.mapmode,java.compiler,jdk.dynalink,jdk.unsupported.desktop,jdk.accessibility,jdk.security.jgss,jdk.incubator.vector,java.sql,java.transaction.xa,java.xml.crypto,java.logging,jdk.jfr,jdk.internal.md,jdk.crypto.cryptoki,jdk.net,java.naming,jdk.internal.ed,java.prefs,java.net.http,jdk.compiler,jdk.internal.opt,jdk.naming.rmi,jdk.jconsole,jdk.attach,jdk.crypto.mscapi,jdk.internal.le,java.management,jdk.jdwp.agent,jdk.internal.jvmstat,java.instrument,jdk.management,jdk.security.auth,java.scripting,jdk.jdeps,jdk.jartool,java.management.rmi,jdk.jpackage,jdk.naming.dns,jdk.localedata --strip-native-commands --strip-debug --no-man-pages --no-header-files
+[19:23:30.135] Output:
+    WARNING: Using incubator modules: jdk.incubator.vector
+
+[19:23:30.135] Returned: 0
+
+[19:23:30.139] Using default package resource JavaApp.ico [icon] (add expressor.ico to the resource-dir to customize).
+[19:23:30.162] Warning: Windows Defender may prevent jpackage from functioning. If there is an issue, it can be addressed by either disabling realtime monitoring, or adding an exclusion for the directory "C:\Users\takoy\AppData\Local\Temp\jdk.jpackage3006707898795195769".
+[19:23:30.410] Using default package resource WinLauncher.template [Template for creating executable properties file] (add expressor.properties to the resource-dir to customize).
+[19:23:30.574] Succeeded in building Windows Application Image package
+
+BUILD SUCCESSFUL in 16s
+4 actionable tasks: 4 executed
+Configuration cache entry reused.
+```
+
+Se generará un archivo ejecutable (.exe) en la siguiente ruta: `...\expresso\app\build\jpackage\expressor\expressor.exe`
+
+3. Ubicarse en la ruta de generacion del ejecutable de expressor. Ejecute:
+_(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
+```bash
+cd app\build\jpackage\expressor
+```
+y
+```bash
+dir
+```
+Se mostrará una lista de directorios y archivos en esa ubicación. Debe estar presente el ejecutable **expressor.exe**
+
+4. Ejecute:
+```bash
+expressor --help
+```
+
+5. Listo. Ya puede comenzar a utilizar expressor como programa de linea de comandos **en la misma ubicación de expressor.exe**
+
+Nota: expressor es un programa de CLI que se ejecuta a través de comandos en la misma ubicación en donde fue generado el ejecutable. No ubicarse en esa ruta o cambiar la ubicación del ejecutable o otros archivos del proyecto podría resultar en mal funcionamiento o imposibilidad de utilizar expressor.  
 
 ## Comandos soportados por expressor
 
-1. **transpile**: Lee de disco el archivo HelloWorld.expresso que no está vacío, salva textualmente HelloWorld.java en la carpeta seleccionado, si no se selecciona alguna en particular, salva en la misma carpeta donde se ejecuta el comando expressor. Este se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
-   
+(Se debe reemplazar {ruta__al_.expresso} por la ruta real del archivo)
+
+1. **transpile**: Lee de disco un archivo HelloWorld.expresso que no está vacío, salva textualmente HelloWorld.java en la carpeta seleccionado, si no se selecciona alguna en particular, salva en la misma carpeta donde se ejecuta el comando expressor. Este se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
+ejemplos de uso
  ```bash
-expressor transpile --verbose --out output HelloWorld.expresso
+expressor transpile --verbose --out output {ruta__al_.expresso}
 expressor transpile HelloWorld.expresso
 ```  
 2. **build**: Realiza el proceso de transpile de ser necesario y además permite compilar el archivo .java generado en la transpilación y generar el .class de este. Se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
 
  ```bash
-expressor build --verbose --out output HelloWorld.expresso
+expressor build --verbose --out output {ruta__al_.expresso}
 expressor build HelloWorld.expresso
 ```
 3. **run**: Realiza el proceso de build si este no se realizo anteriormente y además permite ejecutar el archivo .class generado en la compilación (build) y mostrar el contenido de este. Se puede ejecutar como el usuario desee, con o sin argumentos opcionales.
 
  ```bash
-expressor run --verbose --out output HelloWorld.expresso
+expressor run --verbose --out output {ruta__al_.expresso}
 expressor run HelloWorld.expresso
 ```
 
-Las rutas del `.expresso` que se usen como input en los comando que contengan espacios en blanco debe ser encerradas entre comillas ("")
-Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/proyecto/HelloWorld.expresso"`
+Las rutas del archivo `.expresso` que se usen como input en los comando que contengan espacios en blanco debe ser encerradas entre comillas ("")
+Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/HelloWorld.expresso"`
 
 **Opciones Comunes**
 
-`--out`: define una ruta de carpeta en la que se guarda la salida en .java, si esa carpeta no existiera la crea en el directorio desde donde se esta ejecutando (ej. --out outputFolder)
+`--out`: define una ruta de carpeta en la que se guarda la salida en .java, si esa carpeta no existiera la crea en el directorio desde donde se esta ejecutando (ej. --out outputFolder). Es opcional (si no se especifica, se guarda todo en la misma ubicación desde donde se ejecuta el comando)
    
 `--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
 
 **NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas.
+
+---
 
 ## Prompts de IA (Íntegros)
 
