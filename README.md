@@ -39,8 +39,8 @@ setx PATH "%PATH%;%JAVA_HOME%\bin"
 **Verificación:**
 ```cmd
 java -version
-# Debería mostrar: java version "23.0.2" 2024-07-16
 ```
+Debería mostrar: `java version "23.0.2" 2024-07-16`
 
 ### 2. Instalación de Gradle 9.0.0
 **Descarga:**
@@ -59,8 +59,8 @@ setx PATH "%PATH%;%GRADLE_HOME%\bin"
 **Verificación:**
 ```cmd
 gradle -version
-# Debería mostrar: Gradle 9.0.0
 ```
+Debería mostrar: `Gradle 9.0.0`
 
 ### Gradle Wrapper
 
@@ -71,7 +71,7 @@ Ubiquese en la raiz del proyecto (`...\expresso`) y ejecute:
 ```bash
 gradlew -v
 ```
-Debería mostrar: Gradle 9.0.0
+Debería mostrar: `Gradle 9.0.0`
 
 ### 3. Clonar el proyecto
 **Clonar/descargar el proyecto en alguna ubicacion:**
