@@ -9,7 +9,7 @@ Universidad Nacional de Costa Rica, Escuela de Informática
 - Pablo Chavarria Alvarez - 117810573  
 
 ## Descripción
-CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula la transpilación, compilación y ejecución de archivos `.expresso` a Java, generando archivos `.java` y `.class` en el directorio especificado. Usa Picocli para manejar argumentos, Gradle para la construcción, y `jpackage` para generar una imagen ejecutable en consola pura (Windows/cmd). El diseño sigue principios de OOP (clases por subcomando, encapsulación), modularidad (paquete `org.example.cli`), y estilo DRY con manejo de errores alinead con los principio de Knuth.
+CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula la transpilación, compilación y ejecución de archivos `.expresso` a Java, generando archivos `.java` y `.class` en el directorio especificado. Usa Picocli para manejar argumentos, Gradle para la construcción, y `jpackage` para generar una imagen ejecutable en consola pura (Windows/cmd). El diseño sigue principios de OOP (clases por subcomando, encapsulación), modularidad (paquete `una.paradigmas.cli`), y estilo DRY con manejo de errores alinead con los principio de Knuth.
 
 #### Versiones de las herramientas utilizadas
 - JDK: 23.0.2
