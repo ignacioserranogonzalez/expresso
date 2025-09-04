@@ -31,10 +31,15 @@ CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Simula 
 - Asegúrese de instalar en una ruta sin espacios (recomendado: `C:\Java\jdk-23.0.2`)
 
 **Configuración de variables de entorno:**
+
+1. Abra una consola de Windows CMD como administrador (Inicio > escribe "cmd" > clic derecho > "Ejecutar como administrador").
+
+2. Ejecute los siguientes comandos:
 ```cmd
 setx JAVA_HOME "C:\Java\jdk-23.0.2"
 setx PATH "%PATH%;%JAVA_HOME%\bin"
 ```
+3. Cierre y vuelva a abrir la consola para aplicar los cambios.
 
 **Verificación:**
 ```cmd
@@ -51,16 +56,37 @@ Debería mostrar: `java version "23.0.2" 2024-07-16`
 - Extraiga el archivo ZIP en `C:\Gradle\gradle-9.0.0`
 
 **Configuración de variables de entorno:**
+
+1. Abra CMD como administrador.
+
+2. Ejecute:
+
 ```cmd
 setx GRADLE_HOME "C:\Gradle\gradle-9.0.0"
 setx PATH "%PATH%;%GRADLE_HOME%\bin"
 ```
+3. Cierre y reabra la consola.
 
 **Verificación:**
 ```cmd
 gradle -version
 ```
-Debería mostrar: `Gradle 9.0.0`
+Debería mostrar:
+
+```cmd
+------------------------------------------------------------
+Gradle 9.0.0
+------------------------------------------------------------
+
+Build time:    2025-07-31 16:35:12 UTC
+Revision:      328772c6bae126949610a8beb59cb227ee580241
+
+Kotlin:        2.2.0
+Groovy:        4.0.27
+Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+Launcher JVM:  23.0.2 (Oracle Corporation 23.0.2+7-58)
+Daemon JVM:    C:\Program Files\Java\jdk-23 (no JDK specified, using current Java home)
+```
 
 ### Gradle Wrapper
 
@@ -73,11 +99,20 @@ gradlew -v
 ```
 Debería mostrar: `Gradle 9.0.0`
 
+Si el comando falla, asegúrese de tener permisos de ejecución en la carpeta del proyecto. Puede verificar permisos ejecutando:
+
+```cmd 
+dir gradlew
+```
+
 ### 3. Clonar el proyecto
 **Clonar/descargar el proyecto en alguna ubicacion:**
 ```cmd
 git clone <url-del-repositorio>
 ```
+Url del repositorio: https://github.com/ignacioserranogonzalez/expresso.git
+
+O bien si no quiere clonarlo, descargue el zip en la misma Url, teniendo el zip descargado puede descomprimirlo en la carpeta que guste.
 
 ## Solución de Problemas Comunes
 
@@ -90,7 +125,7 @@ git clone <url-del-repositorio>
 
 ### Permisos insuficientes:
 - Ejecute la consola como Administrador para instalaciones globales
-
+---
 #### Referencias usadas
 - Picocli: https://picocli.info/ (versión 4.7.6 para manejo de comandos CLI)
 - jpackage: Parte del jdk 23 y usado para empaquetado nativo
@@ -101,7 +136,7 @@ git clone <url-del-repositorio>
 - La carpeta `resources/template` contiene el archivo `HelloWorld.java` requerido, ubicado en la raíz del proyecto.
 - Consultar el `build.gradle` para detalles de dependencias y configuración.
 
----
+
 
 # Manual de Uso
 
@@ -110,6 +145,9 @@ git clone <url-del-repositorio>
 1. Abrir una instancia de consola de Windows
 1. Ubicarse en la raíz del proyecto (`...\expresso`)
 3. Construir el proyecto. Ejecute:
+
+Importante: Si no instalo gradle de manera global en su computador como se le indicó que podría realizarlo en la guia de instalación puede utilizar gradlew (Gradle Wrapper) 
+   
 Gradle
 ```bash
 gradle clean build
