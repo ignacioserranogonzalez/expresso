@@ -5,7 +5,6 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import java.nio.file.Files;
 import java.io.IOException;
 import java.lang.ProcessBuilder;
@@ -63,13 +62,16 @@ public class RunCommand implements Runnable {
                     log("Recompilando...");
                     if (!BuildCommand.buildCommon(templateFile, outputDir)) return;
                 } else {
+                    // transpile
                     log("Transpilando .expresso a .java...");
                     templateFile = TranspileCommand.transpileCommon(input, outputDir);
                     if (templateFile == null) return;
+
+                    // build
                     log("Compilando .java...");
                     if (!BuildCommand.buildCommon(templateFile, outputDir)) return;
                 }
-                
+
                 execute(classFile, outputDir);
             }
 
