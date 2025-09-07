@@ -30,10 +30,6 @@ plugins {
     id 'application'
 }
 
-plugins {
-    id 'antlr'
-}
-
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -41,7 +37,7 @@ repositories {
 
 dependencies {
     // Use JUnit test framework.
-    testImplementation libs.junit
+    testImplementation 'junit:junit:4.13.2'
 
     // This dependency is used by the application.
     implementation libs.guava
@@ -59,7 +55,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'una.paradgimas.App'
+    mainClass = 'una.paradigmas.App'
 }
 
 task copyDependencies(type: Copy) {

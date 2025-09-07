@@ -1,7 +1,7 @@
 package una.paradigmas;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
