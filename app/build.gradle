@@ -54,10 +54,10 @@ dependencies {
 
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ['-package', 'main.antlr4'] // Opcional: especifica el paquete
-    outputDirectory = file("${project.buildDir}/generated-src/antlr/main/java/una/paradigmas/antlr")
+    arguments += ['-package', 'java.una.paradigmas.antlr'] // ← PAQUETE Java, no ruta
+    outputDirectory = file("${project.buildDir}/generated-src/antlr/main")
 }
- 
+
 sourceSets {
     main {
         java {
