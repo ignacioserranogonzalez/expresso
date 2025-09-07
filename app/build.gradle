@@ -49,12 +49,12 @@ dependencies {
     annotationProcessor 'info.picocli:picocli-codegen:4.7.6'
 
     antlr "org.antlr:antlr4:4.13.2" // For the ANTLR tool
-    implementation "org.antlr:antlr4-runtime:4.13.2" // For the ANTLR runtime in your application
+    //implementation "org.antlr:antlr4-runtime:4.13.2" // For the ANTLR runtime in your application
 }
 
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ['-package', 'java.una.paradigmas.antlr'] // Opcional: especifica el paquete
+    arguments += ['-package', 'main.antlr4'] // Opcional: especifica el paquete
     outputDirectory = file("${project.buildDir}/generated-src/antlr/main/java/una/paradigmas/antlr")
 }
  
