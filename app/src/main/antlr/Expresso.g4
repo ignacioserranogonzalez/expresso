@@ -1,23 +1,36 @@
 grammar Expresso;
 
+// Punto de entrada: cero o más sentencias terminadas por NEWLINE
 prog: stat* EOF;
 
-stat: letStmt NEWLINE
-    | printStmt NEWLINE
-    | NEWLINE
-    ;
+// Una sentencia puede ser: expresión, declaración let, línea vacía
+stat: expr NEWLINE          # printExpr
+    | LET ID '=' expr NEWLINE # letDecl
+    | NEWLINE               # blank
+;
 
-letStmt: 'let' ID '=' expr;
-printStmt: 'print' expr;
+// Expresiones con precedencia, unario '-', lambdas y variables
+expr: '-' expr                              # unaryMinus
+    | expr op=('*'|'/') expr               # MulDiv
+    | expr op=('+'|'-') expr               # AddSub
+    | <assoc=right> expr '->' expr         # lambdaExpr
+    | LAMBDA ID '->' expr                  # lambdaDef
+    | LET ID '=' expr IN expr              # letInExpr
+    | expr expr                            # application
+    | INT                                  # int
+    | ID                                   # id
+    | '(' expr ')'                         # parens
+;
 
-expr: expr ('+' | '-') expr
-    | expr ('*' | '/') expr
-    | INT
-    | ID
-    | '(' expr ')'
-    ;
+// PALABRAS RESERVADAS
+LET: 'let';
+IN: 'in';
+LAMBDA: 'lambda' | 'λ';  // Soporte para ambas notaciones
 
-ID: [a-zA-Z_][a-zA-Z_0-9]*;
+// IDENTIFICADORES (variables)
+ID: [a-zA-Z_][a-zA-Z0-9_]*;
+
+// LEXER BÁSICO
 INT: [0-9]+;
 NEWLINE: '\r'? '\n';
 WS: [ \t]+ -> skip;
