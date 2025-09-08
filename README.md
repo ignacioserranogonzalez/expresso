@@ -346,3 +346,32 @@ Es decir, si no defino el `outputDir`, este se vuelve `null` y me genera el erro
 - Antes de agregar esto a mi proyecto, me gustaría entender paso a paso qué hace la parte de ejecución del método `run()`.
 
 - ¿Qué es **ProcessBuilder** y para qué sirve?
+
+-Tengo esta gramatica para trabajar con ANTLR4, actualmente esta para un proyecto con JavaScript, sin embargo la quiero migrar para un proyecto en java, y adicional la gramática debe ser extendida para manejar let y lambas , manteniendo el estilo de programación DRY y Knuth
+
+grammar Expr;
+
+
+// Punto de entrada: cero o más sentencias terminadas por NEWLINE
+prog : stat* EOF ;
+
+
+// Una sentencia puede ser una expresión -> imprimir, o línea vacía
+stat : expr NEWLINE         # printExpr
+       | NEWLINE            # blank
+;
+
+
+// Expresiones con precedencia y unario '-'
+expr :    '-' expr 					# unaryMinus
+		| expr op=('*'|'/') expr 	# MulDiv
+		| expr op=('+'|'-') expr 	# AddSub
+		| INT # int
+		| '(' expr ')' 				# parens
+;
+
+
+// LEXER
+INT : [0-9]+ ;
+NEWLINE: ('\r'? '\n') ;
+WS : [ \t]+ -> skip ;
