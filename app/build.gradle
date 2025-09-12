@@ -52,13 +52,20 @@ dependencies {
     implementation "org.antlr:antlr4-runtime:4.13.2" // For the ANTLR runtime in your application
 }
 
-generateGrammarSource {
-    maxHeapSize = "64m"
-    arguments += ['-package', 'java.una.paradigmas.antlr'] // ← PAQUETE Java, no ruta
-    outputDirectory = file("${project.buildDir}/generated-src/antlr/main")
+application {
+    mainClass = 'una.paradigmas.App'
 }
 
-sourceSets {
+generateGrammarSource { // configuracion de antlr
+    arguments += [
+        '-package', 'una.paradigmas.antlr',
+        '-Dlanguage=Java',
+        '-visitor'
+    ]
+    outputDirectory = file("${project.buildDir}/generated-src/antlr/main") 
+}
+
+sourceSets { // define donde encontrar los java generados
     main {
         java {
             srcDirs += ["${project.buildDir}/generated-src/antlr/main"]
@@ -71,11 +78,6 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(23)
     }
-}
-
-application {
-    // Define the main class for the application.
-    mainClass = 'una.paradigmas.App'
 }
 
 task copyDependencies(type: Copy) {
