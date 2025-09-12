@@ -1,7 +1,19 @@
 package una.paradigmas;
 
 import org.junit.Test;
+
+import una.paradigmas.ast.AstBuilder;
+import una.paradigmas.ast.AstPrintVisitor;
+import una.paradigmas.ast.Expr;
+import una.paradigmas.ast.ExpressoLexer;
+import una.paradigmas.ast.ExpressoParser;
+import una.paradigmas.ast.Program;
+
 import static org.junit.Assert.assertTrue;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -21,7 +33,21 @@ import static org.junit.Assert.assertTrue;
 
 public class AppTest {
     @Test 
-    public void appTest() {
-        assertTrue(true);
+public void testAST() {
+        String input = "2 + 3\n";
+
+        CharStream charStream = CharStreams.fromString(input);
+        ExpressoLexer lexer = new ExpressoLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        ExpressoParser parser = new ExpressoParser(tokens);
+
+        // parsear y construir AST
+        AstBuilder builder = new AstBuilder();
+        Program ast = (Program) builder.visit(parser.program()); // devuelve Program
+
+        // imprimir con tu visitor
+        AstPrintVisitor printer = new AstPrintVisitor();
+        printer.visitProgram(ast);
     }
+
 }

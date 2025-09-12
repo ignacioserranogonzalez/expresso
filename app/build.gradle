@@ -56,13 +56,22 @@ application {
     mainClass = 'una.paradigmas.App'
 }
 
+test {
+    testLogging {
+        showStandardStreams = true
+        events "passed", "skipped", "failed"
+    }
+}
+
 generateGrammarSource { // configuracion de antlr
     arguments += [
-        '-package', 'una.paradigmas.antlr',
+        '-package', 'una.paradigmas.ast',
         '-Dlanguage=Java',
-        '-visitor'
+        '-visitor',
+        '-lib', 'src/main/antlr',
+        '-Xexact-output-dir'
     ]
-    outputDirectory = file("${project.buildDir}/generated-src/antlr/main") 
+    outputDirectory = file("${project.buildDir}/generated-src/antlr/main/una/paradigmas/ast") 
 }
 
 sourceSets { // define donde encontrar los java generados
