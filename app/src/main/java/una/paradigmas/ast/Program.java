@@ -2,7 +2,7 @@ package una.paradigmas.ast;
 
 import java.util.List;
 
-public record Program(List<Expr> statements) implements Expr {
+public record Program(List<Node> statements) implements Node {
     public Program {
         statements = List.copyOf(statements); // Inmutabilidad
     }

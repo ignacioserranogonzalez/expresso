@@ -6,7 +6,7 @@ public class AstPrintVisitor implements Visitor<String> {
     public String visitProgram(Program program) {
         String result = "Program(" + String.join(", ",
                 program.statements().stream()
-                        .map(stmt -> stmt.accept(this))
+                        .map(statement -> statement.accept(this))
                         .toList()) + ")";
         System.out.println(result);
         return result;

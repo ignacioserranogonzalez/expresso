@@ -4,12 +4,10 @@ import org.junit.Test;
 
 import una.paradigmas.ast.AstBuilder;
 import una.paradigmas.ast.AstPrintVisitor;
-import una.paradigmas.ast.Expr;
 import una.paradigmas.ast.ExpressoLexer;
 import una.paradigmas.ast.ExpressoParser;
 import una.paradigmas.ast.Program;
 
-import static org.junit.Assert.assertTrue;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -43,9 +41,9 @@ public void testAST() {
 
         // parsear y construir AST
         AstBuilder builder = new AstBuilder();
-        Program ast = (Program) builder.visit(parser.program()); // devuelve Program
+        Program ast = builder.visitProgram(parser.program());
 
-        // imprimir con tu visitor
+        // imprimir con print visitor
         AstPrintVisitor printer = new AstPrintVisitor();
         printer.visitProgram(ast);
     }
