@@ -1,8 +1,8 @@
 package una.paradigmas.ast;
 
-public record Num(int value) implements Node {
+public record Id(String value) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitNum(this);
+        return visitor.visitId(this);
     }
 }

@@ -5,7 +5,7 @@ program: stat* EOF;
 // statements
 stat: NEWLINE                        # blank
     | expr NEWLINE                   # expression
-//    | LET ID ASSIGN expr NEWLINE     # letDecl
+    | LET ID ASSIGN expr NEWLINE     # letDecl
 //    | PRINT '(' expr ')' NEWLINE     # print
 ;
 
@@ -18,9 +18,10 @@ expr: expr POW expr                  # PowExpr
 //    | ID '(' expr ')'                # CallExpr
 //    | ID LAMBDA expr                 # LambdaExpr
 //    | '(' expr ')'                   # ParenExpr
-//    | SIGNED_INT                     # SignedIntExpr
+//    | SIGNED_INT                     # SignedInt
     | INT                              # Int
-//    | ID                             # IdExpr
+    | FLOAT                            # Float
+    | ID                               # Id
 ;
 
 // Lexer
@@ -30,6 +31,7 @@ PRINT   : 'print';
 LAMBDA  : '->';
 
 INT : [0-9]+;
+FLOAT : [0-9]+('.'[0-9]+)?;
 SIGNED_INT : ('+'|'-')? INT;
 ID  : [a-zA-Z_][a-zA-Z0-9_]*;
 POW : '**';

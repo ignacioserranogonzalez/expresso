@@ -13,17 +13,39 @@ public class AstPrintVisitor implements Visitor<String> {
     }
 
     @Override
-    public String visitNum(Num num) {
-        String result = "Num(" + num.value() + ")";
+    public String visitInt(IntLiteral num) {
+        String result = "Int(" + num.value() + ")";
         System.out.println(result);
         return result;
     }
 
     @Override
+    public String visitFloat(FloatLiteral num) {
+        String result = "Float(" + num.value() + ")";
+        System.out.println(result);
+        return result;
+    }
+    
+    @Override
+    public String visitId(Id id) {
+        String result = "Id(" + id.value() + ")";
+        System.out.println(result);
+        return result;
+    }
+    
+    @Override
     public String visitBinaryOp(BinaryOp binOp) {
         String result = "BinaryOp(" + binOp.op() + ", "
-                + binOp.left().accept(this) + ", "
-                + binOp.right().accept(this) + ")";
+        + binOp.left().accept(this) + ", "
+        + binOp.right().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+    
+    @Override
+    public String visitLet(Let let) {
+        String result = "Let(" + let.id() + ", " 
+                        + let.value().accept(this) + ")";
         System.out.println(result);
         return result;
     }

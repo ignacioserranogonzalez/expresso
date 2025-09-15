@@ -32,18 +32,18 @@ import org.antlr.v4.runtime.CommonTokenStream;
 public class AppTest {
     @Test 
 public void testAST() {
-        String input = "2 + 3\n";
+        String input = "2 + 3.5\nlet x = 1\nlet y = 2.33";
 
         CharStream charStream = CharStreams.fromString(input);
         ExpressoLexer lexer = new ExpressoLexer(charStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         ExpressoParser parser = new ExpressoParser(tokens);
 
-        // parsear y construir AST
+        //parsear y construir AST
         AstBuilder builder = new AstBuilder();
         Program ast = builder.visitProgram(parser.program());
 
-        // imprimir con print visitor
+        //imprimir con print visitor
         AstPrintVisitor printer = new AstPrintVisitor();
         printer.visitProgram(ast);
     }
