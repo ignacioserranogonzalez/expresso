@@ -1,8 +1,8 @@
 package una.paradigmas.ast;
 
-public record Let(Id id, Node value) implements Node {
+record Pow(Node left, Node right) implements BinaryOp {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitLet(this);
+        return visitor.visitPow(this);
     }
 }

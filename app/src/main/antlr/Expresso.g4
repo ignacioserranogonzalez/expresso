@@ -6,23 +6,26 @@ program: stat* EOF;
 stat: NEWLINE                        # blank
     | expr NEWLINE                   # expression
     | LET ID ASSIGN expr NEWLINE     # letDecl
-//    | PRINT '(' expr ')' NEWLINE     # print
+    | PRINT '(' expr ')' NEWLINE     # print
 ;
 
 // expressions
-expr: expr POW expr                  # PowExpr
-//    | expr (MULT | DIV) expr         # MultDivExpr
-    | expr (PLUS | MINUS) expr       # BinaryOp
-//    | expr INC                       # PostIncrExpr
-//    | expr DEC                       # PostDecrExpr
-//    | ID '(' expr ')'                # CallExpr
-//    | ID LAMBDA expr                 # LambdaExpr
-//    | '(' expr ')'                   # ParenExpr
-//    | SIGNED_INT                     # SignedInt
-    | INT                              # Int
-    | FLOAT                            # Float
-    | ID                               # Id
+expr: expr POW expr                  # Pow
+    | expr (MULT | DIV) expr         # MultDiv
+    | expr (PLUS | MINUS) expr       # AddSub
+    | expr INC                       # PostInc
+    | expr DEC                       # PostDec
+    | (PLUS | MINUS) num             # UnaryOp
+    | ID '(' expr ')'                # Call
+    | '(' expr ')'                   # Paren
+    | ID LAMBDA expr                 # Lambda
+    | INT                            # Int
+    | FLOAT                          # Float
+    | ID                             # Id
 ;
+
+num: INT
+    | FLOAT;
 
 // Lexer
 LET     : 'let';
@@ -32,7 +35,6 @@ LAMBDA  : '->';
 
 INT : [0-9]+;
 FLOAT : [0-9]+('.'[0-9]+)?;
-SIGNED_INT : ('+'|'-')? INT;
 ID  : [a-zA-Z_][a-zA-Z0-9_]*;
 POW : '**';
 INC : '++';

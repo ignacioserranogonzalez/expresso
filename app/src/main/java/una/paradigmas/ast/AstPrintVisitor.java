@@ -34,18 +34,78 @@ public class AstPrintVisitor implements Visitor<String> {
     }
     
     @Override
-    public String visitBinaryOp(BinaryOp binOp) {
-        String result = "BinaryOp(" + binOp.op() + ", "
-        + binOp.left().accept(this) + ", "
-        + binOp.right().accept(this) + ")";
+    public String visitPow(Pow pow) {
+        String result = "Pow(" + pow.left().accept(this) + ", " +
+                        pow.right().accept(this) + ")";
         System.out.println(result);
         return result;
     }
-    
+
+    @Override
+    public String visitAddSub(AddSub addSub) {
+        String result = "AddSub(" + addSub.left().accept(this) + ", " +
+                        addSub.right().accept(this) + ", " + addSub.op() + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitMultDiv(MultDiv multDiv) {
+        String result = "MultDiv(" + multDiv.left().accept(this) + ", " +
+                        multDiv.right().accept(this) + ", " + multDiv.op() + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitUnaryOp(UnaryOp unOp) {
+        String result = "UnaryOp(" + unOp.op() + ", " +
+                        unOp.num().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitPostOp(PostOp postOp) {
+        String result = "PostOp(" + postOp.expr().accept(this) + ", " + postOp.op() + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitParen(Paren paren) {
+        String result = "Paren(" + paren.expr().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+
     @Override
     public String visitLet(Let let) {
-        String result = "Let(" + let.id() + ", " 
-                        + let.value().accept(this) + ")";
+        String result = "Let(" + let.id().accept(this) + ", " +
+                        let.value().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitPrint(Print print) {
+        String result = "Print(" + print.expr().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitLambda(Lambda lambda) {
+        String result = "Lambda(" + lambda.id().accept(this) + ", " +
+                        lambda.expr().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitCall(Call call) {
+        String result = "Call(" + call.id().accept(this) + ", " +
+                        call.expr().accept(this) + ")";
         System.out.println(result);
         return result;
     }
