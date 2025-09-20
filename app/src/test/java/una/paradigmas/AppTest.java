@@ -6,6 +6,7 @@ import una.paradigmas.ast.AstBuilder;
 import una.paradigmas.ast.AstPrintVisitor;
 import una.paradigmas.ast.ExpressoLexer;
 import una.paradigmas.ast.ExpressoParser;
+import una.paradigmas.ast.JavaCodeGenerator;
 import una.paradigmas.ast.Program;
 
 
@@ -51,6 +52,12 @@ public void testAST() {
         // imprimir con print visitor
         AstPrintVisitor printer = new AstPrintVisitor();
         printer.visitProgram(ast);
+
+        //Generar codigo Java a partir del AST
+        JavaCodeGenerator generator = new JavaCodeGenerator("Example");
+        String javaCode = generator.visit(ast);
+        System.out.println("\n");
+        System.out.println(javaCode);
     }
 
 }
