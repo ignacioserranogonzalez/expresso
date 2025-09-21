@@ -33,7 +33,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 public class AppTest {
     @Test 
 public void testAST() {
-        String input = "let x = 666\n" +
+        String input = "// Comentario de prueba\n" +
+                        "let x = 666\n" +
                         "print(x)\n" +
                         "let y = 10\n" +
                         "print(y)\n" +

@@ -15,4 +15,5 @@ public interface Visitor<T> {
     T visitLambda(Lambda lambda);
     T visitCall(Call call);
     T visitProgram(Program program);
+    T visitComment(Comment comment);
 }

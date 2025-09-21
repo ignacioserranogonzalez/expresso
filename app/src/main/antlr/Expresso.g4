@@ -7,6 +7,7 @@ stat: NEWLINE                        # blank
     | expr NEWLINE                   # expression
     | LET ID ASSIGN expr NEWLINE     # letDecl
     | PRINT '(' expr ')' NEWLINE     # print
+    | COMMENT NEWLINE                # comment
 ;
 
 // expressions
@@ -44,6 +45,6 @@ MINUS  : '-';
 MULT  : '*';
 DIV  : '/';
 
-COMMENT: '//' ~[\r\n]* -> skip ;
+COMMENT: '//' ~[\r\n]*;
 NEWLINE: '\r'? '\n';
 WS: [ \t]+ -> skip;

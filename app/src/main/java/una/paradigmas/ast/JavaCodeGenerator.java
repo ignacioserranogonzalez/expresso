@@ -19,20 +19,14 @@ public class JavaCodeGenerator implements Visitor<String> {
      List<String> statlist = ast.statements().stream()
                              .map(s -> s.accept(this)) 
                              .toList();                
-    /*
-     llama al metodo accept de program, este contiene 
-     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitProgram(this);
-    }
-
-    donde Visitor<T> visitor es JavaCodeGenerator
-    entonces retorna javaCodeGenerator.visitProgram(this), lo cual llama al metodo visitProgram de JavaCodeGenerator
-    */
 
     StringBuilder codeBuilder = new StringBuilder();
-
-    codeBuilder.append("// ").append(className).append(".java\n");
-
+    
+    //se encarga de agregar los comentarios al inicio del codigo
+    statlist.stream()
+                .takeWhile(line -> line.startsWith("//"))
+                .forEachOrdered(line -> codeBuilder.append(line).append("\n"));
+        
     if(imports.contains("java.util.function.UnaryOperator")){
         codeBuilder.append("import java.util.function.UnaryOperator;\n");
     }
@@ -51,7 +45,14 @@ public class JavaCodeGenerator implements Visitor<String> {
 
    codeBuilder.append("    public static void main(String... args) {\n");
 
-   statlist.forEach(line -> codeBuilder.append("        ").append(line).append(";\n")); //se puede cambiar, mas FP y DRY
+  //se encarga de los comentarios y las instrucciones restantes 
+  statlist.stream()
+                .dropWhile(line -> line.startsWith("//"))
+                .forEachOrdered(line -> 
+                    codeBuilder.append("        ")
+                               .append(line.startsWith("//") ? line : line + ";")
+                               .append("\n")
+                );
 
     codeBuilder.append("    }\n");
     codeBuilder.append("}\n");
@@ -129,7 +130,9 @@ public class JavaCodeGenerator implements Visitor<String> {
     String valueCode = let.value().accept(this);
     String varType = (let.value() instanceof Lambda) ? "UnaryOperator<Integer>" : "int"; //puede cambiarse??
     return varType + " " + let.id().accept(this) + " = " + valueCode;
-}
-
-
+    }
+    @Override
+    public String visitComment(Comment comment) {
+    return comment.text().startsWith("//") ? comment.text() : "// " + comment.text();
+    }
 }

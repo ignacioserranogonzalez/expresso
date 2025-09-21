@@ -117,4 +117,8 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitBlank(BlankContext ctx) {
         return null;
     }
+    @Override
+    public Node visitComment(CommentContext ctx) {
+    return new Comment(ctx.COMMENT().getText());
+    }
 }
