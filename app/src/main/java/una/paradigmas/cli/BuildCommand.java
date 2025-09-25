@@ -5,6 +5,8 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -37,37 +39,61 @@ public class BuildCommand implements Runnable {
 
     @Override
     public void run() {
+        
+        Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : Path.of("generated");
+        Path javaFile = prepareJavaFile(input, outputDir);
+
         try {
-            Path javaFile = TranspileCommand.transpileCommon(input, commonOptions.outputDir);
-            if (javaFile != null) buildCommon(javaFile, commonOptions.outputDir);
-        } catch (Exception e) {
+            // Verificar que el .java exista
+            if (!Files.exists(javaFile)) {
+                throw new IOException("Archivo .java no encontrado: " + javaFile + ". Ejecuta 'transpile' primero.");
+            }
+
+            // Compilar con JavaCompiler
+            compileJavaFile(javaFile, outputDir);
+            log("SUCCESS - Archivo .class compilado en: " + outputDir.resolve(getBaseName(input) + ".class").toAbsolutePath());
+        
+        } catch (IOException e) {
             System.err.println("ERROR - " + e.getMessage());
         }
+    }
+
+    private void compileJavaFile(Path javaFile, Path outputDir) throws IOException {
+        log("Compilando " + javaFile.getFileName() + " a .class...");
+
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            throw new IOException("ERROR - JavaCompiler no disponible.");
+        }
+
+        int result = compiler.run(null, null, null, 
+                            "-d", outputDir.toString(), 
+                            javaFile.toString());
+
+        if (result != 0) {
+            throw new IOException("Compilación falló con código de salida: " + result);
+        }
+        
     }
 
     private static void log(String msg) {
         if (commonOptions.verbose) System.out.println(msg);
     }
 
-    protected static boolean buildCommon(Path javaFile, Path outputDir) {
-        log("Compilando " + javaFile.getFileName() + " a .class...");
-        
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler == null) {
-            System.err.println("ERROR - JavaCompiler no disponible.");
-            return false;
-        }
-
-        int result = compiler.run(null, null, null, 
-                                "-d", outputDir.toString(), 
-                                javaFile.toString());
-
-        if (result == 0) {
-            log("SUCCESS - Compilado a .class en: " + outputDir.toAbsolutePath());
-            return true;
-        } else {
-            System.err.println("ERROR - Fallo en la compilacion");
-            return false;
-        }
+    private Path prepareJavaFile(Path input, Path outputDir) {
+        String baseName = getBaseName(input);
+        String capitalizedName = capitalize(baseName) + ".java";
+        return outputDir.resolve(capitalizedName);
     }
+
+    private String getBaseName(Path input) {
+        return input.getFileName().toString().replaceAll("(?i)\\.expresso$", "");
+    }
+
+    private static String capitalize(String name) {
+        if (name == null || name.isEmpty()) return name;
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
 }
+

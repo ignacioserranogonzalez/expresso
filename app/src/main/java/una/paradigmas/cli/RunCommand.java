@@ -4,9 +4,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Parameters;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.Files;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.ProcessBuilder;
 import java.lang.Process;
 
@@ -40,51 +41,42 @@ public class RunCommand implements Runnable {
 
     @Override
     public void run() {
+        Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : Path.of("generated");
+        Path classFile = prepareClassFile(input, outputDir);
         try {
-            Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : input.getParent();
-            Path templateFile = Paths.get(
-                System.getProperty("PROJECT_ROOT"), 
-                "resources/template/HelloWorld.java");
-            Path classFile = outputDir.resolve(input.getFileName().toString().replace(".expresso", ".class"));
-
-            var expTime   = Files.getLastModifiedTime(input);
-            var classTime = Files.exists(classFile) ? Files.getLastModifiedTime(classFile) : null;
-
-            if (classTime != null && classTime.compareTo(expTime) >= 0) {
-                log("Usando .class existente y actualizado...");
-                execute(classFile, outputDir);
-
-            } else {
-
-                validateInput(input);
-
-                if (classTime != null && expTime.compareTo(classTime) > 0) {
-                    log("Recompilando...");
-                    if (!BuildCommand.buildCommon(templateFile, outputDir)) return;
-                } else {
-                    // transpile
-                    log("Transpilando .expresso a .java...");
-                    templateFile = TranspileCommand.transpileCommon(input, outputDir);
-                    if (templateFile == null) return;
-
-                    // build
-                    log("Compilando .java...");
-                    if (!BuildCommand.buildCommon(templateFile, outputDir)) return;
-                }
-
-                execute(classFile, outputDir);
+            // Verifica que el .class exista
+            if (!Files.exists(classFile)) {
+                throw new IOException("Archivo .class no encontrado: " + classFile + ". Ejecuta 'build' primero.");
             }
-
-        } catch (Exception e) {
+            // Ejecuta el .class
+            runClassFile(classFile, outputDir);
+            log("SUCCESS - Ejecución completada exitosamente.");
+        
+        } catch (IOException | InterruptedException e) {
             System.err.println("ERROR - " + e.getMessage());
         }
     }
-    
-    private static void validateInput(Path input) throws IOException {
-        log("Leyendo .expresso...");
-        String filename = input.getFileName().toString();
-        if (!Files.exists(input) || Files.size(input) == 0 || !filename.toLowerCase().endsWith(".expresso")) {
-            throw new IllegalArgumentException("Archivo .expresso no existe o esta vacio");
+
+    private void runClassFile(Path classFile, Path outputDir) throws IOException, InterruptedException {
+        String className = classFile.getFileName().toString().replaceAll("\\.class$", "");
+        log("Ejecutando " + className + "...");
+        ProcessBuilder pb = new ProcessBuilder("java", "-cp", outputDir.toString(), className);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+
+        // Captura la salida
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (commonOptions.verbose) {
+                    System.out.println(line);
+                }
+            }
+        }
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new IOException("Ejecución falló con código de salida: " + exitCode);
         }
     }
 
@@ -92,25 +84,19 @@ public class RunCommand implements Runnable {
         if (commonOptions.verbose) System.out.println(msg);
     }
 
-    private void execute(Path classFile, Path outputDir) {
-        String className = classFile.getFileName().toString().replace(".class", "");
-        
-        log("Ejecutando " + className + "...");
-        
-        try {
-            ProcessBuilder pb = new ProcessBuilder("java", "-cp", outputDir.toString(), className);
-            pb.inheritIO();
-            Process process = pb.start();
-            int exitCode = process.waitFor();
-            
-            if (exitCode == 0) {
-                log("SUCCESS - Ejecucion completada");
-            } else {
-                System.err.println("ERROR - Fallo en la ejecucion (codigo: " + exitCode + ")");
-            }
-        } catch (IOException | InterruptedException e) {
-            System.err.println("ERROR - No se pudo ejecutar: " + e.getMessage());
-            Thread.currentThread().interrupt();
-        }
+     private Path prepareClassFile(Path input, Path outputDir) {
+        String baseName = getBaseName(input);
+        String capitalizedName = capitalize(baseName) + ".class";
+        return outputDir.resolve(capitalizedName);
     }
+
+    private String getBaseName(Path input) {
+        return input.getFileName().toString().replaceAll("(?i)\\.expresso$", "");
+    }
+
+    private static String capitalize(String name) {
+        if (name == null || name.isEmpty()) return name;
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
 }

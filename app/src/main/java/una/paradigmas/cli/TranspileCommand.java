@@ -8,6 +8,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import una.paradigmas.ast.AstBuilder;
+import una.paradigmas.ast.ExpressoLexer;
+import una.paradigmas.ast.ExpressoParser;
+import una.paradigmas.ast.JavaCodeGenerator;
+import una.paradigmas.ast.Program;
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
  * Curso: [EIF400-II-2025] Paradigmas de Programacion
@@ -45,7 +53,7 @@ public class TranspileCommand implements Runnable {
         try {
             validateInput(input);
             Path outputFile = prepareOutputFile(input, outputDir);
-            transpile(outputFile);
+            transpile(input, outputFile);
             
             if (commonOptions.verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.toAbsolutePath());
             return outputFile;
@@ -66,26 +74,43 @@ public class TranspileCommand implements Runnable {
     
     private static Path prepareOutputFile(Path input, Path outputDir) throws IOException {
         Files.createDirectories(outputDir);
-        String filename = input.getFileName().toString();
-        return outputDir.resolve(filename.replaceAll("(?i)\\.expresso$", ".java"));
+        String baseName = input.getFileName().toString().replaceAll("(?i)\\.expresso$", "");
+        String capitalizedName = capitalize(baseName) + ".java";
+        return outputDir.resolve(capitalizedName);
     }
 
+    private static void transpile(Path input, Path outputFile) throws IOException {
+        // lee archivo .expresso
+        String expressoCode = Files.readString(input, StandardCharsets.UTF_8);
+        if (expressoCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("El archivo .expresso está vacío");
+        }
+
+        // Parseo con ANTLR4
+        CharStream charStream = CharStreams.fromString(expressoCode);
+        ExpressoLexer lexer = new ExpressoLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        ExpressoParser parser = new ExpressoParser(tokens);
+       
+        // Construir AST con AstBuilder
+        AstBuilder astBuilder = new AstBuilder();
+        Program ast = astBuilder.visitProgram(parser.program());
+
+        // Genera código Java
+        String className = outputFile.getFileName().toString().replace(".java", "");
+        JavaCodeGenerator generator = new JavaCodeGenerator(className);
+        String javaCode = generator.visit(ast);
+
+        // Escribe el archivo .java en output dir
+        Files.writeString(outputFile, javaCode, StandardCharsets.UTF_8);
+    }
+    
     private static void log(String msg) {
         if (commonOptions.verbose) System.out.println(msg);
     }
-    
-    private static void transpile(Path outputFile) throws IOException {
 
-        Path templatePath = Paths.get(
-            System.getProperty("PROJECT_ROOT"), 
-            "resources/template/HelloWorld.java");
-
-        log("Buscando template en: " + templatePath);
-        if (!Files.exists(templatePath)) throw new IOException("No se encontro el template en: " + templatePath);
-        
-        String template = Files.readString(templatePath, StandardCharsets.UTF_8);
-        
-        log("Transpilando...");
-        Files.writeString(outputFile, template, StandardCharsets.UTF_8);
+     private static String capitalize(String name) {
+        if (name == null || name.isEmpty()) return name;
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 }
