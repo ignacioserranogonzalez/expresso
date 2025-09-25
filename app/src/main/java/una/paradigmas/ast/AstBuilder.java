@@ -41,7 +41,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         Node left = visit(ctx.expr(0));
         Node right = visit(ctx.expr(1)); 
         String op = ctx.PLUS() != null ? "+" : "-";
-        return new AddSub(left, right, op);
+        return new AddSub(left, op, right);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         Node left = visit(ctx.expr(0));
         Node right = visit(ctx.expr(1)); 
         String op = ctx.MULT() != null ? "*" : "/";
-        return new MultDiv(left, right, op);
+        return new MultDiv(left, op, right);
     }
 
     @Override
@@ -117,6 +117,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitBlank(BlankContext ctx) {
         return null;
     }
+
     @Override
     public Node visitComment(CommentContext ctx) {
     return new Comment(ctx.COMMENT().getText());

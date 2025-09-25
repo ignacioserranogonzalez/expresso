@@ -56,7 +56,7 @@ public void testAST() {
 
         //Generar codigo Java a partir del AST
         JavaCodeGenerator generator = new JavaCodeGenerator("Example");
-        String javaCode = generator.visit(ast);
+        String javaCode = generator.generate(ast);
         System.out.println("\n");
         System.out.println(javaCode);
     }
