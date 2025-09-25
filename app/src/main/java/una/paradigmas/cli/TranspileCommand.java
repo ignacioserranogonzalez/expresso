@@ -99,7 +99,7 @@ public class TranspileCommand implements Runnable {
         // Genera código Java
         String className = outputFile.getFileName().toString().replace(".java", "");
         JavaCodeGenerator generator = new JavaCodeGenerator(className);
-        String javaCode = generator.visit(ast);
+        String javaCode = generator.generate(ast);
 
         // Escribe el archivo .java en output dir
         Files.writeString(outputFile, javaCode, StandardCharsets.UTF_8);
