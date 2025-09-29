@@ -12,17 +12,17 @@ stat: NEWLINE                        # blank
 ;
 
 // expressions
-expr: expr POW expr                  # Pow
-    | expr (MULT | DIV) expr         # MultDiv
-    | expr (PLUS | MINUS) expr       # AddSub
-    | expr INC                       # PostInc
-    | expr DEC                       # PostDec
-    | (PLUS | MINUS) num             # UnaryOp
-    | ID '(' expr ')'                # Call
-    | '(' expr ')'                   # Paren
-    | ID LAMBDA expr                 # Lambda
-    | INT                            # Int
-    | ID                             # Id
+expr: ID LAMBDA expr                 # Lambda        
+    | expr (PLUS | MINUS) expr       # AddSub        
+    | expr (MULT | DIV) expr         # MultDiv       
+    | <assoc=right> expr POW expr    # Pow
+    | (PLUS | MINUS) num             # UnaryOp       
+    | expr INC                       # PostInc       
+    | expr DEC                       # PostDec       
+    | ID '(' expr ')'                # Call          
+    | '(' expr ')'                   # Paren         
+    | INT                            # Int                
+    | ID                             # Id            
 ;
 
 num: INT
