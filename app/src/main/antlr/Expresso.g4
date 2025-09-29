@@ -12,11 +12,11 @@ stat: NEWLINE                        # blank
 ;
 
 // expressions
-expr: <assoc=right> expr '?' expr ':' expr  # TernaryCondition
+expr: <assoc=right> expr POW expr           # Pow
+    | <assoc=right> expr '?' expr ':' expr  # TernaryCondition
     | (ID (',' ID)?)? LAMBDA expr           # Lambda
     | expr (PLUS | MINUS) expr              # AddSub
     | expr (MULT | DIV) expr                # MultDiv
-    | <assoc=right> expr POW expr           # Pow
     | (PLUS | MINUS) num                    # UnaryOp
     | expr INC                              # PostInc
     | expr DEC                              # PostDec

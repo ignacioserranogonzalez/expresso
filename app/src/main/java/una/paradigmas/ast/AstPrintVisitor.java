@@ -96,8 +96,13 @@ public class AstPrintVisitor implements Visitor<String> {
 
     @Override
     public String visitLambda(Lambda lambda) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitTernaryCondition'");
+        String args = lambda.args().stream()
+                .map(arg -> arg.accept(this))
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+        String result = "Lambda([" + args + "], " + lambda.expr().accept(this) + ")";
+        System.out.println(result);
+        return result;
     }
 
     @Override
@@ -117,7 +122,10 @@ public class AstPrintVisitor implements Visitor<String> {
 
     @Override
     public String visitTernaryCondition(TernaryCondition ternary) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitTernaryCondition'");
+        String result = "TernaryCondition(" + ternary.condition().accept(this) + ", " +
+                        ternary.value1().accept(this) + ", " +
+                        ternary.value2().accept(this) + ")";
+        System.out.println(result);
+        return result;
     }
 }

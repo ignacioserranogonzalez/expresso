@@ -39,7 +39,7 @@ public void testAST() {
                         "let y = 10\n" +
                         "print(y)\n" +
                         "let f = z -> z ** 2 + 2 * z + 1\n" +
-                        "print(f(x) + f(y))";
+                        "print(f(x) + f(y))\n";
 
         CharStream charStream = CharStreams.fromString(input);
         ExpressoLexer lexer = new ExpressoLexer(charStream);
