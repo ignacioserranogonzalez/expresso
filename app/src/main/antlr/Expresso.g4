@@ -8,6 +8,7 @@ stat: NEWLINE                        # blank
     | LET ID ASSIGN expr NEWLINE     # letDecl
     | PRINT '(' expr ')' NEWLINE     # print
     | COMMENT NEWLINE                # comment
+    | MULTILINE_COMMENT NEWLINE      # multilineComment
 ;
 
 // expressions
@@ -21,7 +22,6 @@ expr: expr POW expr                  # Pow
     | '(' expr ')'                   # Paren
     | ID LAMBDA expr                 # Lambda
     | INT                            # Int
-    | FLOAT                          # Float
     | ID                             # Id
 ;
 
@@ -35,8 +35,6 @@ PRINT   : 'print';
 LAMBDA  : '->';
 
 INT : [0-9]+;
-FLOAT : [0-9]+('.'[0-9]+)?;
-ID  : [a-zA-Z_][a-zA-Z0-9_]*;
 POW : '**';
 INC : '++';
 DEC : '--';
@@ -45,6 +43,9 @@ MINUS  : '-';
 MULT  : '*';
 DIV  : '/';
 
+ID  : [a-zA-Z_][a-zA-Z0-9_]*;
+
 COMMENT: '//' ~[\r\n]*;
+MULTILINE_COMMENT: '/*' (~[*] | '*' ~[/])* '*/';
 NEWLINE: '\r'? '\n';
 WS: [ \t]+ -> skip;

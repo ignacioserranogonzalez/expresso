@@ -109,6 +109,7 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
+
     @Override
     public String visitComment(Comment comment) {
         String result = "Comment(" + comment.text() + ")";

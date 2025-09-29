@@ -26,12 +26,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitFloat(FloatContext ctx) {
-        float value = Float.parseFloat(ctx.FLOAT().getText());
-        return new FloatLiteral(value);
-    }
-
-    @Override
     public Node visitId(IdContext ctx) {
         return new Id(ctx.ID().getText());
     }
@@ -121,5 +115,10 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitComment(CommentContext ctx) {
     return new Comment(ctx.COMMENT().getText());
+    }
+
+    @Override
+    public Node visitMultilineComment(MultilineCommentContext ctx) {
+    return new Comment(ctx.MULTILINE_COMMENT().getText());
     }
 }
