@@ -96,10 +96,8 @@ public class AstPrintVisitor implements Visitor<String> {
 
     @Override
     public String visitLambda(Lambda lambda) {
-        String result = "Lambda(" + lambda.id().accept(this) + ", " +
-                        lambda.expr().accept(this) + ")";
-        System.out.println(result);
-        return result;
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitTernaryCondition'");
     }
 
     @Override
@@ -115,5 +113,11 @@ public class AstPrintVisitor implements Visitor<String> {
         String result = "Comment(" + comment.text() + ")";
         System.out.println(result);
         return result;
+    }
+
+    @Override
+    public String visitTernaryCondition(TernaryCondition ternary) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitTernaryCondition'");
     }
 }

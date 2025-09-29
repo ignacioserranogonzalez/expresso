@@ -89,9 +89,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitLambda(LambdaContext ctx) {
-        String id = ctx.ID().getText();
+        List<Id> args = ctx.ID().stream()
+            .map(idNode -> new Id(idNode.getText()))
+            .collect(Collectors.toList());
+        
         Node expr = visit(ctx.expr());
-        return new Lambda(new Id(id), expr);
+        
+        return new Lambda(args, expr);
     }
 
     @Override

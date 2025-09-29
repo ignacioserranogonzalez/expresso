@@ -101,10 +101,10 @@ public class JavaCodeGenerator {
                 generateExpression(expr1) + op;
             case Paren(var expr1) ->
                 generateExpression(expr1);
-            case Lambda(var id, var expr1) -> {
-                imports.add("java.util.function.UnaryOperator");
-                yield generateExpression(id) + " -> " + generateExpression(expr1);
-            }
+            // case Lambda(var id, var expr1) -> {
+            //     imports.add("java.util.function.UnaryOperator");
+            //     yield generateExpression(id) + " -> " + generateExpression(expr1);
+            // }
             case Call(var id, var expr1) ->
                 generateExpression(id) + ".apply(" + generateExpression(expr1) + ")";
             default -> "";
