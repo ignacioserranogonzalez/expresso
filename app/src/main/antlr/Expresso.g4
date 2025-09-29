@@ -12,21 +12,21 @@ stat: NEWLINE                        # blank
 ;
 
 // expressions
-expr: ID LAMBDA expr                 # Lambda        
-    | expr (PLUS | MINUS) expr       # AddSub        
-    | expr (MULT | DIV) expr         # MultDiv       
+expr: <assoc=right> expr '?' expr ':' expr  # TernaryCondition
+    | ID LAMBDA expr                 # Lambda
+    | expr (PLUS | MINUS) expr       # AddSub
+    | expr (MULT | DIV) expr         # MultDiv
     | <assoc=right> expr POW expr    # Pow
-    | (PLUS | MINUS) num             # UnaryOp       
-    | expr INC                       # PostInc       
-    | expr DEC                       # PostDec       
-    | ID '(' expr ')'                # Call          
-    | '(' expr ')'                   # Paren         
-    | INT                            # Int                
-    | ID                             # Id            
+    | (PLUS | MINUS) num             # UnaryOp
+    | expr INC                       # PostInc
+    | expr DEC                       # PostDec
+    | ID '(' expr ')'                # Call
+    | '(' expr ')'                   # Paren
+    | INT                            # Int
+    | ID                             # Id
 ;
 
-num: INT
-    | FLOAT;
+num: INT;
 
 // Lexer
 LET     : 'let';

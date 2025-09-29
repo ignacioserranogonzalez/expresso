@@ -121,4 +121,9 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitMultilineComment(MultilineCommentContext ctx) {
     return new Comment(ctx.MULTILINE_COMMENT().getText());
     }
+
+    @Override
+    public Node visitTernaryCondition(TernaryConditionContext ctx) {
+    return new TernaryCondition(visit(ctx.expr(0)), visit(ctx.expr(1)), visit(ctx.expr(2)));
+    }
 }

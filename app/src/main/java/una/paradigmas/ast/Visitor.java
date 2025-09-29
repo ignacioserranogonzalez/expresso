@@ -16,4 +16,5 @@ public interface Visitor<T> {
     T visitCall(Call call);
     T visitProgram(Program program);
     T visitComment(Comment comment);
+    T visitTernaryCondition(TernaryCondition ternary);
 }
