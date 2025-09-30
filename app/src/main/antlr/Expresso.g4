@@ -12,18 +12,23 @@ stat: NEWLINE                        # blank
 ;
 
 // expressions
-expr: <assoc=right> expr POW expr           # Pow
-    | <assoc=right> expr '?' expr ':' expr  # TernaryCondition
-    | (ID (',' ID)?)? LAMBDA expr           # Lambda
-    | expr (PLUS | MINUS) expr              # AddSub
-    | expr (MULT | DIV) expr                # MultDiv
-    | (PLUS | MINUS) num                    # UnaryOp
-    | expr INC                              # PostInc
-    | expr DEC                              # PostDec
-    | ID '(' expr ')'                       # Call
-    | '(' expr ')'                          # Paren
-    | INT                                   # Int
-    | ID                                    # Id
+expr: <assoc=right> expr POW expr                           # Pow
+    | <assoc=right> expr '?' expr ':' expr                  # TernaryCondition
+    | expr (PLUS | MINUS) expr                              # AddSub
+    | expr (MULT | DIV) expr                                # MultDiv
+    | lambdaParams LAMBDA expr                              # Lambda
+    | (PLUS | MINUS) num                                    # UnaryOp
+    | expr INC                                              # PostInc
+    | expr DEC                                              # PostDec
+    | ID '(' expr ')'                                       # Call
+    | '(' expr ')'                                          # Paren
+    | INT                                                   # Int
+    | ID                                                    # Id
+;
+
+lambdaParams: '(' ')'          // 0 args
+    | '(' ID (',' ID)? ')'     // 1-2 args con ()
+    | ID                       // 1 arg sin ()
 ;
 
 num: INT;

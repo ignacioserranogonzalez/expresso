@@ -2,6 +2,7 @@ package una.paradigmas.ast;
 
 import una.paradigmas.ast.ExpressoParser.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -89,12 +90,19 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitLambda(LambdaContext ctx) {
-        List<Id> args = ctx.ID().stream()
-            .map(idNode -> new Id(idNode.getText()))
-            .collect(Collectors.toList());
+        // Obtener los args desde lambdaParams
+        List<Id> args = new ArrayList<>();
+        
+        // Dependiendo de cómo se definió lambdaArgs, necesitas acceder a sus hijos
+        // Si lambdaArgs tiene IDs, los obtenemos así:
+        if (ctx.lambdaParams().ID() != null) {
+            args = ctx.lambdaParams().ID().stream()
+                .map(idNode -> new Id(idNode.getText()))
+                .collect(Collectors.toList());
+        }
+        // Si no hay IDs (caso '()'), args queda como lista vacía
         
         Node expr = visit(ctx.expr());
-        
         return new Lambda(args, expr);
     }
 

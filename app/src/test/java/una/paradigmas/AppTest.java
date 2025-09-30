@@ -33,13 +33,23 @@ import org.antlr.v4.runtime.CommonTokenStream;
 public class AppTest {
     @Test 
 public void testAST() {
-        String input = "// Comentario de prueba\n" +
-                        "let x = 666\n" +
-                        "print(x)\n" +
-                        "let y = 10\n" +
-                        "print(y)\n" +
-                        "let f = z -> z ** 2 + 2 * z + 1\n" +
-                        "print(f(x) + f(y))\n";
+        // String input = "// Comentario de prueba\n" +
+        //                 "let x = 666\n" +
+        //                 "print(x)\n" +
+        //                 "let y = 10\n" +
+        //                 "print(y)\n" +
+        //                 "/*\n"+
+        //                 "h\n"+
+        //                 "h\n"+
+        //                 "*/\n"+
+        //                 "let f = (z, e) -> z ** 2 + 2 * z + 1\n" +
+        //                 "print(f(x) + f(y))\n";
+
+        String input = "// Lambda\n" +
+                        "let foo = () -> 0\n" +
+                        "let goo = z -> z\n" +
+                        "let hoo = (z) -> z\n" +
+                        "let moo = (z, e) -> z + e\n";
 
         CharStream charStream = CharStreams.fromString(input);
         ExpressoLexer lexer = new ExpressoLexer(charStream);

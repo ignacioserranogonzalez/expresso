@@ -70,9 +70,11 @@ public class JavaCodeGenerator {
 
     private String generateStatement(Node stat) {
         return switch (stat) {
-            case Let(var id, var value) -> 
-                inferType(value) + " " + 
-                generateExpression(id) + " = " + generateExpression(value);
+            case Let(var id, var value) -> {
+                String valueCode = generateExpression(value);
+                String varType = lambdaType(value);
+                yield varType + " " + generateExpression(id) + " = " + valueCode;
+            }
 
             case Print(var expr) -> {
                 extraMethods.add("print");
@@ -133,17 +135,13 @@ public class JavaCodeGenerator {
         };
     }
 
-    private String inferType(Node expr) {
+    private String lambdaType(Node expr) {
         return switch (expr) {
             case Lambda l -> {
                 imports.add("java.util.function.*");
-                if (l.args().size() == 0) {
-                    yield "Supplier<Integer>";
-                } else if (l.args().size() == 1) {
-                    yield "UnaryOperator<Integer>";
-                } else {
-                    yield "BinaryOperator<Integer>";
-                }
+                if (l.args().size() == 0) yield "Supplier<Integer>";
+                else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
+                else yield "BinaryOperator<Integer>";
             }
             default -> "int";
         };
