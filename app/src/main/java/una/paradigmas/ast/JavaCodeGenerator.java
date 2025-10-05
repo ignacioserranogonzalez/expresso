@@ -31,7 +31,7 @@ public class JavaCodeGenerator {
                 state.comments.append(line).append("\n");
             } else {
                 state.mainCode.append("        ")
-                              .append(isComment ? line : line + ";")
+                              .append(line)
                               .append("\n");
             }
         });       
@@ -71,13 +71,13 @@ public class JavaCodeGenerator {
             case Let(var id, var value, var comment) -> {
                 String valueCode = generateExpression(value);
                 String varType = lambdaType(value);
-                String result = varType + " " + generateExpression(id) + " = " + valueCode;
+                String result = varType + " " + generateExpression(id) + " = " + valueCode + ";";
                 yield comment.text().isEmpty() ? result : result + " " + comment.text();
             }
 
             case Print(var expr, var comment) -> {
                 extraMethods.add("print");
-                String result = "print(" + generateExpression(expr) + ")";
+                String result = "print(" + generateExpression(expr) + ");";
                 yield comment.text().isEmpty() ? result : result + " " + comment.text();
             }
 
