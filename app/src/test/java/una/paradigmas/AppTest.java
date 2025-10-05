@@ -43,11 +43,11 @@ import org.antlr.v4.runtime.CommonTokenStream;
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         ExpressoParser parser = new ExpressoParser(tokens);
 
-        //parsear y construir AST
+        // Parsear y construir AST
         AstBuilder builder = new AstBuilder();
         Program ast = builder.visitProgram(parser.program());
 
-        // imprimir con print visitor
+        // Imprimir con print visitor
         // AstPrintVisitor printer = new AstPrintVisitor();
         // printer.visitProgram(ast);
 
