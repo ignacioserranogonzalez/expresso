@@ -89,7 +89,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
                       "print(x)\n" +
                       "let y = 3\n" +
                       "print(y)\n" +
-                      "let f = (x, z) -> z ** x + x*z + 1\n" +
+                      "let f = (w, z) -> z ** w + w*z + 1\n" +
                       "print(f(x, y)) // Expected 748\n";
         
         testExpressoProgram(input, "HelloWorld1");
@@ -109,7 +109,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
                       "let isZero = x -> x ? 0 : 1\n" +
                       "let TRUE  = 1\n" +
                       "let FALSE = 0\n\n" +
-                      "let isTrue = x -> isZero(x) ? TRUE : FALSE\n\n" +
+                      "let isTrue = x -> isZero(x) ? FALSE : TRUE\n\n" +
                       "let NOT = x -> x ? 0 : 1\n\n" +
                       "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
                       "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
