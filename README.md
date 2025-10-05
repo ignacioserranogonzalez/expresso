@@ -221,7 +221,7 @@ para ejecutar todos los test del proyecto. Aunque estos se van a ejecutar automa
 
 Nota: expressor es un programa de CLI que se ejecuta a través de comandos en la misma ubicación en donde fue generado el ejecutable. Estar en una ruta diferente o cambiar la ubicación del ejecutable u otros archivos del proyecto podría resultar en mal funcionamiento o imposibilidad de utilizar expressor.  
 
-## Comandos soportados por expressor (Para futura referencia. Casos de Prueba de Sprint 2 más abajo)
+## Comandos soportados por expressor (Solo para futura referencia. Los Casos de Prueba de Sprint 2 en la siguiente sección)
 
 Las rutas del archivo `.expresso` que se usen como input en los comando que contengan espacios en blanco deben ser encerradas entre comillas ("")
 Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/HelloWorld.expresso"`
@@ -267,7 +267,7 @@ expressor run {ruta__al_.expresso}
    
 `--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
 
-# Ejecución de Casos de Prueba del Sprint 2 (Earth)
+# Casos de Prueba del Sprint 2 (Earth)
 
 El proyecto incluye los tres archivos de prueba Earth HelloWorld0.expresso, HelloWorld1.expresso y HelloWorld2.expresso
 
