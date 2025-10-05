@@ -457,3 +457,51 @@ WS : [ \t]+ -> skip ;
 - Ya tengo mi javaCodeGeneratorConstruido, siguiendo tus recomendaciones, pero a la hora de construir el codigo a partir del program, nos imports no se estan mostrando, a que se debe?
 - El javaCodeGenerator genera el codigo adecuadamente, pero los comentarios `(//)` solo aparecen dentro del main, no fuera de el, como hago para cambiar esto.
 - La manera en las que se recorren los statements del program es muy ineficiente, en el aspecto que se hacen 2 recorridos uno par los comentarios fuera del main y otro para los internos, como puedo unificar ese recorrido?
+
+- para q sirve el sourcesets ? esta siendo utilizado ?
+- COMMENT: '//' ~[\r\n] -> skip ; Q SIGNIFICA ~ en antlr.
+- el id es parte del lexer ? que cosas es parte del Lexer
+- OP: ('*'|'/'); en este caso para q son los parentesis
+- y si quiero incluir ++, --, y ** ?
+- el orden en que se definen en la gramatica importa ? es decir, recae en mi la responsabilida de definir el orden, o antlr lo lee sin importar el orden que yo ponga ?
+- de momento esta bien mi gramatica para leer este .expresso ? // HelloWorld.expresso let x = 666
+- al poner el int y id como caso base, eso implica que mi expresos podria venir una linea que solo sea un x por ejemplo, o solo un 1 ?
+- LET ID '=' expr deberia ser una sentencia o una expression ?
+- que piensas de los cambios ? son correctos para // HelloWorld.expresso let x = 666 print(x) let y = 10 print(y) ?
+- para hacee un javacodegenerator usando mi visitor, comi se podria hacer usando pattern matching en java ?
+- peudes nombrar las expr para que no me de error ?
+- los archivos fueron generados en esta ruta build/generated-src/antlr/main/AQUI es correcto esto ?????
+- xq esta mal ?? (refiriéndose a visitLambda)
+- ayuda (cuando el Lambda no funcionaba)
+- q esta mal ? (sobre la gramática con comentarios)
+- no me gusta eso de atom. no puedes dejar la misma estructura de mi gramatica pero cambiar las precedencias y asociatividad ?
+- que significa que pow asocia a la derecha ?
+- <assoc=right> es de antlr integrado ?
+- eso que implica en mi codigo del visitor. debo cambiar algo ?
+- me gustaria resumir el lambda en un solo visit
+- lambdaExpr: (ID (',' ID)?)? LAMBDA expr # Lambda cuantos args acepta esta version ?
+- modifica gramatica y: [código de visitLambda]
+- termina el print (refiriéndose a AstPrintVisitor)
+- parece q hay un problema con la asociatividad del pow
+- pero el orden esta bien asi no ?? xq pasa eso entonces
+- lambdaArgs: '(' ')' | ID | '(' ID (',' ID)? ')' debe estar limitado a 2 maximo
+- se debe modificar para usar ? (sobre visitLambda con lambdaArgs)
+- xq se imprime varias veces ?
+- esta bien mi regla lambdaArgs para manejar esto ? quiero que solo haga un visit, entonces quiero manejarlo con una regla que obtenga esos casos
+- para los comentarios opcionales, quiero que se visiten creando nuevos nodos de comentarios, no imprimirlos
+- lo CORRECTO seria usar String o Objeto Comment ? no hablo de simpleza, me refiero a lo correcto
+- es correcta esta salida ? para esto: [input de HelloWorld1]
+- ademas, xq sale un // antes del comentario de bloque ? tiene que ver con mi gramatica ?
+- tambien hay que ajustar para que el comentario de bloque // se agrege si es parte de los iniciales
+- que le hace falta a mi gramatica para que lea calls de dos argumentos ?
+- lo hice asi. dame el astbuilder y lo demas para incluirlo
+- solo me falta modificar el javacodegenerator para el caso Call
+- aqui esta lo demas que hice: [gramática con callArgs]
+- todo esto es correcto ? (sobre la implementación de Call)
+- ya n se ocupa un visitor extra como este ? (sobre visitCallExpr)
+- salida correcta ??/ (sobre HelloWorld2)
+- xq falla el AND.apply(OR, NOT); ??
+- modifique la gramatica asi. dame las modificaiones para [nuevo visitCall]
+- me esta imprimiendo un ; despues del comentario. cual es el problema en el javacodegenerator
+- ocupo que la salida sea: print(f.apply(x) + f.apply(y)); // expected 445010
+- eso es un error de java ? no se supone que las variables de los lambdas son independientes ?
