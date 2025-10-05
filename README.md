@@ -431,3 +431,9 @@ WS : [ \t]+ -> skip ;
 - la clase JavaCodeGenerator cambio bastante. EXPLICAME los cambios realizados por los compañeros
 
 - Revisa la clase una por una y evalúa si cumplen con "Donde sea apropiado se debe usar FP-Java. Se espera estilo fluido, DRY, Knuth."
+- Teniendo el modelo el ast construido, cual es la mejor manera de implementar un generador de codigo a partir de ese ast?
+- Como funciona string builder, y porque es buena opcion para generar el codigo java a partir del AST construido.
+- Que similitudes tiene el AST print visitor y la manera de recorrer el program que recibe mi javaCodeGenerator??
+- Ya tengo mi javaCodeGeneratorConstruido, siguiendo tus recomendaciones, pero a la hora de construir el codigo a partir del program, nos imports no se estan mostrando, a que se debe?
+- El javaCodeGenerator genera el codigo adecuadamente, pero los comentarios `(//)` solo aparecen dentro del main, no fuera de el, como hago para cambiar esto.
+- La manera en las que se recorren los statements del program es muy ineficiente, en el aspecto que se hacen 2 recorridos uno par los comentarios fuera del main y otro para los internos, como puedo unificar ese recorrido?
