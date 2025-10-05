@@ -6,6 +6,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
+ * Curso: [EIF400-II-2025] Paradigmas de Programacion
+ * Universidad Nacional de Costa Rica
+ * 
+ * Autores:
+ * - Kendall Miso Chinchilla Araya  -   119310542
+ * - Ignacio Serrano Gonzalez       -   402600631
+ * - Minor Brenes Aguilar           -   116730106
+ * - Pablo Chavarria Alvarez        -   117810573
+ * 
+ * Codigo de grupo: 02-1PM
+ * 
+ * Nota: Este codigo tiene adiciones de IA para cumplir 
+ * con los requerimientos especificos del proyecto.
+ */
+
 public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
@@ -92,20 +109,16 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         }
         return new Call(new Id(id), args);
     }
-    
+
     @Override
     public Node visitLambda(LambdaContext ctx) {
-        // Obtener los args desde lambdaParams
         List<Id> args = new ArrayList<>();
-        
-        // Dependiendo de cómo se definió lambdaArgs, necesitas acceder a sus hijos
-        // Si lambdaArgs tiene IDs, los obtenemos así:
+    
         if (ctx.lambdaParams().ID() != null) {
             args = ctx.lambdaParams().ID().stream()
                 .map(idNode -> new Id(idNode.getText()))
                 .collect(Collectors.toList());
         }
-        // Si no hay IDs (caso '()'), args queda como lista vacía
         
         Node expr = visit(ctx.expr());
         return new Lambda(args, expr);

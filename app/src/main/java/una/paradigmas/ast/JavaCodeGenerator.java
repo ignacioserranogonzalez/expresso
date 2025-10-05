@@ -3,7 +3,25 @@ package una.paradigmas.ast;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+/**
+ * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
+ * Curso: [EIF400-II-2025] Paradigmas de Programacion
+ * Universidad Nacional de Costa Rica
+ * 
+ * Autores:
+ * - Kendall Miso Chinchilla Araya  -   119310542
+ * - Ignacio Serrano Gonzalez       -   402600631
+ * - Minor Brenes Aguilar           -   116730106
+ * - Pablo Chavarria Alvarez        -   117810573
+ * 
+ * Codigo de grupo: 02-1PM
+ * 
+ * Nota: Este codigo fue generado parcialmente con asistencia de IA
+ * y posteriormente modificado, adaptado y validado por el equipo
+ * de desarrollo para cumplir con los requerimientos especificos
+ * del proyecto.
+ */
 
 public class JavaCodeGenerator {
 
@@ -16,7 +34,7 @@ public class JavaCodeGenerator {
     }
 
     public String generate(Program ast) {
-        // Acumulador para construir el código: (comentariosIniciales, codigoMain)
+        // Acumulador para construir el codigo (comentariosIniciales, codigoMain)
         record CodeBuilderState(StringBuilder comments, StringBuilder mainCode) {}
         
         List<String> statlist = ast.statements().stream()
@@ -39,7 +57,7 @@ public class JavaCodeGenerator {
         StringBuilder codeBuilder = new StringBuilder();
         codeBuilder.append(state.comments); // Añade comentarios iniciales
 
-        // Añadir imports necesarios
+        // imports necesarios
         if (!imports.isEmpty()) {
             imports.forEach(imp -> codeBuilder.append("import ").append(imp).append(";\n"));
             codeBuilder.append("\n");
@@ -47,7 +65,7 @@ public class JavaCodeGenerator {
 
         codeBuilder.append("public class ").append(className).append(" {\n");
 
-        // Añadir métodos auxiliares
+        // Metodos auxiliares
         if (extraMethods.contains("pow")) {
             codeBuilder.append("    public static int pow(int x, int e) {\n");
             codeBuilder.append("        return (int)Math.pow(x, e);\n");
