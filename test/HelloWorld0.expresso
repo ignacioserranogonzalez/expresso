@@ -1,0 +1,65 @@
+// Caso de prueba 2: Lambdas con paréntesis y asociatividad básica
+// Cubre: lambdas con y sin paréntesis, diferentes formas sintácticas
+
+// Lambda con 1 argumento sin paréntesis
+let doubleVal = x -> x + x
+print(doubleVal(7))
+
+// Lambda con 1 argumento con paréntesis  
+let triple = (x) -> x * 3
+print(triple(5))
+
+// Lambda con paréntesis vacíos en diferentes contextos
+let increment = (n) -> n + 1
+print(increment(10))
+
+let decrement = (n) -> n - 1
+print(decrement(10))
+
+// Lambdas con operaciones más complejas
+let square = x -> x * x
+print(square(6))
+
+let cube = x -> x * x * x
+print(cube(3))
+
+// Lambda con expresión parentizada
+let calc1 = x -> (x + 5) * 2
+print(calc1(10))
+
+let calc2 = (x) -> (x - 3) * 4
+print(calc2(8))
+
+// Lambdas con múltiples operaciones
+let formula1 = x -> x * 2 + 10
+print(formula1(5))
+
+let formula2 = (x) -> x / 2 - 3
+print(formula2(20))
+
+// Lambda que usa el resultado de otra lambda
+let addFive = x -> x + 5
+let result1 = addFive(10)
+print(result1)
+
+let mulTwo = x -> x * 2
+let result2 = mulTwo(result1)
+print(result2)
+
+// Más ejemplos de lambdas simples
+let subtract = x -> x - 7
+print(subtract(20))
+
+let divide = x -> x / 4
+print(divide(40))
+
+// Lambda con operación compleja
+let complex = x -> x * x + x - 5
+print(complex(4))
+
+// Verificar precedencia en lambda
+let prec1 = x -> x + 3 * 2
+print(prec1(10))
+
+let prec2 = x -> (x + 3) * 2
+print(prec2(10))

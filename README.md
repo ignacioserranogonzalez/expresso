@@ -260,6 +260,34 @@ expressor run {ruta__al_.expresso}
 
 **NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas.
 
+## Ejecución de Casos de Prueba
+
+El proyecto incluye tres casos de prueba incrementales ubicados en la carpeta test en la raíz del proyecto:
+
+HelloWorld.expresso: Caso básico con lambdas simples y operadores aritméticos
+HelloWorld0.expresso: Lambdas con múltiples argumentos y lambdas que retornan lambdas
+HelloWorld1.expresso: Precedencia y asociatividad completa de operadores (**, ?:, ->)
+
+**Nota importante:** Todos los archivos .expresso deben terminar con una línea en blanco al final. De lo contrario, obtendrá el error: missing NEWLINE at '<EOF>'
+
+**Ejecutar los tests manualmente**
+Desde la ubicación del ejecutable (app\build\jpackage\expressor):
+
+# Test 1: HelloWorld.expresso
+expressor transpile --verbose ..\..\..\..\test\HelloWorld.expresso
+expressor build --verbose ..\..\..\..\test\HelloWorld.expresso
+expressor run --verbose ..\..\..\..\test\HelloWorld.expresso
+
+# Test 2: HelloWorld0.expresso
+expressor transpile --verbose ..\..\..\..\test\HelloWorld0.expresso
+expressor build --verbose ..\..\..\..\test\HelloWorld0.expresso
+expressor run --verbose ..\..\..\..\test\HelloWorld0.expresso
+
+# Test 3: HelloWorld1.expresso
+expressor transpile --verbose ..\..\..\..\test\HelloWorld1.expresso
+expressor build --verbose ..\..\..\..\test\HelloWorld1.expresso
+expressor run --verbose ..\..\..\..\test\HelloWorld1.expresso
+
 ---
 
 ## Prompts de IA (Íntegros)
