@@ -1,4 +1,4 @@
-# Expresso - Sprint Inicial
+# Expresso - Sprint Medio
 EIF400-II-2025 Paradigmas de Programación, Grupo 02-1PM  
 Universidad Nacional de Costa Rica, Escuela de Informática
 
@@ -203,16 +203,18 @@ dir
 ```
 Se mostrará una lista de directorios y archivos en esa ubicación. Debe estar presente el ejecutable **expressor.exe**
 
-4. Ejecute:
+4. Opcionalmete se puede ejecutar el comando:
 ```bash
-expressor --help
+gradle clean test
 ```
+para ejecutar todos los test del proyecto. Aunque estos se van a ejecutar automaticamente con el `gradle clean build` o `gradlew clean build` que se ejecuta al inicio para construir el proyecto.
+
 
 5. Listo. Ya puede comenzar a utilizar expressor como programa de linea de comandos **en la misma ubicación de expressor.exe**
 
-Nota: expressor es un programa de CLI que se ejecuta a través de comandos en la misma ubicación en donde fue generado el ejecutable. No ubicarse en esa ruta o cambiar la ubicación del ejecutable o otros archivos del proyecto podría resultar en mal funcionamiento o imposibilidad de utilizar expressor.  
+Nota: expressor es un programa de CLI que se ejecuta a través de comandos en la misma ubicación en donde fue generado el ejecutable. Estar en una ruta diferente o cambiar la ubicación del ejecutable u otros archivos del proyecto podría resultar en mal funcionamiento o imposibilidad de utilizar expressor.  
 
-## Comandos soportados por expressor
+## Comandos soportados por expressor (Para futura referencia. Casos de Prueba de Sprint 2 más abajo)
 
 Las rutas del archivo `.expresso` que se usen como input en los comando que contengan espacios en blanco deben ser encerradas entre comillas ("")
 Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/HelloWorld.expresso"`
@@ -258,37 +260,55 @@ expressor run {ruta__al_.expresso}
    
 `--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
 
-**NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas.
+# Ejecución de Casos de Prueba del Sprint 2 (Earth)
 
-## Ejecución de Casos de Prueba
+El proyecto incluye los tres archivos de prueba Earth HelloWorld0.expresso, HelloWorld1.expresso y HelloWorld2.expresso
 
-El proyecto incluye tres casos de prueba incrementales ubicados en la carpeta test en la raíz del proyecto:
+**Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final. Obtendrán el mensaje: missing NEWLINE at 'EOF', sin embargo no afecta a la ejecución de los casos de prueba.
 
-HelloWorld.expresso: Caso básico con lambdas simples y operadores aritméticos
-HelloWorld0.expresso: Lambdas con múltiples argumentos y lambdas que retornan lambdas
-HelloWorld1.expresso: Precedencia y asociatividad completa de operadores (**, ?:, ->)
+### Ejecutar los tests manualmente
 
-**Nota importante:** Todos los archivos .expresso deben terminar con una línea en blanco al final. De lo contrario, obtendrá el error: missing NEWLINE at '<EOF>'
+(Es requisito haber ejecutado el comando `gradle clean build` y `gradle jpackageImage` en la raiz del proyecto (`...\expresso`) con anterioridad)
 
-**Ejecutar los tests manualmente**
-Desde la ubicación del ejecutable (app\build\jpackage\expressor):
+Ubicarse en la ruta del ejecutable (app\build\jpackage\expressor):
+_(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
+```bash
+cd app\build\jpackage\expressor
+```
 
-# Test 1: HelloWorld0.expresso
+
+
+## Test 1: HelloWorld0.expresso
+
+```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld0.expresso
+```
+```bash
 expressor build --verbose ..\..\..\..\test\HelloWorld0.expresso
+```
+```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld0.expresso
-
-# Test 2: HelloWorld1.expresso
+```
+## Test 2: HelloWorld1.expresso
+```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld1.expresso
+```
+```bash
 expressor build --verbose ..\..\..\..\test\HelloWorld1.expresso
+```
+```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld1.expresso
-
-# Test 3: HelloWorld2.expresso
+```
+## Test 3: HelloWorld2.expresso
+```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld2.expresso
+```
+```bash
 expressor build --verbose ..\..\..\..\test\HelloWorld2.expresso
+```
+```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld2.expresso
-
----
+```
 
 ## Prompts de IA (Íntegros)
 
@@ -375,7 +395,7 @@ Es decir, si no defino el `outputDir`, este se vuelve `null` y me genera el erro
 
 - ¿Qué es **ProcessBuilder** y para qué sirve?
 
--Tengo esta gramatica para trabajar con ANTLR4, actualmente esta para un proyecto con JavaScript, sin embargo la quiero migrar para un proyecto en java, y adicional la gramática debe ser extendida para manejar let y lambas , manteniendo el estilo de programación DRY y Knuth
+- Tengo esta gramatica para trabajar con ANTLR4, actualmente esta para un proyecto con JavaScript, sin embargo la quiero migrar para un proyecto en java, y adicional la gramática debe ser extendida para manejar let y lambas , manteniendo el estilo de programación DRY y Knuth
 
 grammar Expr;
 
@@ -403,3 +423,37 @@ expr :    '-' expr 					# unaryMinus
 INT : [0-9]+ ;
 NEWLINE: ('\r'? '\n') ;
 WS : [ \t]+ -> skip ;
+
+- Estas son las tareas asignadas por el coordinador
+
+- que podría ir haciendo o investigando para realizar las tareas que me corresponden. Tengo que esperar que los otros compañeros avancen con el proyecto?
+
+- le hice unos pequeños cambios al traspile. ANALIZA si es mejor usar var o el tipo de dato específicamente
+
+- quiero poder ejecutar el comando de esta manera "E: expressor transpile --out generated "C:\Users\minor\Documents\Estudio\Minor\CICLO II 25\Paradigmas\Proyecto1_Sprint1\expresso\app\examples\HelloWorld.expresso"", pero me salta este error line 7:18 missing NEWLINE at '<EOF>'
+
+- Asegurarse de que run ejecute el .class resultante.
+
+- ayúdame disminuir el código repetido
+
+- la versión final quedo así, revisa que cumpla con el principio DRY
+
+- donde es más conveniente que colocar el try de public void run()
+
+- este if se puede quitar
+
+- verifica que las tareas 7 y 8 estén completas y cumplen con el SPEC
+
+- hice unos cambios revisalos. solo los cambios!
+
+- verifica que la tarea 9: Maneje reglas específicas del spec
+
+- la clase JavaCodeGenerator cambio bastante. EXPLICAME los cambios realizados por los compañeros
+
+- Revisa la clase una por una y evalúa si cumplen con "Donde sea apropiado se debe usar FP-Java. Se espera estilo fluido, DRY, Knuth."
+- Teniendo el modelo el ast construido, cual es la mejor manera de implementar un generador de codigo a partir de ese ast?
+- Como funciona string builder, y porque es buena opcion para generar el codigo java a partir del AST construido.
+- Que similitudes tiene el AST print visitor y la manera de recorrer el program que recibe mi javaCodeGenerator??
+- Ya tengo mi javaCodeGeneratorConstruido, siguiendo tus recomendaciones, pero a la hora de construir el codigo a partir del program, nos imports no se estan mostrando, a que se debe?
+- El javaCodeGenerator genera el codigo adecuadamente, pero los comentarios `(//)` solo aparecen dentro del main, no fuera de el, como hago para cambiar esto.
+- La manera en las que se recorren los statements del program es muy ineficiente, en el aspecto que se hacen 2 recorridos uno par los comentarios fuera del main y otro para los internos, como puedo unificar ese recorrido?
