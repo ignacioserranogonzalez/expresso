@@ -403,3 +403,31 @@ expr :    '-' expr 					# unaryMinus
 INT : [0-9]+ ;
 NEWLINE: ('\r'? '\n') ;
 WS : [ \t]+ -> skip ;
+
+-Estas son las tareas asignadas por el coordinador
+
+-que podría ir haciendo o investigando para realizar las tareas que me corresponden. Tengo que esperar que los otros compañeros avancen con el proyecto?
+
+-le hice unos pequeños cambios al traspile. ANALIZA si es mejor usar var o el tipo de dato específicamente
+
+-quiero poder ejecutar el comando de esta manera "E: expressor transpile --out generated "C:\Users\minor\Documents\Estudio\Minor\CICLO II 25\Paradigmas\Proyecto1_Sprint1\expresso\app\examples\HelloWorld.expresso"", pero me salta este error line 7:18 missing NEWLINE at '<EOF>'
+
+-Asegurarse de que run ejecute el .class resultante.
+
+-ayúdame disminuir el código repetido
+
+-la versión final quedo así, revisa que cumpla con el principio DRY
+
+-donde es más conveniente que colocar el try de public void run()
+
+-este if se puede quitar
+
+-verifica que las tareas 7 y 8 estén completas y cumplen con el SPEC
+
+-hice unos cambios revisalos. solo los cambios!
+
+-verifica que la tarea 9: Maneje reglas específicas del spec
+
+-la clase JavaCodeGenerator cambio bastante. EXPLICAME los cambios realizados por los compañeros
+
+-Revisa la clase una por una y evalúa si cumplen con "Donde sea apropiado se debe usar FP-Java. Se espera estilo fluido, DRY, Knuth."
