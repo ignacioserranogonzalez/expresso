@@ -130,7 +130,7 @@ public class AstPrintVisitor implements Visitor<String> {
                 .map(arg -> arg.accept(this))
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("");
-        String result = "Call(" + call.id().accept(this) + ", [" + args + "])";
+        String result = "Call(" + call.function().accept(this) + ", [" + args + "])";
         System.out.println(result);
         return result;
     }

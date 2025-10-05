@@ -20,7 +20,7 @@ expr: <assoc=right> expr POW expr                           # Pow
     | (PLUS | MINUS) num                                    # UnaryOp
     | expr INC                                              # PostInc
     | expr DEC                                              # PostDec
-    | ID '(' callArgs? ')'                                  # Call
+    | expr '(' callArgs? ')'                                  # Call
     | '(' expr ')'                                          # Paren
     | INT                                                   # Int
     | ID                                                    # Id

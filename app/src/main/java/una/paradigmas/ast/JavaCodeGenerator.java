@@ -3,6 +3,7 @@ package una.paradigmas.ast;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -88,7 +89,11 @@ public class JavaCodeGenerator {
         return switch (stat) {
             case Let(var id, var value, var comment) -> {
                 String valueCode = generateExpression(value);
-                String varType = lambdaType(value);
+                String varType = switch (value) {
+                    case Lambda l -> lambdaType(l);
+                    default -> "int";
+                };
+                
                 String result = varType + " " + generateExpression(id) + " = " + valueCode + ";";
                 yield comment.text().isEmpty() ? result : result + " " + comment.text();
             }
@@ -142,7 +147,7 @@ public class JavaCodeGenerator {
                     + generateExpression(value1) + " : " 
                     + generateExpression(value2) + ")";
 
-            case Lambda(var args, var body) -> {
+            case Lambda(var args, var expr2) -> {
                 imports.add("java.util.function.*");
                 String params = args.stream()
                     .map(Id::value)
@@ -150,15 +155,15 @@ public class JavaCodeGenerator {
                     .map(s -> args.size() == 1 ? s : "(" + s + ")")
                     .orElse("()");
                 
-                yield params + " -> " + generateExpression(body);
+                yield params + " -> " + generateExpression(expr2);
             }
 
-            case Call(var id, var paramList) -> {
-                String params = paramList.stream()
+            case Call(var function, var args) -> {
+                String funcCode = generateExpression(function);
+                String argsCode = args.stream()
                     .map(this::generateExpression)
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
-                yield generateExpression(id) + ".apply(" + params + ")";
+                    .collect(Collectors.joining(", "));
+                yield funcCode + ".apply(" + argsCode + ")";
             }
 
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
@@ -169,9 +174,28 @@ public class JavaCodeGenerator {
         return switch (expr) {
             case Lambda l -> {
                 imports.add("java.util.function.*");
-                if (l.args().size() == 0) yield "Supplier<Integer>";
-                else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
-                else yield "BinaryOperator<Integer>";
+                
+                // Determinar el tipo del cuerpo (puede ser otra lambda)
+                String exprType = lambdaType(l.expr()); // recursion
+                
+                // Si el cuerpo es "int", usar operadores simples
+                if (exprType.equals("int")) {
+                    yield switch (l.args().size()) {
+                        case 0 -> "Supplier<Integer>";
+                        case 1 -> "UnaryOperator<Integer>";
+                        case 2 -> "BinaryOperator<Integer>";
+                        default -> "Function<Integer, " + exprType + ">";
+                    };
+                } 
+                // Si el cuerpo es otra función/lambda, usar Function/BiFunction
+                else {
+                    yield switch (l.args().size()) {
+                        case 0 -> "Supplier<" + exprType + ">";
+                        case 1 -> "Function<Integer, " + exprType + ">";
+                        case 2 -> "BiFunction<Integer, Integer, " + exprType + ">";
+                        default -> "Function<Integer, " + exprType + ">";
+                    };
+                }
             }
             default -> "int";
         };

@@ -121,4 +121,25 @@ import org.antlr.v4.runtime.CommonTokenStream;
         
         testExpressoProgram(input, "HelloWorld2");
     }
+
+    @Test 
+    public void testHelloWorldMoon0() {
+
+        System.out.println("====== Test HelloWorldMoon0.expresso ======");
+
+        String input = "// HelloWorld93.expresso\n\n" +
+               "/*\n" +
+               "  Arrow returns arrow\n" +
+               "  @author hooNous\n" +
+               "  @since Oct 6th, 2025\n" +
+               "*/\n\n" +
+               "let x = 6\n" +
+               "print(x)\n" +
+               "let y = 3\n" +
+               "print(y)\n" +
+               "let f = x -> z -> z ** x + x*z + 1\n" +
+               "print(f(x)(y)) // Expected 748\n";
+        
+        testExpressoProgram(input, "HelloWorldMoon0");
+    }
 }

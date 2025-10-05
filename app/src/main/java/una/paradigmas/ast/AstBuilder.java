@@ -100,14 +100,14 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitCall(CallContext ctx) {
-        String id = ctx.ID().getText();
+        Node function = visit(ctx.expr());
         List<Node> args = new ArrayList<>();
         if (ctx.callArgs() != null) {
             args = ctx.callArgs().expr().stream()
                 .map(this::visit)
                 .collect(Collectors.toList());
         }
-        return new Call(new Id(id), args);
+        return new Call(function, args);
     }
 
     @Override
