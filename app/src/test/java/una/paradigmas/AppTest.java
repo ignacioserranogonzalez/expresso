@@ -59,7 +59,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println("====== Test HelloWorld0.expresso ======");
                       
         String input = "// HelloWorld0.expresso\n" +
-                      "let x = 666 // TEST\n" +
+                      "let x = 666\n" +
                       "print(x) // Expected 666 in console\n" +
                       "let y = 10\n" +
                       "print(y) // Expected 10 in console\n" +
