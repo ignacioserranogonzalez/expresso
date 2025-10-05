@@ -264,7 +264,7 @@ expressor run {ruta__al_.expresso}
 
 El proyecto incluye los tres archivos de prueba Earth HelloWorld0.expresso, HelloWorld1.expresso y HelloWorld2.expresso
 
-**Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final. Obtendrán el mensaje: missing NEWLINE at '<EOF>', sin embargo no afecta a la ejecución de los casos de prueba.
+**Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final. Obtendrán el mensaje: missing NEWLINE at <EOF>, sin embargo no afecta a la ejecución de los casos de prueba.
 
 ### Ejecutar los tests manualmente
 
