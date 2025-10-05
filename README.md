@@ -203,10 +203,12 @@ dir
 ```
 Se mostrará una lista de directorios y archivos en esa ubicación. Debe estar presente el ejecutable **expressor.exe**
 
-4. Ejecute:
+4. Opcionalmete se puede ejecutar el comando:
 ```bash
-expressor --help
+gradle clean test
 ```
+para ejecutar todos los test del proyecto. Aunque estos se van a ejecutar automaticamente con el `gradle clean build - gradlew clean build` que se ejecuta al inicio para construir el proyecto.
+
 
 5. Listo. Ya puede comenzar a utilizar expressor como programa de linea de comandos **en la misma ubicación de expressor.exe**
 
@@ -274,22 +276,36 @@ HelloWorld1.expresso: Precedencia y asociatividad completa de operadores (**, ?:
 Desde la ubicación del ejecutable (app\build\jpackage\expressor):
 
 # Test 1: HelloWorld0.expresso
+
+```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld0.expresso
+```
+```bash
 expressor build --verbose ..\..\..\..\test\HelloWorld0.expresso
+```
+```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld0.expresso
-
+```
 # Test 2: HelloWorld1.expresso
+```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld1.expresso
+```
+```bash
 expressor build --verbose ..\..\..\..\test\HelloWorld1.expresso
+```
+```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld1.expresso
-
+```
 # Test 3: HelloWorld2.expresso
+```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld2.expresso
+```
+```bash
 expressor build --verbose ..\..\..\..\test\HelloWorld2.expresso
+```
+```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld2.expresso
-
----
-
+```
 ## Prompts de IA (Íntegros)
 
 Modelos de inteligencia artificial consultados: Grok, DeepSeek, Gemini, ChatGPT
