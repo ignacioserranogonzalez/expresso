@@ -90,30 +90,30 @@ import org.antlr.v4.runtime.CommonTokenStream;
         testExpressoProgram(input, "HelloWorld1");
     }
 
-    // @Test 
-    // public void testHelloWorld2() {
+    @Test 
+    public void testHelloWorld2() {
 
-    //     System.out.println("====== Test HelloWorld2.expresso ======");
+        System.out.println("====== Test HelloWorld2.expresso ======");
 
-    //     String input = "// HelloWorld2.expresso\n\n" +
-    //                   "/*\n" +
-    //                   "  Boolean Logic\n" +
-    //                   "  @author hooNous\n" +
-    //                   "  @since Oct 6th, 2025\n" +
-    //                   "*/\n\n" +
-    //                   "let isZero = x -> x ? 0 : 1\n" +
-    //                   "let TRUE  = 1\n" +
-    //                   "let FALSE = 0\n\n" +
-    //                   "let isTrue = x -> isZero(x) ? TRUE : FALSE\n\n" +
-    //                   "let NOT = x -> x ? 0 : 1\n\n" +
-    //                   "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
-    //                   "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
-    //                   "let XOR = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
-    //                   "print(XOR(TRUE, TRUE))   // Expected 0\n" +
-    //                   "print(XOR(TRUE, FALSE))  // Expected 1\n" +
-    //                   "print(XOR(FALSE, TRUE))  // Expected 1\n" +
-    //                   "print(XOR(FALSE, FALSE)) // Expected 0\n";
+        String input = "// HelloWorld2.expresso\n\n" +
+                      "/*\n" +
+                      "  Boolean Logic\n" +
+                      "  @author hooNous\n" +
+                      "  @since Oct 6th, 2025\n" +
+                      "*/\n\n" +
+                      "let isZero = x -> x ? 0 : 1\n" +
+                      "let TRUE  = 1\n" +
+                      "let FALSE = 0\n\n" +
+                      "let isTrue = x -> isZero(x) ? TRUE : FALSE\n\n" +
+                      "let NOT = x -> x ? 0 : 1\n\n" +
+                      "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
+                      "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
+                      "let XOR = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
+                      "print(XOR(TRUE, TRUE))   // Expected 0\n" +
+                      "print(XOR(TRUE, FALSE))  // Expected 1\n" +
+                      "print(XOR(FALSE, TRUE))  // Expected 1\n" +
+                      "print(XOR(FALSE, FALSE)) // Expected 0\n";
         
-    //     testExpressoProgram(input, "HelloWorld2");
-    // }
+        testExpressoProgram(input, "HelloWorld2");
+    }
 }

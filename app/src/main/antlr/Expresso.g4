@@ -31,8 +31,7 @@ lambdaParams: '(' ')'          // 0 args
     | ID                       // 1 arg sin ()
 ;
 
-callArgs: callExpr (',' callExpr)* ;
-callExpr: INT | ID ;
+callArgs: expr (',' expr)* ;
 
 num: INT;
 
