@@ -3,7 +3,7 @@ package una.paradigmas;
 import org.junit.Test;
 
 import una.paradigmas.ast.AstBuilder;
-import una.paradigmas.ast.AstPrintVisitor;
+// import una.paradigmas.ast.AstPrintVisitor;
 import una.paradigmas.ast.ExpressoLexer;
 import una.paradigmas.ast.ExpressoParser;
 import una.paradigmas.ast.JavaCodeGenerator;
@@ -48,7 +48,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
         Program ast = builder.visitProgram(parser.program());
 
         // imprimir con print visitor
-        AstPrintVisitor printer = new AstPrintVisitor();
+        // AstPrintVisitor printer = new AstPrintVisitor();
         // printer.visitProgram(ast);
 
         // Generar codigo Java a partir del AST
