@@ -1,0 +1,116 @@
+// Caso de prueba 3: Precedencia y asociatividad completa
+// Cubre: operador ternario ?:, exponenciación **, combinación de operadores, precedencia
+
+// Operador de exponenciación ** (asociatividad derecha)
+let power = 2 ** 3
+print(power)
+
+// Asociatividad derecha de **: 2 ** 3 ** 2 = 2 ** (3 ** 2) = 2 ** 9 = 512
+let chainPower = 2 ** 3 ** 2
+print(chainPower)
+
+// Precedencia: ** tiene mayor precedencia que * y /
+let calc1 = 2 + 3 ** 2
+print(calc1)
+
+let calc2 = 2 * 3 ** 2
+print(calc2)
+
+// Precedencia completa: ** > * / > + -
+let calc3 = 10 + 5 * 2 ** 3
+print(calc3)
+
+// Operador ternario ?: (se transpila con != 0)
+// Precedencia: ?: tiene menor precedencia que aritméticos
+let x = 10
+let result = x ? 100 : 200
+print(result)
+
+let y = 0
+let result2 = y ? 100 : 200
+print(result2)
+
+// Ternario con expresiones aritméticas
+let num = 15
+let category = num ? num * 2 : num / 2
+print(category)
+
+// Precedencia: aritméticos antes que ?:
+let expr1 = 5 + 3 ? 10 * 2 : 5 * 3
+print(expr1)
+
+// Ternario con exponenciación
+let base = 2
+let exp = base ? base ** 3 : base ** 2
+print(exp)
+
+// Asociatividad del ternario (derecha a izquierda)
+// 1 ? 2 : 0 ? 3 : 4  es  1 ? 2 : (0 ? 3 : 4)
+let nested = 1 ? 2 : 0 ? 3 : 4
+print(nested)
+
+let nested2 = 0 ? 10 : 1 ? 20 : 30
+print(nested2)
+
+// Combinación de operadores con precedencia
+let complex1 = 5 + 3 ** 2 * 2
+print(complex1)
+
+let complex2 = 10 - 2 ** 3 / 2
+print(complex2)
+
+// Ternario con múltiples operadores
+let val1 = 5
+let ternary1 = val1 + 5 ? val1 ** 2 : val1 * 3
+print(ternary1)
+
+let val2 = 0
+let ternary2 = val2 + 0 ? val2 ** 2 : val2 + 10
+print(ternary2)
+
+// Precedencia con paréntesis
+let withParen = (2 + 3) ** 2
+print(withParen)
+
+let ternaryParen = 5 * (1 ? 2 : 3)
+print(ternaryParen)
+
+// Asociatividad de ** con múltiples niveles
+let assoc1 = 2 ** 2 ** 3
+print(assoc1)
+
+// Combinación completa de precedencias
+let mega1 = 3 + 2 ** 3 * 4 - 5
+print(mega1)
+
+let mega2 = 10 ? 5 + 2 ** 3 : 3 * 4
+print(mega2)
+
+// Ternario anidado con exponenciación
+let nested3 = 1 ? 2 ** 3 : 0 ? 4 : 5
+print(nested3)
+
+// Más pruebas de precedencia
+let prec1 = 100 + 10 * 2 ** 3 - 20
+print(prec1)
+
+let prec2 = 5 ** 2 + 3 ** 2
+print(prec2)
+
+// Ternario con todas las precedencias
+let final1 = 2 + 3 * 2 ** 2 ? 100 : 200
+print(final1)
+
+let final2 = 0 * 5 ? 50 : 10 + 5 ** 2
+print(final2)
+
+// Verificar asociatividad completa
+let rightAssoc = 2 ** 3 ** 2
+print(rightAssoc)
+
+let leftAssoc = 10 - 5 - 2
+print(leftAssoc)
+
+// Combinación extrema
+let extreme = 1 ? 2 + 3 ** 2 * 4 : 5 - 2 ** 3 / 2
+print(extreme)

@@ -4,14 +4,14 @@ program: stat* EOF;
 
 // statements
 stat: NEWLINE                        # blank
-    | expr NEWLINE                   # expression
-    | LET ID ASSIGN expr NEWLINE     # letDecl
-    | PRINT '(' expr ')' NEWLINE     # print
+    | expr (COMMENT)? NEWLINE        # expression
+    | LET ID ASSIGN expr (COMMENT)? NEWLINE     # letDecl
+    | PRINT '(' expr ')' (COMMENT)? NEWLINE     # print
     | COMMENT NEWLINE                # comment
     | MULTILINE_COMMENT NEWLINE      # multilineComment
 ;
 
-// expressions
+// expressions (igual que antes)
 expr: <assoc=right> expr POW expr                           # Pow
     | <assoc=right> expr '?' expr ':' expr                  # TernaryCondition
     | expr (PLUS | MINUS) expr                              # AddSub
@@ -33,7 +33,7 @@ lambdaParams: '(' ')'          // 0 args
 
 num: INT;
 
-// Lexer
+// Lexer (igual)
 LET     : 'let';
 ASSIGN  : '=';
 PRINT   : 'print';

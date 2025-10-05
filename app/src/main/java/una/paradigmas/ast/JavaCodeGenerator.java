@@ -66,15 +66,17 @@ public class JavaCodeGenerator {
 
     private String generateStatement(Node stat) {
         return switch (stat) {
-            case Let(var id, var value) -> {
+            case Let(var id, var value, var comment) -> {
                 String valueCode = generateExpression(value);
                 String varType = lambdaType(value);
-                yield varType + " " + generateExpression(id) + " = " + valueCode;
+                String result = varType + " " + generateExpression(id) + " = " + valueCode;
+                yield comment.text().isEmpty() ? result : result + " " + comment.text();
             }
 
-            case Print(var expr) -> {
+            case Print(var expr, var comment) -> {
                 extraMethods.add("print");
-                yield "print(" + generateExpression(expr) + ")";
+                String result = "print(" + generateExpression(expr) + ")";
+                yield comment.text().isEmpty() ? result : result + " " + comment.text();
             }
 
             case Comment(var text) -> text.startsWith("//") ? text : "// " + text;

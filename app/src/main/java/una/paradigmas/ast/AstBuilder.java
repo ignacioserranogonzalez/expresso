@@ -107,16 +107,20 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitLetDecl(LetDeclContext ctx) {
+        public Node visitLetDecl(LetDeclContext ctx) {
         String id = ctx.ID().getText();
         Node value = visit(ctx.expr());
-        return new Let(new Id(id), value);
+        Comment comment = ctx.COMMENT() != null ? 
+            new Comment(ctx.COMMENT().getText()) : new Comment("");
+        return new Let(new Id(id), value, comment);
     }
 
     @Override
     public Node visitPrint(PrintContext ctx) {
         Node expr = visit(ctx.expr());
-        return new Print(expr);
+        Comment comment = ctx.COMMENT() != null ? 
+            new Comment(ctx.COMMENT().getText()) : new Comment("");
+        return new Print(expr, comment);
     }
 
     @Override
