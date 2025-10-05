@@ -104,7 +104,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
                       "let isZero = x -> x ? 0 : 1\n" +
                       "let TRUE  = 1\n" +
                       "let FALSE = 0\n\n" +
-                      "let isTrue = x -> isZero(x) ? TRUE : FALSE\n\n" +
+                      "let isTrue = x -> isZero(x) ? FALSE : TRUE\n\n" +
                       "let NOT = x -> x ? 0 : 1\n\n" +
                       "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
                       "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +

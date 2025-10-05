@@ -273,20 +273,20 @@ HelloWorld1.expresso: Precedencia y asociatividad completa de operadores (**, ?:
 **Ejecutar los tests manualmente**
 Desde la ubicación del ejecutable (app\build\jpackage\expressor):
 
-# Test 1: HelloWorld.expresso
-expressor transpile --verbose ..\..\..\..\test\HelloWorld.expresso
-expressor build --verbose ..\..\..\..\test\HelloWorld.expresso
-expressor run --verbose ..\..\..\..\test\HelloWorld.expresso
-
-# Test 2: HelloWorld0.expresso
+# Test 1: HelloWorld0.expresso
 expressor transpile --verbose ..\..\..\..\test\HelloWorld0.expresso
 expressor build --verbose ..\..\..\..\test\HelloWorld0.expresso
 expressor run --verbose ..\..\..\..\test\HelloWorld0.expresso
 
-# Test 3: HelloWorld1.expresso
+# Test 2: HelloWorld1.expresso
 expressor transpile --verbose ..\..\..\..\test\HelloWorld1.expresso
 expressor build --verbose ..\..\..\..\test\HelloWorld1.expresso
 expressor run --verbose ..\..\..\..\test\HelloWorld1.expresso
+
+# Test 3: HelloWorld2.expresso
+expressor transpile --verbose ..\..\..\..\test\HelloWorld2.expresso
+expressor build --verbose ..\..\..\..\test\HelloWorld2.expresso
+expressor run --verbose ..\..\..\..\test\HelloWorld2.expresso
 
 ---
 
