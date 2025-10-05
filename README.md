@@ -152,18 +152,19 @@ Gradle
 ```bash
 gradle clean build
 ```
-Gradle Wrapper
+o Gradle Wrapper
 ```bash
 gradlew clean build
 ```
 
 2. Generar un ejecutable y comenzar a usar expressor como programa de linea de comandos. Ejecute:
+   
 Gradle
 ```bash
 gradle jpackageImage
 ```
 
-Gradle Wrapper
+o Gradle Wrapper
 ```bash
 gradlew jpackageImage
 ```
@@ -204,8 +205,14 @@ dir
 Se mostrará una lista de directorios y archivos en esa ubicación. Debe estar presente el ejecutable **expressor.exe**
 
 4. Opcionalmete se puede ejecutar el comando:
+  
+Gradle
 ```bash
 gradle clean test
+```
+o Gradle Wrapper
+```bash
+gradlew clean test
 ```
 para ejecutar todos los test del proyecto. Aunque estos se van a ejecutar automaticamente con el `gradle clean build` o `gradlew clean build` que se ejecuta al inicio para construir el proyecto.
 
@@ -268,7 +275,7 @@ El proyecto incluye los tres archivos de prueba Earth HelloWorld0.expresso, Hell
 
 ### Ejecutar los tests manualmente
 
-(Es requisito haber ejecutado el comando `gradle clean build` y `gradle jpackageImage` en la raiz del proyecto (`...\expresso`) con anterioridad)
+(Es requisito haber ejecutado el comando `gradle clean build` y `gradle jpackageImage` (o sus alternativas con `gradlew`) en la raiz del proyecto (`...\expresso`) con anterioridad)
 
 Ubicarse en la ruta del ejecutable (app\build\jpackage\expressor):
 _(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
