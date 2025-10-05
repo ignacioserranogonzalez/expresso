@@ -107,8 +107,11 @@ public class AstPrintVisitor implements Visitor<String> {
 
     @Override
     public String visitCall(Call call) {
-        String result = "Call(" + call.id().accept(this) + ", " +
-                        call.expr().accept(this) + ")";
+        String args = call.args().stream()
+                .map(arg -> arg.accept(this))
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+        String result = "Call(" + call.id().accept(this) + ", [" + args + "])";
         System.out.println(result);
         return result;
     }

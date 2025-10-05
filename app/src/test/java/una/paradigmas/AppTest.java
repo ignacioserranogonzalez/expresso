@@ -44,9 +44,9 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         // imprimir con print visitor
         AstPrintVisitor printer = new AstPrintVisitor();
-        // printer.visitProgram(ast);
+        printer.visitProgram(ast);
 
-        //Generar codigo Java a partir del AST
+        // Generar codigo Java a partir del AST
         JavaCodeGenerator generator = new JavaCodeGenerator(className);
         String javaCode = generator.generate(ast);
         System.out.println("\n");
@@ -57,7 +57,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
     public void testHelloWorld0() {
 
         System.out.println("====== Test HelloWorld0.expresso ======");
-
+                      
         String input = "// HelloWorld0.expresso\n" +
                       "let x = 666\n" +
                       "print(x) // Expected 666 in console\n" +

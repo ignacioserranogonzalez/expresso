@@ -20,7 +20,7 @@ expr: <assoc=right> expr POW expr                           # Pow
     | (PLUS | MINUS) num                                    # UnaryOp
     | expr INC                                              # PostInc
     | expr DEC                                              # PostDec
-    | ID '(' expr ')'                                       # Call
+    | ID '(' callArgs? ')'                                  # Call
     | '(' expr ')'                                          # Paren
     | INT                                                   # Int
     | ID                                                    # Id
@@ -30,6 +30,9 @@ lambdaParams: '(' ')'          // 0 args
     | '(' ID (',' ID)? ')'     // 1-2 args con ()
     | ID                       // 1 arg sin ()
 ;
+
+callArgs: callExpr (',' callExpr)* ;
+callExpr: INT | ID ;
 
 num: INT;
 

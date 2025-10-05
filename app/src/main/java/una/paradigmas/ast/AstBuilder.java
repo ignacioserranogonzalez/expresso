@@ -84,8 +84,23 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitCall(CallContext ctx) {
         String id = ctx.ID().getText();
-        Node expr = visit(ctx.expr());
-        return new Call(new Id(id), expr);
+        List<Node> args = new ArrayList<>();
+        if (ctx.callArgs() != null) {
+            args = ctx.callArgs().callExpr().stream()
+                .map(this::visit)
+                .collect(Collectors.toList());
+        }
+        return new Call(new Id(id), args);
+    }
+
+    @Override
+    public Node visitCallExpr(CallExprContext ctx) {
+        if (ctx.INT() != null) {
+            return new IntLiteral(Integer.parseInt(ctx.INT().getText()));
+        } else if (ctx.ID() != null) {
+            return new Id(ctx.ID().getText());
+        }
+        throw new RuntimeException("CallExpr inválido: " + ctx.getText());
     }
 
     @Override

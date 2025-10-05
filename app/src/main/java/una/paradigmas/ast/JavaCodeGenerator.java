@@ -3,6 +3,7 @@ package una.paradigmas.ast;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JavaCodeGenerator {
 
@@ -134,7 +135,13 @@ public class JavaCodeGenerator {
                 yield params + " -> " + generateExpression(body);
             }
 
-            case Call(var id, var param) -> generateExpression(id) + ".apply(" + generateExpression(param) + ")";
+            case Call(var id, var paramList) -> {
+                String params = paramList.stream()
+                    .map(this::generateExpression)
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                yield generateExpression(id) + ".apply(" + params + ")";
+            }
 
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };

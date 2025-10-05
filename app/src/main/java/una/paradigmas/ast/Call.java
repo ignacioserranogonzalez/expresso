@@ -1,6 +1,8 @@
 package una.paradigmas.ast;
 
-public record Call(Id id, Node expr) implements Node {
+import java.util.List;
+
+public record Call(Id id, List<Node> args) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitCall(this);
