@@ -207,14 +207,14 @@ Se mostrará una lista de directorios y archivos en esa ubicación. Debe estar p
 ```bash
 gradle clean test
 ```
-para ejecutar todos los test del proyecto. Aunque estos se van a ejecutar automaticamente con el `gradle clean build - gradlew clean build` que se ejecuta al inicio para construir el proyecto.
+para ejecutar todos los test del proyecto. Aunque estos se van a ejecutar automaticamente con el `gradle clean build` o `gradlew clean build` que se ejecuta al inicio para construir el proyecto.
 
 
 5. Listo. Ya puede comenzar a utilizar expressor como programa de linea de comandos **en la misma ubicación de expressor.exe**
 
-Nota: expressor es un programa de CLI que se ejecuta a través de comandos en la misma ubicación en donde fue generado el ejecutable. No ubicarse en esa ruta o cambiar la ubicación del ejecutable o otros archivos del proyecto podría resultar en mal funcionamiento o imposibilidad de utilizar expressor.  
+Nota: expressor es un programa de CLI que se ejecuta a través de comandos en la misma ubicación en donde fue generado el ejecutable. Estar en una ruta diferente o cambiar la ubicación del ejecutable u otros archivos del proyecto podría resultar en mal funcionamiento o imposibilidad de utilizar expressor.  
 
-## Comandos soportados por expressor
+## Comandos soportados por expressor (Para futura referencia. Casos de Prueba de Sprint 2 más abajo)
 
 Las rutas del archivo `.expresso` que se usen como input en los comando que contengan espacios en blanco deben ser encerradas entre comillas ("")
 Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/HelloWorld.expresso"`
@@ -260,22 +260,20 @@ expressor run {ruta__al_.expresso}
    
 `--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
 
-**NOTA IMPORTANTE**: Este proyecto utiliza la ruta relativa `expresso/resources/template` para acceder al archivo `HelloWorld.java` durante la (fingida) transpilación, utilizando una propiedad (`PROJECT_ROOT`) definida al empaquetar con jpackage ya que así lo exigen las instrucciones el Sprint 1 inicial. Sin embargo, en un entorno real, se recomienda utilizar el directorio `resources/` generado automáticamente por Gradle, accediendo al template a través del `classpath` en `TranspileCommand`, o bien una carpeta `resources/template` en el mismo directorio del ejecutable, evitando el uso de rutas relativas complejas.
+# Ejecución de Casos de Prueba del Sprint 2 (Earth)
 
-## Ejecución de Casos de Prueba
+El proyecto incluye los tres archivos de prueba Earth HelloWorld0.expresso, HelloWorld1.expresso y HelloWorld2.expresso
 
-El proyecto incluye tres casos de prueba incrementales ubicados en la carpeta test en la raíz del proyecto:
+**Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final. Obtendrán el mensaje: missing NEWLINE at '<EOF>', sin embargo no afecta a la ejecución de los casos de prueba.
 
-HelloWorld.expresso: Caso básico con lambdas simples y operadores aritméticos
-HelloWorld0.expresso: Lambdas con múltiples argumentos y lambdas que retornan lambdas
-HelloWorld1.expresso: Precedencia y asociatividad completa de operadores (**, ?:, ->)
+### Ejecutar los tests manualmente
+Ubicarse en la ruta del ejecutable (app\build\jpackage\expressor):
+_(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
+```bash
+cd app\build\jpackage\expressor
+```
 
-**Nota importante:** Todos los archivos .expresso deben terminar con una línea en blanco al final. De lo contrario, obtendrá el error: missing NEWLINE at '<EOF>'
-
-**Ejecutar los tests manualmente**
-Desde la ubicación del ejecutable (app\build\jpackage\expressor):
-
-# Test 1: HelloWorld0.expresso
+## Test 1: HelloWorld0.expresso
 
 ```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld0.expresso
@@ -286,7 +284,7 @@ expressor build --verbose ..\..\..\..\test\HelloWorld0.expresso
 ```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld0.expresso
 ```
-# Test 2: HelloWorld1.expresso
+## Test 2: HelloWorld1.expresso
 ```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld1.expresso
 ```
@@ -296,7 +294,7 @@ expressor build --verbose ..\..\..\..\test\HelloWorld1.expresso
 ```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld1.expresso
 ```
-# Test 3: HelloWorld2.expresso
+## Test 3: HelloWorld2.expresso
 ```bash
 expressor transpile --verbose ..\..\..\..\test\HelloWorld2.expresso
 ```
@@ -306,6 +304,7 @@ expressor build --verbose ..\..\..\..\test\HelloWorld2.expresso
 ```bash
 expressor run --verbose ..\..\..\..\test\HelloWorld2.expresso
 ```
+
 ## Prompts de IA (Íntegros)
 
 Modelos de inteligencia artificial consultados: Grok, DeepSeek, Gemini, ChatGPT
