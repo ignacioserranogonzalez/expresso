@@ -267,11 +267,16 @@ El proyecto incluye los tres archivos de prueba Earth HelloWorld0.expresso, Hell
 **Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final. Obtendrán el mensaje: missing NEWLINE at '<EOF>', sin embargo no afecta a la ejecución de los casos de prueba.
 
 ### Ejecutar los tests manualmente
+
+(Es requisito haber ejecutado el comando `gradle clean build` y `gradle jpackageImage` en la raiz del proyecto (`...\expresso`) con anterioridad)
+
 Ubicarse en la ruta del ejecutable (app\build\jpackage\expressor):
 _(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
 ```bash
 cd app\build\jpackage\expressor
 ```
+
+
 
 ## Test 1: HelloWorld0.expresso
 
