@@ -44,7 +44,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         // imprimir con print visitor
         AstPrintVisitor printer = new AstPrintVisitor();
-        printer.visitProgram(ast);
+        // printer.visitProgram(ast);
 
         //Generar codigo Java a partir del AST
         JavaCodeGenerator generator = new JavaCodeGenerator(className);
@@ -69,26 +69,26 @@ import org.antlr.v4.runtime.CommonTokenStream;
         testExpressoProgram(input, "HelloWorld0");
     }
 
-    // @Test 
-    // public void testHelloWorld1() {
+    @Test 
+    public void testHelloWorld1() {
 
-    //     System.out.println("====== Test HelloWorld1.expresso ======");
+        System.out.println("====== Test HelloWorld1.expresso ======");
 
-    //     String input = "// HelloWorld1.expresso\n\n" +
-    //                   "/*\n" +
-    //                   "  As HelloWorld0 but with a Binary Function\n" +
-    //                   "  @author hooNous\n" +
-    //                   "  @since Oct 6th, 2025\n" +
-    //                   "*/\n\n" +
-    //                   "let x = 6\n" +
-    //                   "print(x)\n" +
-    //                   "let y = 3\n" +
-    //                   "print(y)\n" +
-    //                   "let f = (x, z) -> z ** x + x*z + 1\n" +
-    //                   "print(f(x, y)) // Expected 748\n";
+        String input = "// HelloWorld1.expresso\n\n" +
+                      "/*\n" +
+                      "  As HelloWorld0 but with a Binary Function\n" +
+                      "  @author hooNous\n" +
+                      "  @since Oct 6th, 2025\n" +
+                      "*/\n\n" +
+                      "let x = 6\n" +
+                      "print(x)\n" +
+                      "let y = 3\n" +
+                      "print(y)\n" +
+                      "let f = (x, z) -> z ** x + x*z + 1\n" +
+                      "print(f(x, y)) // Expected 748\n";
         
-    //     testExpressoProgram(input, "HelloWorld1");
-    // }
+        testExpressoProgram(input, "HelloWorld1");
+    }
 
     // @Test 
     // public void testHelloWorld2() {

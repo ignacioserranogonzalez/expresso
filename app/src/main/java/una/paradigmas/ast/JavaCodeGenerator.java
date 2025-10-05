@@ -25,14 +25,15 @@ public class JavaCodeGenerator {
         CodeBuilderState state = new CodeBuilderState(new StringBuilder(), new StringBuilder());
 
         statlist.forEach(line -> {
-            if (line.startsWith("//") && state.mainCode.length() == 0) {
+            boolean isComment = line.startsWith("//") || line.startsWith("/*");
+            if (isComment && state.mainCode.length() == 0) {
                 state.comments.append(line).append("\n");
             } else {
                 state.mainCode.append("        ")
-                              .append(line.startsWith("//") ? line : line + ";")
+                              .append(isComment ? line : line + ";")
                               .append("\n");
             }
-        });        
+        });       
 
         StringBuilder codeBuilder = new StringBuilder();
         codeBuilder.append(state.comments); // Añade comentarios iniciales
@@ -79,7 +80,13 @@ public class JavaCodeGenerator {
                 yield comment.text().isEmpty() ? result : result + " " + comment.text();
             }
 
-            case Comment(var text) -> text.startsWith("//") ? text : "// " + text;
+            case Comment(var text) -> {
+                if (text.startsWith("/*")) {
+                    yield text;
+                } else {
+                    yield text.startsWith("//") ? text : "// " + text;
+                }
+            }
 
             default -> "";
         };
