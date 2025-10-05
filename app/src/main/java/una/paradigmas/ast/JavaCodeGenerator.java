@@ -22,24 +22,20 @@ public class JavaCodeGenerator {
                 .map(this::generateStatement)
                 .toList();
 
-        CodeBuilderState initialState = new CodeBuilderState(new StringBuilder(), new StringBuilder());
-        CodeBuilderState finalState = statlist.stream()
-                .reduce(initialState, (state, line) -> {
-                    if (line.startsWith("//") && state.mainCode.length() == 0) {
-                        // Añade comentarios iniciales fuera de main
-                        state.comments.append(line).append("\n");
-                        return state;
-                    } else {
-                        // Añade el resto dentro de main
-                        state.mainCode.append("        ")
-                                      .append(line.startsWith("//") ? line : line + ";")
-                                      .append("\n");
-                        return state;
-                    }
-                }, (s1, s2) -> s1); // No se usa en secuencia, pero necesario para el reduce
+        CodeBuilderState state = new CodeBuilderState(new StringBuilder(), new StringBuilder());
+
+        statlist.forEach(line -> {
+            if (line.startsWith("//") && state.mainCode.length() == 0) {
+                state.comments.append(line).append("\n");
+            } else {
+                state.mainCode.append("        ")
+                              .append(line.startsWith("//") ? line : line + ";")
+                              .append("\n");
+            }
+        });        
 
         StringBuilder codeBuilder = new StringBuilder();
-        codeBuilder.append(finalState.comments); // Añade comentarios iniciales
+        codeBuilder.append(state.comments); // Añade comentarios iniciales
 
         // Añadir imports necesarios
         if (!imports.isEmpty()) {
@@ -62,7 +58,7 @@ public class JavaCodeGenerator {
         }
 
         codeBuilder.append("    public static void main(String... args) {\n");
-        codeBuilder.append(finalState.mainCode); // Añade el código de main
+        codeBuilder.append(state.mainCode); // Añade el código de main
         codeBuilder.append("    }\n}\n");
 
         return codeBuilder.toString();
