@@ -10,5 +10,5 @@ let x = 6
 print(x)
 let y = 3
 print(y)
-let f = (w, z) -> z ** w + w*z + 1
+let f = (x, z) -> z ** x + x*z + 1
 print(f(x, y)) // Expected 748
