@@ -39,14 +39,25 @@ public class BuildCommand implements Runnable {
 
     @Override
     public void run() {
-        
+        if (input == null) {
+            throw new IllegalArgumentException("Debe proporcionar la ruta de un archivo .expresso como argumento.");
+        }
         Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : Path.of("generated");
+        buildCommon(input, outputDir);
+
+    }
+
+    protected static Path buildCommon(Path input, Path outputDir) {
         Path javaFile = prepareJavaFile(input, outputDir);
 
         try {
             // Verificar que el .java exista
             if (!Files.exists(javaFile)) {
-                throw new IOException("Archivo .java no encontrado: " + javaFile + ". Ejecuta 'transpile' primero.");
+                new TranspileCommand();
+                TranspileCommand.transpileCommon(input, outputDir);
+                if (!Files.exists(javaFile)) {
+                    throw new IOException("Transpilación falló, archivo .java no generado: " + javaFile);
+                }
             }
 
             // Compilar con JavaCompiler
@@ -56,9 +67,10 @@ public class BuildCommand implements Runnable {
         } catch (IOException e) {
             System.err.println("ERROR - " + e.getMessage());
         }
+        return javaFile;
     }
 
-    private void compileJavaFile(Path javaFile, Path outputDir) throws IOException {
+    private static void compileJavaFile(Path javaFile, Path outputDir) throws IOException {
         log("Compilando " + javaFile.getFileName() + " a .class...");
 
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -80,13 +92,13 @@ public class BuildCommand implements Runnable {
         if (commonOptions.verbose) System.out.println(msg);
     }
 
-    private Path prepareJavaFile(Path input, Path outputDir) {
+    private static Path prepareJavaFile(Path input, Path outputDir) {
         String baseName = getBaseName(input);
         String capitalizedName = capitalize(baseName) + ".java";
         return outputDir.resolve(capitalizedName);
     }
 
-    private String getBaseName(Path input) {
+    private static String getBaseName(Path input) {
         return input.getFileName().toString().replaceAll("(?i)\\.expresso$", "");
     }
 

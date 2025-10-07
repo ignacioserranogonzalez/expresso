@@ -41,12 +41,19 @@ public class RunCommand implements Runnable {
 
     @Override
     public void run() {
+        if (input == null) {
+            throw new IllegalArgumentException("Debe proporcionar la ruta de un archivo .expresso como argumento.");
+        }
         Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : Path.of("generated");
         Path classFile = prepareClassFile(input, outputDir);
         try {
             // Verifica que el .class exista
             if (!Files.exists(classFile)) {
-                throw new IOException("Archivo .class no encontrado: " + classFile + ". Ejecuta 'build' primero.");
+                new BuildCommand();
+                BuildCommand.buildCommon(input, outputDir);
+                if (!Files.exists(classFile)) {
+                    throw new IOException("Archivo .class no encontrado: " + classFile + ". Ejecuta 'build' primero.");
+                }
             }
             // Ejecuta el .class
             runClassFile(classFile, outputDir);
@@ -68,9 +75,7 @@ public class RunCommand implements Runnable {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (commonOptions.verbose) {
-                    System.out.println(line);
-                }
+                System.out.println(line);
             }
         }
 
