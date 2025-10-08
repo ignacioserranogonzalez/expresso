@@ -112,8 +112,14 @@ public class JavaCodeGenerator {
             case AddSub(var left, var op, var right) ->
                 generateExpression(left) + " " + op + " " + generateExpression(right);
 
-            case UnaryOp(var op, var expr2) ->
-                op + generateExpression(expr2);
+            case UnaryOp(var op, var expr2) -> {
+                String inner = generateExpression(expr2);
+                // Si el expr2 es otro UnaryOp, agregar paréntesis
+                if (inner.startsWith("+") || inner.startsWith("-")) {
+                    yield op + "(" + inner + ")";
+                }
+                yield op + inner;
+            }
 
             case PostOp(var expr1, var op) ->
                 generateExpression(expr1) + op;

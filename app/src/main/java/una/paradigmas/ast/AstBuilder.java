@@ -82,14 +82,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitUnaryOp(UnaryOpContext ctx) {
         String op = ctx.PLUS() != null ? "+" : "-";
         Node expr = visit(ctx.expr());
-        
-        // Si la expresión ya es un UnaryOp con el mismo operador, 
-        // necesitamos preservar ambos operadores
-        if (expr instanceof UnaryOp unaryExpr) {
-            // Para --x: crear un nuevo UnaryOp que contenga el existente
-            return new UnaryOp(op, unaryExpr);
-        }
-        
         return new UnaryOp(op, expr);
     }
 
