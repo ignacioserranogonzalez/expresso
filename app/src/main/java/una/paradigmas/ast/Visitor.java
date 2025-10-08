@@ -29,6 +29,5 @@ public interface Visitor<T> {
     T visitPrint(Print print);
     T visitLambda(Lambda lambda);
     T visitCall(Call call);
-    T visitComment(Comment comment);
     T visitTernaryCondition(TernaryCondition ternary);
 }

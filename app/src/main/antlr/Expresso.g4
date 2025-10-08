@@ -4,11 +4,9 @@ program: stat* EOF;
 
 // statements
 stat: NEWLINE                        # blank
-    | expr (COMMENT)? NEWLINE        # expression
-    | LET ID ASSIGN expr (COMMENT)? NEWLINE     # letDecl
-    | PRINT '(' expr ')' (COMMENT)? NEWLINE     # print
-    | COMMENT NEWLINE                # comment
-    | MULTILINE_COMMENT NEWLINE      # multilineComment
+    | expr NEWLINE        # expression
+    | LET ID ASSIGN expr NEWLINE     # letDecl
+    | PRINT '(' expr ')' NEWLINE     # print
 ;
 
 // expressions (igual que antes)
@@ -52,7 +50,7 @@ DIV  : '/';
 
 ID  : [a-zA-Z_][a-zA-Z0-9_]*;
 
-COMMENT: '//' ~[\r\n]*;
-MULTILINE_COMMENT: '/*' (~[*] | '*' ~[/])* '*/';
+COMMENT: '//' ~[\r\n]* -> skip;
+MULTILINE_COMMENT: '/*' (~[*] | '*' ~[/])* '*/' -> skip;
 NEWLINE: '\r'? '\n';
 WS: [ \t]+ -> skip;

@@ -136,13 +136,6 @@ public class AstPrintVisitor implements Visitor<String> {
     }
 
     @Override
-    public String visitComment(Comment comment) {
-        String result = "Comment(" + comment.text() + ")";
-        System.out.println(result);
-        return result;
-    }
-
-    @Override
     public String visitTernaryCondition(TernaryCondition ternary) {
         String result = "TernaryCondition(" + ternary.condition().accept(this) + ", " +
                         ternary.value1().accept(this) + ", " +

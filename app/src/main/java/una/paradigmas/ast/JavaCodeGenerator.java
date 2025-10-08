@@ -44,18 +44,12 @@ public class JavaCodeGenerator {
         CodeBuilderState state = new CodeBuilderState(new StringBuilder(), new StringBuilder());
 
         statlist.forEach(line -> {
-            boolean isComment = line.startsWith("//") || line.startsWith("/*");
-            if (isComment && state.mainCode.length() == 0) {
-                state.comments.append(line).append("\n");
-            } else {
-                state.mainCode.append("        ")
-                              .append(line)
-                              .append("\n");
-            }
+            state.mainCode.append("        ")
+            .append(line)
+            .append("\n");
         });       
 
         StringBuilder codeBuilder = new StringBuilder();
-        codeBuilder.append(state.comments); // Añade comentarios iniciales
 
         // imports necesarios
         if (!imports.isEmpty()) {
@@ -86,25 +80,15 @@ public class JavaCodeGenerator {
 
     private String generateStatement(Node stat) {
         return switch (stat) {
-            case Let(var id, var value, var comment) -> {
+            case Let(var id, var value) -> {
                 String valueCode = generateExpression(value);
                 String varType = lambdaType(value);
-                String result = varType + " " + generateExpression(id) + " = " + valueCode + ";";
-                yield comment.text().isEmpty() ? result : result + " " + comment.text();
+                yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }
 
-            case Print(var expr, var comment) -> {
+            case Print(var expr) -> {
                 extraMethods.add("print");
-                String result = "print(" + generateExpression(expr) + ");";
-                yield comment.text().isEmpty() ? result : result + " " + comment.text();
-            }
-
-            case Comment(var text) -> {
-                if (text.startsWith("/*")) {
-                    yield text;
-                } else {
-                    yield text.startsWith("//") ? text : "// " + text;
-                }
+                yield "print(" + generateExpression(expr) + ");";
             }
 
             default -> "";
