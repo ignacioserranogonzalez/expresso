@@ -14,7 +14,7 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-public record UnaryOp(String op, Node num) implements Node {
+public record UnaryOp(String op, Node expr) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitUnaryOp(this);

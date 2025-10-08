@@ -121,4 +121,79 @@ import org.antlr.v4.runtime.CommonTokenStream;
         
         testExpressoProgram(input, "HelloWorld2");
     }
+
+    @Test 
+    public void testHelloWorld3() {
+
+        System.out.println("====== Test HelloWorld3.expresso ======");
+        System.out.println("====== Devil's surprises ======");
+
+        String input = "/* HelloWorld3.expresso */\n" +
+                        "\n" +
+                        "/*\n" +
+                        "  Devil's suprises\n" +
+                        "  @author hooNous\n" +
+                        "  @since Oct 6th, 2025\n" +
+                        "*/\n" +
+                        "\n" +
+                        "/*\n" +
+                        "Expected output:\n" +
+                        "111\n" +
+                        "1\n" +
+                        "12\n" +
+                        "222\n" +
+                        "666\n" +
+                        "12\n" +
+                        "444\n" +
+                        "0\n" +
+                        "1\n" +
+                        "555\n" +
+                        "-666\n" +
+                        "999\n" +
+                        "*/\n" +
+                        "\n" +
+                        "/////////////////////////////////////////////////\n" +
+                        "//# Section 111\n" +
+                        "print(111)\n" +
+                        "print(666 ? 1 : 2 + 10) // Expecting 1\n" +
+                        "print(0 ? 1 : 2 + 10)   // Expecting 12\n" +
+                        "\n" +
+                        "/////////////////////////////////////////////////\n" +
+                        "//# Section 222\n" +
+                        "print(222)\n" +
+                        "print( 0 ? 0 ? 1 : 2 + 10 : 666) // Expecting 666\n" +
+                        "\n" +
+                        "print( 1 ? 0 ? 1 : 2 + 10 : 666) // Expecting 12\n" +
+                        "\n" +
+                        "/////////////////////////////////////////////////\n" +
+                        "//# Section 333\n" +
+                        "/* ?: multiline */ \n" +
+                        "let isZero = x -> x ? 0  : 1\n" +
+                        "\n" +
+                        "\n" +
+                        "/* const */ let  TRUE  = /* */ 1\n" +
+                        "/* const */ let  FALSE = 0\n" +
+                        "\n" +
+                        "/////////////////////////////////////////////////\n" +
+                        "//# Section 444\n" +
+                        "print(444)\n" +
+                        "let mod_2 = x -> x - x / 2 * 2 \n" +
+                        "\n" +
+                        "print(mod_2(666))    // Expecting 0\n" +
+                        "print(mod_2(666 +1)) // Expecting 1\n" +
+                        "\n" +
+                        "/////////////////////////////////////////////////\n" +
+                        "//# Section 444\n" +
+                        "print(555)\n" +
+                        "\n" +
+                        "let _hasUnderscores_ = -666 // must be parsed\n" +
+                        "print(--_hasUnderscores_)  // Expecting -666\n" +
+                        "\n" +
+                        "/////////////////////////////////////////////////\n" +
+                        "//# Section 999\n" +
+                        "print(999)\n" +
+                        "// print(variable_not_defined) // Expecting to be transpiled but not built";
+        
+        testExpressoProgram(input, "HelloWorld3");
+    }
 }

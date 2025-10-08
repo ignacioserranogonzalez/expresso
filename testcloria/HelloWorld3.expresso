@@ -1,0 +1,76 @@
+
+/* HelloWorld3.expresso */
+
+/*
+  Devil's suprises
+  @author hooNous
+  @since Oct 6th, 2025
+*/
+
+/*
+Expected output:
+111
+1
+12
+222
+666
+12
+444
+0
+1
+555
+-666
+999
+*/
+
+/////////////////////////////////////////////////
+//# Section 111
+print(111)
+print(666 ? 1 : 2 + 10) // Expecting 1
+print(0 ? 1 : 2 + 10)   // Expecting 12
+
+/////////////////////////////////////////////////
+//# Section 222
+print(222)
+print( 0 ? 0 ? 1 : 2 + 10 : 666) // Expecting 666
+
+print( 1 ? 0 ? 1 : 2 + 10 : 666) // Expecting 12
+
+/////////////////////////////////////////////////
+//# Section 333
+/* ?: multiline */ 
+let isZero = x -> x ? 0  : 1
+
+
+/* const */ let  TRUE  = /* */ 1
+/* const */ let  FALSE = 0
+
+/////////////////////////////////////////////////
+//# Section 444
+print(444)
+let mod_2 = x -> x - x / 2 * 2 
+
+print(mod_2(666))    // Expecting 0
+print(mod_2(666 +1)) // Expecting 1
+
+/////////////////////////////////////////////////
+//# Section 444
+print(555)
+
+let _hasUnderscores_ = -666 // must be parsed
+print(--_hasUnderscores_)  // Expecting -666
+
+/////////////////////////////////////////////////
+//# Section 999
+print(999)
+// print(variable_not_defined) // Expecting to be transpiled but not built
+
+
+
+
+
+
+
+
+
+

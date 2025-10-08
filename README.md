@@ -288,33 +288,33 @@ cd app\build\jpackage\expressor
 ## Test 1: HelloWorld0.expresso
 
 ```bash
-expressor transpile --verbose ..\..\..\..\test\HelloWorld0.expresso
+expressor transpile --verbose ..\..\..\..\testcloria\HelloWorld0.expresso
 ```
 ```bash
-expressor build --verbose ..\..\..\..\test\HelloWorld0.expresso
+expressor build --verbose ..\..\..\..\testcloria\HelloWorld0.expresso
 ```
 ```bash
-expressor run --verbose ..\..\..\..\test\HelloWorld0.expresso
+expressor run --verbose ..\..\..\..\testcloria\HelloWorld0.expresso
 ```
 ## Test 2: HelloWorld1.expresso
 ```bash
-expressor transpile --verbose ..\..\..\..\test\HelloWorld1.expresso
+expressor transpile --verbose ..\..\..\..\testcloria\HelloWorld1.expresso
 ```
 ```bash
-expressor build --verbose ..\..\..\..\test\HelloWorld1.expresso
+expressor build --verbose ..\..\..\..\testcloria\HelloWorld1.expresso
 ```
 ```bash
-expressor run --verbose ..\..\..\..\test\HelloWorld1.expresso
+expressor run --verbose ..\..\..\..\testcloria\HelloWorld1.expresso
 ```
 ## Test 3: HelloWorld2.expresso
 ```bash
-expressor transpile --verbose ..\..\..\..\test\HelloWorld2.expresso
+expressor transpile --verbose ..\..\..\..\testcloria\HelloWorld2.expresso
 ```
 ```bash
-expressor build --verbose ..\..\..\..\test\HelloWorld2.expresso
+expressor build --verbose ..\..\..\..\testcloria\HelloWorld2.expresso
 ```
 ```bash
-expressor run --verbose ..\..\..\..\test\HelloWorld2.expresso
+expressor run --verbose ..\..\..\..\testcloria\HelloWorld2.expresso
 ```
 
 ## Prompts de IA (Íntegros)

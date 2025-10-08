@@ -79,7 +79,7 @@ public class AstPrintVisitor implements Visitor<String> {
     @Override
     public String visitUnaryOp(UnaryOp unOp) {
         String result = "UnaryOp(" + unOp.op() + ", " +
-                        unOp.num().accept(this) + ")";
+                        unOp.expr().accept(this) + ")";
         System.out.println(result);
         return result;
     }
