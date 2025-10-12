@@ -196,4 +196,55 @@ import org.antlr.v4.runtime.CommonTokenStream;
         
         testExpressoProgram(input, "HelloWorld3");
     }
+
+    @Test
+    public void testTarea14() {
+        System.out.println("====== Test Tarea14.expresso ======");
+
+        String input = "// Tarea14.expresso\n" +
+                    "/*\n" +
+                    "  Prueba para Tarea 14: Funciones 'fun' recursivas y lambdas tipadas\n" +
+                    "  @author Equipo 02-1PM\n" +
+                    "  @since Oct 11th, 2025\n" +
+                    "*/\n" +
+                    "\n" +
+                    "// Definición de función recursiva factorial\n" +
+                    "fun fact(n:int):int = n ? n * fact(n - 1) : 1\n" +
+                    "\n" +
+                    "// Lambda tipada asignada a variable\n" +
+                    "let doubleIt = (x:int) -> x * 2\n" +
+                    "\n" +
+                    "// Uso de la función y la lambda\n" +
+                    "let result1 = fact(5)    // Expected: 120\n" +
+                    "let result2 = doubleIt(3) // Expected: 6\n" +
+                    "print(result1)           // Expected output: 120\n" +
+                    "print(result2)           // Expected output: 6\n" +
+                    "\n" +
+                    "// Prueba de recursividad y llamada directa\n" +
+                    "let result3 = fact(3) + doubleIt(4) // Expected: 6 + 8 = 14\n" +
+                    "print(result3)                     // Expected output: 14\n";
+
+        testExpressoProgram(input, "Tarea14");
+    }
+
+    @Test
+    public void testFactorial() {
+        System.out.println("====== Test Factorial.expresso ======");
+
+        String input = "// Factorial.expresso\n" +
+                    "/*\n" +
+                    "  Prueba de función recursiva 'fun' para calcular el factorial\n" +
+                    "  @author Equipo 02-1PM\n" +
+                    "  @since Oct 11th, 2025\n" +
+                    "*/\n" +
+                    "\n" +
+                    "// Definición de función recursiva factorial\n" +
+                    "fun fact(n:int):int = n ? n * fact(n - 1) : 1\n" +
+                    "\n" +
+                    "// Prueba de la función\n" +
+                    "let result = fact(5)    // Expected: 120 (5! = 5 * 4 * 3 * 2 * 1)\n" +
+                    "print(result)           // Expected output: 120\n";
+
+        testExpressoProgram(input, "Factorial");
+    }
 }

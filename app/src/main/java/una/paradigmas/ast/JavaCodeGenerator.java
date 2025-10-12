@@ -27,6 +27,7 @@ public class JavaCodeGenerator {
 
     private final Set<String> imports = new HashSet<>();
     private final Set<String> extraMethods = new HashSet<>();
+    private final Set<String> lambdaVars = new HashSet<>(); // Nuevo conjunto para rastrear variables lambda
     private final String className;
 
     public JavaCodeGenerator(String className) {
@@ -37,6 +38,9 @@ public class JavaCodeGenerator {
         // Acumulador para construir el codigo (comentariosIniciales, codigoMain)
         record CodeBuilderState(StringBuilder comments, StringBuilder mainCode) {}
         
+        // Limpiar lambdaVars antes de procesar un nuevo programa
+        lambdaVars.clear();
+
         List<String> statlist = ast.statements().stream()
                 .map(this::generateStatement)
                 .toList();
@@ -71,6 +75,23 @@ public class JavaCodeGenerator {
             codeBuilder.append("    }\n");
         }
 
+        // Añadir métodos generados por Fun
+        ast.statements().stream()
+            .filter(stat -> stat instanceof Fun)
+            .map(Fun.class::cast) //Esto es una forma segura de casteo
+            .forEach(fun -> {
+                String paramDecls = fun.params().stream()
+                    .map(p -> p.type() + " " + p.name())
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                codeBuilder.append("    private static ").append(fun.returnType()).append(" ")
+                    .append(fun.name()).append("(").append(paramDecls).append(") {\n");
+                String bodyCode = generateExpression(fun.body());
+                codeBuilder.append("        ").append(fun.returnType().equals("void") ? "" : "return ")
+                    .append(bodyCode).append(";\n");
+                codeBuilder.append("    }\n");
+            });
+
         codeBuilder.append("    public static void main(String... args) {\n");
         codeBuilder.append(state.mainCode); // Añade el código de main
         codeBuilder.append("    }\n}\n");
@@ -83,6 +104,9 @@ public class JavaCodeGenerator {
             case Let(var id, var value) -> {
                 String valueCode = generateExpression(value);
                 String varType = lambdaType(value);
+                if (value instanceof Lambda) {
+                    addLambdaVar(generateExpression(id));
+                }
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }
 
@@ -147,7 +171,10 @@ public class JavaCodeGenerator {
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
-                yield generateExpression(id) + ".apply(" + params + ")";
+                String call = lambdaVars.contains(id.value()) 
+                    ? generateExpression(id) + ".apply(" + params + ")" 
+                    : id.value() + "(" + params + ")";
+                yield call;
             }
 
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
@@ -162,7 +189,14 @@ public class JavaCodeGenerator {
                 else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
                 else yield "BinaryOperator<Integer>";
             }
-            default -> "int";
+            case IntLiteral _ -> "int";
+            case FloatLiteral _ -> "float";
+            default -> "void";
         };
+    }
+
+    // Método auxiliar para registrar variables lambda
+    private void addLambdaVar(String varName) {
+        lambdaVars.add(varName);
     }
 }
