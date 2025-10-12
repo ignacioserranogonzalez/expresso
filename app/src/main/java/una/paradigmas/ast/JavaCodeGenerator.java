@@ -135,11 +135,10 @@ public class JavaCodeGenerator {
             case Lambda(var args, var body) -> {
                 imports.add("java.util.function.*");
                 String params = args.stream()
-                    .map(Id::value)
+                    .map(arg -> arg.name() + (arg.type() != null && !arg.type().equals("any") ? ":" + arg.type() : ""))
                     .reduce((a, b) -> a + ", " + b)
                     .map(s -> args.size() == 1 ? s : "(" + s + ")")
-                    .orElse("()");
-                
+                    .orElse("()"); 
                 yield params + " -> " + generateExpression(body);
             }
 

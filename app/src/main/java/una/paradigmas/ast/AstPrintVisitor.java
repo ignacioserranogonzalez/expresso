@@ -115,13 +115,22 @@ public class AstPrintVisitor implements Visitor<String> {
 
     @Override
     public String visitLambda(Lambda lambda) {
+        // Convertir los argumentos TypedId a una cadena con nombre:tipo
         String args = lambda.args().stream()
-                .map(arg -> arg.accept(this))
+                .map(arg -> arg.accept(this)) // Llama a visitTypedId
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("");
         String result = "Lambda([" + args + "], " + lambda.expr().accept(this) + ")";
         System.out.println(result);
         return result;
+    }
+
+    @Override
+    public String visitTypedId(TypedId typedId) {
+        // Imprimir nombre:tipo si hay tipo, solo nombre si no
+        String typePart = typedId.type() != null && !typedId.type().equals("any") ? ":" + typedId.type() : "";
+        System.out.println(typedId.name() + typePart);
+        return typedId.name() + typePart;
     }
 
     @Override
@@ -143,4 +152,18 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
+
+    @Override
+    public String visitFun(Fun fun) {
+        String params = fun.params().stream()
+                .map(param -> param.name() + ": " + param.type())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+        String result = "Fun(" + fun.name() + ", [" + params + "], " +
+                        fun.returnType() + ", " +
+                        fun.body().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+
 }

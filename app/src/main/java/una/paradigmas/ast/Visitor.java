@@ -30,4 +30,6 @@ public interface Visitor<T> {
     T visitLambda(Lambda lambda);
     T visitCall(Call call);
     T visitTernaryCondition(TernaryCondition ternary);
+    T visitFun(Fun fun);
+    T visitTypedId(TypedId typedId);
 }
