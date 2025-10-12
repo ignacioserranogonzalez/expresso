@@ -3,11 +3,16 @@ grammar Expresso;
 program: stat* EOF; 
 
 // statements
-stat: NEWLINE                        # blank
-    | expr NEWLINE        # expression
-    | LET ID ASSIGN expr NEWLINE     # letDecl
-    | PRINT '(' expr ')' NEWLINE     # print
+stat: NEWLINE                       # blank
+    | expr NEWLINE                  # expression
+    | LET ID ASSIGN expr NEWLINE    # letDecl
+    | PRINT '(' expr ')' NEWLINE    # print
+    | function NEWLINE              # funDecl
 ;
+
+function: FUN ID '(' paramList? ')' COLON TYPE '=' expr ;
+paramList: param (',' param)*;
+param: ID (COLON TYPE)?;                         // Parámetro con tipo opcional
 
 // expressions (igual que antes)
 expr: <assoc=right> expr POW expr                           # Pow
@@ -16,16 +21,16 @@ expr: <assoc=right> expr POW expr                           # Pow
     | expr (PLUS | MINUS) expr                              # AddSub
     | expr (MULT | DIV) expr                                # MultDiv
     | lambdaParams LAMBDA expr                              # Lambda
-    | expr (INC)                                      # PostOp
+    | expr (INC)                                            # PostOp
     | ID '(' callArgs? ')'                                  # Call
     | '(' expr ')'                                          # Paren
     | INT                                                   # Int
     | ID                                                    # Id
 ;
 
-lambdaParams: '(' ')'          // 0 args
-    | '(' ID (',' ID)? ')'     // 1-2 args con ()
-    | ID                       // 1 arg sin ()
+lambdaParams: '(' ')'                           // 0 args
+            | '(' param (',' param)? ')'        // 1-2 args con o sin tipos
+            | param                             // 1 arg sin () con o sin tipo
 ;
 
 callArgs: expr (',' expr)* ;
@@ -33,12 +38,13 @@ callArgs: expr (',' expr)* ;
 num: INT;
 
 // Lexer
+TYPE: 'int' | 'float' | 'boolean' | 'string' | 'any';
+COLON   : ':';
+FUN     : 'fun';
 LET     : 'let';
 ASSIGN  : '=';
 PRINT   : 'print';
 LAMBDA  : '->';
-
-INT     : [0-9]+;
 POW     : '**';
 PLUS    : '+';
 MINUS   : '-';
@@ -46,6 +52,7 @@ MULT    : '*';
 DIV     : '/';
 INC     : '++';
 
+INT: [0-9]+;
 ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
 COMMENT: '//' ~[\r\n]* -> skip;
