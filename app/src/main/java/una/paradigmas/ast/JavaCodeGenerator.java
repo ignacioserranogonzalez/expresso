@@ -28,6 +28,7 @@ public class JavaCodeGenerator {
     private final Set<String> imports = new HashSet<>();
     private final Set<String> extraMethods = new HashSet<>();
     private final Set<String> lambdaVars = new HashSet<>(); // Nuevo conjunto para rastrear variables lambda
+    private final StringBuilder methodDefinitions = new StringBuilder(); // Para métodos como fact
     private final String className;
 
     public JavaCodeGenerator(String className) {
@@ -40,6 +41,7 @@ public class JavaCodeGenerator {
         
         // Limpiar lambdaVars antes de procesar un nuevo programa
         lambdaVars.clear();
+        methodDefinitions.setLength(0);
 
         List<String> statlist = ast.statements().stream()
                 .map(this::generateStatement)
@@ -48,9 +50,11 @@ public class JavaCodeGenerator {
         CodeBuilderState state = new CodeBuilderState(new StringBuilder(), new StringBuilder());
 
         statlist.forEach(line -> {
-            state.mainCode.append("        ")
-            .append(line)
-            .append("\n");
+            if (!line.isEmpty() && (!line.startsWith("    public ") || !line.startsWith("    private ")  ) ) { // Excluir métodos de main
+                state.mainCode.append("        ")
+                    .append(line)
+                    .append("\n");
+            }
         });       
 
         StringBuilder codeBuilder = new StringBuilder();
@@ -75,22 +79,10 @@ public class JavaCodeGenerator {
             codeBuilder.append("    }\n");
         }
 
-        // Añadir métodos generados por Fun
-        ast.statements().stream()
-            .filter(stat -> stat instanceof Fun)
-            .map(Fun.class::cast) //Esto es una forma segura de casteo
-            .forEach(fun -> {
-                String paramDecls = fun.params().stream()
-                    .map(p -> p.type() + " " + p.name())
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
-                codeBuilder.append("    private static ").append(fun.returnType()).append(" ")
-                    .append(fun.name()).append("(").append(paramDecls).append(") {\n");
-                String bodyCode = generateExpression(fun.body());
-                codeBuilder.append("        ").append(fun.returnType().equals("void") ? "" : "return ")
-                    .append(bodyCode).append(";\n");
-                codeBuilder.append("    }\n");
-            });
+        // Añadir definiciones de métodos generados por Fun
+        if (methodDefinitions.length() > 0) {
+            codeBuilder.append(methodDefinitions);
+        }
 
         codeBuilder.append("    public static void main(String... args) {\n");
         codeBuilder.append(state.mainCode); // Añade el código de main
@@ -114,7 +106,18 @@ public class JavaCodeGenerator {
                 extraMethods.add("print");
                 yield "print(" + generateExpression(expr) + ");";
             }
-
+            case Fun(var name, var params, var returnType, var body) -> {
+                String paramDecls = params.stream()
+                    .map(p -> p.type() + " " + p.name())
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                String bodyCode = generateExpression(body);
+                String methodDef = "    public static " + returnType + " " + name + "(" + paramDecls + ") {\n"
+                    + "        return " + bodyCode + ";\n"
+                    + "    }\n";
+                methodDefinitions.append(methodDef); // Almacenar en methodDefinitions
+                yield ""; // No agregar al main
+            }
             default -> "";
         };
     }
@@ -163,7 +166,8 @@ public class JavaCodeGenerator {
                     .reduce((a, b) -> a + ", " + b)
                     .map(s -> args.size() == 1 ? s : "(" + s + ")")
                     .orElse("()"); 
-                yield params + " -> " + generateExpression(body);
+                String bodyCode = generateExpression(body);
+                yield "(" + params + ") -> " + bodyCode; 
             }
 
             case Call(var id, var paramList) -> {

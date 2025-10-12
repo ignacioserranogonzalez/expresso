@@ -105,14 +105,14 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitLambda(LambdaContext ctx) {
-       List<TypedId> args = new ArrayList<>();
+       List<TypedId> params = new ArrayList<>();
         if (ctx.lambdaParams().param() != null) {
-            args = ctx.lambdaParams().param().stream()
+            params = ctx.lambdaParams().param().stream()
                 .map(param -> new TypedId(param.ID().getText(), param.COLON() != null ? param.TYPE().getText() : "any"))
                 .collect(Collectors.toList());
         }
         Node expr = visit(ctx.expr());
-        return new Lambda(args, expr);
+        return new Lambda(params, expr);
     }
 
     @Override
@@ -136,5 +136,29 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitTernaryCondition(TernaryConditionContext ctx) {
     return new TernaryCondition(visit(ctx.expr(0)), visit(ctx.expr(1)), visit(ctx.expr(2)));
+    }
+    
+    @Override
+    public Node visitFunDecl(FunDeclContext ctx) {
+        FunctionContext funcCtx = ctx.function();
+        if (funcCtx == null) {
+            throw new IllegalStateException("FunDeclContext no contiene un FunctionContext válido.");
+        }
+
+        String name = funcCtx.ID().getText();
+        List<TypedId> params = new ArrayList<>();
+        if (funcCtx.paramList() != null) {
+            params = funcCtx.paramList().param().stream()
+                .map(param -> new TypedId(param.ID().getText(), param.COLON() != null && param.TYPE() != null ? param.TYPE().getText() : "any"))
+                .collect(Collectors.toList());
+        } else if (funcCtx.children.contains("()")) { // Manejar paréntesis vacíos
+            params = new ArrayList<>(); // Paréntesis vacíos implican 0 parámetros
+        }
+        String returnType = funcCtx.TYPE() != null ? funcCtx.TYPE().getText() : "int"; // Fallback por si falla el parser
+        Node body = visit(funcCtx.expr());
+        if (body == null) {
+            throw new IllegalStateException("El cuerpo de la función '" + name + "' no pudo ser procesado.");
+        }
+        return new Fun(name, params, returnType, body);
     }
 }
