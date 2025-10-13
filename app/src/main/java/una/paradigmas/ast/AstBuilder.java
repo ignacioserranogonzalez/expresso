@@ -106,22 +106,44 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitLambda(LambdaContext ctx) {
         List<Id> args = new ArrayList<>();
-    
-        if (ctx.lambdaParams().ID() != null) {
-            args = ctx.lambdaParams().ID().stream()
-                .map(idNode -> new Id(idNode.getText()))
-                .collect(Collectors.toList());
+
+        if (ctx.lambdaParams() != null && ctx.lambdaParams().param() != null && !ctx.lambdaParams().param().isEmpty()) {
+            args = ctx.lambdaParams().param().stream()
+                    .map(p -> new Id(p.ID().getText()))
+                    .collect(Collectors.toList());
         }
-        
+
         Node expr = visit(ctx.expr());
         return new Lambda(args, expr);
     }
 
     @Override
-        public Node visitLetDecl(LetDeclContext ctx) {
+    public Node visitFloat(FloatContext ctx) {
+        double value = Double.parseDouble(ctx.FLOAT().getText());
+        return new FloatLiteral(value);
+    }
+
+    @Override
+    public Node visitBool(BoolContext ctx) {
+        boolean value = Boolean.parseBoolean(ctx.BOOL().getText());
+        return new BoolLiteral(value);
+    }
+
+    @Override
+    public Node visitString(StringContext ctx) {
+        // Elimina las comillas externas y conserva los escapes
+        String text = ctx.STRING().getText();
+        String value = text.substring(1, text.length() - 1)
+                        .replace("\\\"", "\"");
+        return new StringLiteral(value);
+    }
+
+    @Override
+    public Node visitLetDecl(LetDeclContext ctx) {
         String id = ctx.ID().getText();
+        String type = ctx.type() != null ? ctx.type().getText() : null; // <-- nuevo
         Node value = visit(ctx.expr());
-        return new Let(new Id(id), value);
+        return new Let(new Id(id), type, value);
     }
 
     @Override

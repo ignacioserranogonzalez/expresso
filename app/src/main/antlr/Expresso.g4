@@ -5,11 +5,11 @@ program: stat* EOF;
 // statements
 stat: NEWLINE                       # blank
     | expr NEWLINE                  # expression
-    | LET ID ASSIGN expr NEWLINE    # letDecl
+    | LET ID (':' type)? ASSIGN expr NEWLINE   # letDecl
     | PRINT '(' expr ')' NEWLINE    # print
     | function NEWLINE              # funDecl
 ;
-
+type: 'int' | 'float' | 'bool' | 'string';
 function: FUN ID '(' paramList? ')' COLON TYPE '=' expr ;
 paramList: param (',' param)*;
 param: ID (COLON TYPE)?;                         // Parámetro con tipo opcional

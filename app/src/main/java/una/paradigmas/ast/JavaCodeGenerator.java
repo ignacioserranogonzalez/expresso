@@ -3,6 +3,8 @@ package una.paradigmas.ast;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -34,7 +36,7 @@ public class JavaCodeGenerator {
     }
 
     public String generate(Program ast) {
-        // Acumulador para construir el codigo (comentariosIniciales, codigoMain)
+        // Acumulador para construir el código
         record CodeBuilderState(StringBuilder comments, StringBuilder mainCode) {}
         
         List<String> statlist = ast.statements().stream()
@@ -43,15 +45,11 @@ public class JavaCodeGenerator {
 
         CodeBuilderState state = new CodeBuilderState(new StringBuilder(), new StringBuilder());
 
-        statlist.forEach(line -> {
-            state.mainCode.append("        ")
-            .append(line)
-            .append("\n");
-        });       
+        statlist.forEach(line -> state.mainCode.append("        ").append(line).append("\n"));
 
         StringBuilder codeBuilder = new StringBuilder();
 
-        // imports necesarios
+        // Imports necesarios
         if (!imports.isEmpty()) {
             imports.forEach(imp -> codeBuilder.append("import ").append(imp).append(";\n"));
             codeBuilder.append("\n");
@@ -59,111 +57,110 @@ public class JavaCodeGenerator {
 
         codeBuilder.append("public class ").append(className).append(" {\n");
 
-        // Metodos auxiliares
+        // Métodos auxiliares
         if (extraMethods.contains("pow")) {
-            codeBuilder.append("    public static int pow(int x, int e) {\n");
-            codeBuilder.append("        return (int)Math.pow(x, e);\n");
-            codeBuilder.append("    }\n");
+            codeBuilder.append("    public static int pow(int x, int e) {\n")
+                       .append("        return (int)Math.pow(x, e);\n")
+                       .append("    }\n");
         }
         if (extraMethods.contains("print")) {
-            codeBuilder.append("    public static void print(Object arg) {\n");
-            codeBuilder.append("        System.out.println(arg);\n");
-            codeBuilder.append("    }\n");
+            codeBuilder.append("    public static void print(Object arg) {\n")
+                       .append("        System.out.println(arg);\n")
+                       .append("    }\n");
         }
 
-        codeBuilder.append("    public static void main(String... args) {\n");
-        codeBuilder.append(state.mainCode); // Añade el código de main
-        codeBuilder.append("    }\n}\n");
+        codeBuilder.append("    public static void main(String... args) {\n")
+                   .append(state.mainCode)
+                   .append("    }\n}\n");
 
         return codeBuilder.toString();
     }
 
     private String generateStatement(Node stat) {
         return switch (stat) {
-            case Let(var id, var value) -> {
+            case Let(var id, var type, var value) -> {
                 String valueCode = generateExpression(value);
-                String varType = lambdaType(value);
+                String varType = type != null ? mapType(type) : lambdaType(value);
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }
-
             case Print(var expr) -> {
                 extraMethods.add("print");
                 yield "print(" + generateExpression(expr) + ");";
             }
-
             default -> "";
+        };
+    }
+
+    private String mapType(String type) {
+        return switch (type) {
+            case "int" -> "int";
+            case "float" -> "double";
+            case "boolean", "bool" -> "boolean";
+            case "string" -> "String";
+            default -> "var";
         };
     }
 
     private String generateExpression(Node expr) {
         return switch (expr) {
             case IntLiteral(var value) -> Integer.toString(value);
-
-            case Id(var value) -> value;
-
+            case FloatLiteral(var value) -> Double.toString(value);
+            case BoolLiteral(var value) -> Boolean.toString(value);
+            case StringLiteral(var value) -> "\"" + value.replace("\"", "\\\"") + "\"";
+            case Id(var name) -> name;
+            case AddSub(var left, var op, var right) -> "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+            case MultDiv(var left, var op, var right) -> "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
             case Pow(var left, var right) -> {
                 extraMethods.add("pow");
                 yield "pow(" + generateExpression(left) + ", " + generateExpression(right) + ")";
             }
-
-            case MultDiv(var left, var op, var right) ->
-                generateExpression(left) + " " + op + " " + generateExpression(right);
-
-            case AddSub(var left, var op, var right) ->
-                generateExpression(left) + " " + op + " " + generateExpression(right);
-
-            case UnaryOp(var op, var expr2) -> {
-                String inner = generateExpression(expr2);
-                // Si el expr2 es otro UnaryOp, agregar paréntesis
-                if (inner.startsWith("+") || inner.startsWith("-")) {
-                    yield op + "(" + inner + ")";
-                }
-                yield op + inner;
-            }
-
-            case PostOp(var expr1, var op) ->
-                generateExpression(expr1) + op;
-
-            case Paren(var value) ->
-                "(" + generateExpression(value) + ")";
-
-            case TernaryCondition(var condition, var value1, var value2) -> 
-                "(" + generateExpression(condition) + " != 0 ? " 
-                    + generateExpression(value1) + " : " 
-                    + generateExpression(value2) + ")";
-
+            case UnaryOp(var op, var inner) -> op + (inner instanceof UnaryOp ? "(" + generateExpression(inner) + ")" : generateExpression(inner));
+            case PostOp(var inner, var op) -> generateExpression(inner) + op;
+            case Paren(var inner) -> "(" + generateExpression(inner) + ")";
+            case TernaryCondition(var cond, var v1, var v2) ->
+                "(" + generateExpression(cond) + " != 0 ? " + generateExpression(v1) + " : " + generateExpression(v2) + ")";
             case Lambda(var args, var body) -> {
                 imports.add("java.util.function.*");
                 String params = args.stream()
-                    .map(Id::value)
-                    .reduce((a, b) -> a + ", " + b)
-                    .map(s -> args.size() == 1 ? s : "(" + s + ")")
-                    .orElse("()");
-                
+                        .map(Id::value)
+                        .reduce((a, b) -> a + ", " + b)
+                        .map(s -> args.size() == 1 ? s : "(" + s + ")")
+                        .orElse("()");
                 yield params + " -> " + generateExpression(body);
             }
-
-            case Call(var id, var paramList) -> {
-                String params = paramList.stream()
-                    .map(this::generateExpression)
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
+            case Call(var id, var args) -> {
+                String params = args.stream()
+                        .map(this::generateExpression)
+                        .collect(Collectors.joining(", "));
                 yield generateExpression(id) + ".apply(" + params + ")";
             }
-
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
     }
 
     private String lambdaType(Node expr) {
         return switch (expr) {
+            case IntLiteral ignored -> "int";
+            case FloatLiteral ignored -> "double";
+            case BoolLiteral ignored -> "boolean";
+            case StringLiteral ignored -> "String";
+            case Id ignored -> "var";
+            case AddSub a -> lambdaType(a.left());
+            case MultDiv m -> lambdaType(m.left());
+            case Pow p -> lambdaType(p.left());
+            case UnaryOp u -> lambdaType(u.expr());
+            case PostOp p -> lambdaType(p.expr());
+            case Paren p -> lambdaType(p.expr());
+            case TernaryCondition t -> lambdaType(t.value1());
+            case Call c -> "var"; // fallback para llamadas
             case Lambda l -> {
                 imports.add("java.util.function.*");
                 if (l.args().size() == 0) yield "Supplier<Integer>";
                 else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
                 else yield "BinaryOperator<Integer>";
             }
-            default -> "int";
+            default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
     }
+
 }
