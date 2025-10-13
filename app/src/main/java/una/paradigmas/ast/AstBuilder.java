@@ -27,8 +27,10 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Program visitProgram(ProgramContext ctx) {
-        List<Node> statements = ctx.stat().stream().map(this::visit).filter(expr -> expr != null)
-                                    .collect(Collectors.toList());
+        List<Node> statements = ctx.stat().stream()
+                .map(this::visit)
+                .filter(expr -> expr != null)
+                .collect(Collectors.toList());
         return new Program(statements);
     }
 
@@ -55,7 +57,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new BooleanLiteral(value);
     }
 
-        @Override
+    @Override
     public Node visitString(ExpressoParser.StringContext ctx) {
         String text = ctx.STRING().getText();
         // Remover comillas y procesar escapes
@@ -134,10 +136,24 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitLambda(LambdaContext ctx) {
         List<Id> args = new ArrayList<>();
     
-        if (ctx.lambdaParams().ID() != null) {
-            args = ctx.lambdaParams().ID().stream()
-                .map(idNode -> new Id(idNode.getText()))
-                .collect(Collectors.toList());
+        // Manejar diferentes formas de parámetros lambda
+        if (ctx.lambdaParams() != null) {
+            // Caso con paréntesis: (param) o (param1, param2)
+            if (ctx.lambdaParams().param() != null) {
+                args = ctx.lambdaParams().param().stream()
+                    .map(param -> new Id(param.ID().getText()))
+                    .collect(Collectors.toList());
+            }
+            // Caso con ID directo (sin paréntesis)
+            else if (ctx.lambdaParams().ID() != null) {
+                args.add(new Id(ctx.lambdaParams().ID().getText()));
+            }
+            // Caso con múltiples IDs en paréntesis
+            else if (!ctx.lambdaParams().ID().isEmpty()) {
+                args = ctx.lambdaParams().ID().stream()
+                    .map(idNode -> new Id(idNode.getText()))
+                    .collect(Collectors.toList());
+            }
         }
         
         Node expr = visit(ctx.expr());
@@ -145,19 +161,27 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-        public Node visitLetDecl(LetDeclContext ctx) {
+    public Node visitLetDecl(LetDeclContext ctx) {
         String id = ctx.ID().getText();
         Node value = visit(ctx.expr());
         return new Let(new Id(id), value);
     }
 
-        @Override
+    @Override
     public Node visitLetDeclWithType(ExpressoParser.LetDeclWithTypeContext ctx) {
         String id = ctx.ID().getText();
         Node value = visit(ctx.expr());
         // Obtener el tipo si está especificado
         String type = ctx.TYPE() != null ? ctx.TYPE().getText() : "any";
-        return new Let(new Id(id), value, type);
+        
+        // Usar el constructor con tipo si existe, sino usar el constructor básico
+        try {
+            // Intentar usar el constructor con tipo
+            return new Let(new Id(id), value, type);
+        } catch (Exception e) {
+            // Fallback al constructor básico si no existe el constructor con tipo
+            return new Let(new Id(id), value);
+        }
     }
 
     @Override
@@ -173,10 +197,14 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitTernaryCondition(TernaryConditionContext ctx) {
-    return new TernaryCondition(visit(ctx.expr(0)), visit(ctx.expr(1)), visit(ctx.expr(2)));
+        return new TernaryCondition(
+            visit(ctx.expr(0)), 
+            visit(ctx.expr(1)), 
+            visit(ctx.expr(2))
+        );
     }
 
-        @Override
+    @Override
     public Node visitFunDecl(ExpressoParser.FunDeclContext ctx) {
         String name = ctx.ID().getText();
         Node body = visit(ctx.expr());
@@ -189,6 +217,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
                 .collect(Collectors.toList());
         }
         
-        return new FunctionDecl(name, params, body);
+        // Si FunctionDecl no existe, crear un Let con una Lambda
+        try {
+            return new FunctionDecl(name, params, body);
+        } catch (Exception e) {
+            // Fallback: crear una variable con una lambda
+            Lambda lambda = new Lambda(params, body);
+            return new Let(new Id(name), lambda);
+        }
     }
 }

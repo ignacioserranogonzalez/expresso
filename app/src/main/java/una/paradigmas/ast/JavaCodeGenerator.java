@@ -65,6 +65,11 @@ public class JavaCodeGenerator {
             codeBuilder.append("        return (int)Math.pow(x, e);\n");
             codeBuilder.append("    }\n");
         }
+        if (extraMethods.contains("powDouble")) {
+            codeBuilder.append("    public static double powDouble(double x, double e) {\n");
+            codeBuilder.append("        return Math.pow(x, e);\n");
+            codeBuilder.append("    }\n");
+        }
         if (extraMethods.contains("print")) {
             codeBuilder.append("    public static void print(Object arg) {\n");
             codeBuilder.append("        System.out.println(arg);\n");
@@ -80,15 +85,24 @@ public class JavaCodeGenerator {
 
     private String generateStatement(Node stat) {
         return switch (stat) {
-            case Let(var id, var value) -> {
-                String valueCode = generateExpression(value);
-                String varType = lambdaType(value);
-                yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
+            case Let let -> {
+                String valueCode = generateExpression(let.value());
+                String varName = generateExpression(let.id());
+                
+                // Determinar el tipo basado en el valor
+                String varType = inferType(let.value());
+                
+                yield varType + " " + varName + " = " + valueCode + ";";
             }
 
             case Print(var expr) -> {
                 extraMethods.add("print");
                 yield "print(" + generateExpression(expr) + ");";
+            }
+
+            case FunctionDecl function -> {
+                // Generar código para declaración de función
+                yield generateFunction(function);
             }
 
             default -> "";
@@ -98,12 +112,36 @@ public class JavaCodeGenerator {
     private String generateExpression(Node expr) {
         return switch (expr) {
             case IntLiteral(var value) -> Integer.toString(value);
+            
+            case FloatLiteral(var value) -> Double.toString(value);
+            
+            case BooleanLiteral(var value) -> Boolean.toString(value);
+            
+            case StringLiteral(var value) -> {
+                // Escapar el string para Java
+                String escapedValue = value
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\t", "\\t")
+                    .replace("\r", "\\r");
+                yield "\"" + escapedValue + "\"";
+            }
 
             case Id(var value) -> value;
 
             case Pow(var left, var right) -> {
-                extraMethods.add("pow");
-                yield "pow(" + generateExpression(left) + ", " + generateExpression(right) + ")";
+                // Determinar si necesitamos pow para enteros o doubles
+                String leftType = inferType(left);
+                String rightType = inferType(right);
+                
+                if (leftType.equals("Double") || rightType.equals("Double")) {
+                    extraMethods.add("powDouble");
+                    yield "powDouble(" + generateExpression(left) + ", " + generateExpression(right) + ")";
+                } else {
+                    extraMethods.add("pow");
+                    yield "pow(" + generateExpression(left) + ", " + generateExpression(right) + ")";
+                }
             }
 
             case MultDiv(var left, var op, var right) ->
@@ -127,10 +165,19 @@ public class JavaCodeGenerator {
             case Paren(var value) ->
                 "(" + generateExpression(value) + ")";
 
-            case TernaryCondition(var condition, var value1, var value2) -> 
-                "(" + generateExpression(condition) + " != 0 ? " 
-                    + generateExpression(value1) + " : " 
-                    + generateExpression(value2) + ")";
+            case TernaryCondition(var condition, var value1, var value2) -> {
+                String condExpr = generateExpression(condition);
+                String trueExpr = generateExpression(value1);
+                String falseExpr = generateExpression(value2);
+                
+                // Para booleanos, usar condición directa
+                if (condition instanceof BooleanLiteral) {
+                    yield "(" + condExpr + " ? " + trueExpr + " : " + falseExpr + ")";
+                } else {
+                    // Para números, usar != 0 como antes
+                    yield "(" + condExpr + " != 0 ? " + trueExpr + " : " + falseExpr + ")";
+                }
+            }
 
             case Lambda(var args, var body) -> {
                 imports.add("java.util.function.*");
@@ -140,7 +187,11 @@ public class JavaCodeGenerator {
                     .map(s -> args.size() == 1 ? s : "(" + s + ")")
                     .orElse("()");
                 
-                yield params + " -> " + generateExpression(body);
+                // Determinar el tipo de retorno de la lambda
+                String returnType = inferType(body);
+                String functionType = getFunctionType(args.size(), returnType);
+                
+                yield functionType + " " + params + " -> " + generateExpression(body);
             }
 
             case Call(var id, var paramList) -> {
@@ -155,15 +206,44 @@ public class JavaCodeGenerator {
         };
     }
 
-    private String lambdaType(Node expr) {
+    // Inferir el tipo Java basado en el nodo
+    private String inferType(Node expr) {
         return switch (expr) {
+            case IntLiteral i -> "Integer";
+            case FloatLiteral f -> "Double";
+            case BooleanLiteral b -> "Boolean";
+            case StringLiteral s -> "String";
             case Lambda l -> {
-                imports.add("java.util.function.*");
-                if (l.args().size() == 0) yield "Supplier<Integer>";
-                else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
-                else yield "BinaryOperator<Integer>";
+                String returnType = inferType(l.expr());
+                yield getFunctionType(l.args().size(), returnType);
             }
-            default -> "int";
+            default -> "Object";
         };
+    }
+
+    // Obtener el tipo de función para lambdas
+    private String getFunctionType(int argCount, String returnType) {
+        return switch (argCount) {
+            case 0 -> "Supplier<" + returnType + ">";
+            case 1 -> "Function<Object, " + returnType + ">";
+            case 2 -> "BiFunction<Object, Object, " + returnType + ">";
+            default -> "Function<Object[], " + returnType + ">"; // Para más argumentos
+        };
+    }
+
+    // Generar declaraciones de función
+    private String generateFunction(FunctionDecl function) {
+        imports.add("java.util.function.*");
+        
+        String returnType = inferType(function.body());
+        String params = function.params().stream()
+            .map(param -> "Object " + generateExpression(param))
+            .reduce((a, b) -> a + ", " + b)
+            .orElse("");
+        
+        String functionType = getFunctionType(function.params().size(), returnType);
+        
+        return functionType + " " + function.name() + " = (" + params + ") -> " + 
+               generateExpression(function.body()) + ";";
     }
 }

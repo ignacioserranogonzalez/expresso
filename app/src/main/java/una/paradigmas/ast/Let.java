@@ -14,7 +14,19 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-public record Let(Id id, Node value) implements Node {
+/*public record Let(Id id, Node value) implements Node {
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+        return visitor.visitLet(this);
+    }
+}*/
+public record Let(Id id, Node value, String type) implements Node {
+    
+    // Constructor para declaraciones sin tipo (backward compatibility)
+    public Let(Id id, Node value) {
+        this(id, value, "any");
+    }
+    
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitLet(this);

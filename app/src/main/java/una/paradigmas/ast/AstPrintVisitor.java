@@ -118,22 +118,21 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
-
-    @Override
-    public String visitLet(Let let) {
-        // Si tiene tipo especificado, mostrarlo
-        if (let.type() != null && !let.type().equals("any")) {
-            String result = "Let(" + let.id().accept(this) + ", " +
-                            let.value().accept(this) + ", type:" + let.type() + ")";
-            System.out.println(result);
-            return result;
-        } else {
-            String result = "Let(" + let.id().accept(this) + ", " +
-                            let.value().accept(this) + ")";
-            System.out.println(result);
-            return result;
-        }
-    }  return result;
+@Override
+public String visitLet(Let let) {
+    // Si tiene tipo especificado, mostrarlo
+    if (let.type() != null && !let.type().equals("any")) {
+        String result = "Let(" + let.id().accept(this) + ", " +
+                        let.value().accept(this) + ", type:" + let.type() + ")";
+        System.out.println(result);
+        return result;
+    } else {
+        String result = "Let(" + let.id().accept(this) + ", " +
+                        let.value().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+}
     
 
     @Override

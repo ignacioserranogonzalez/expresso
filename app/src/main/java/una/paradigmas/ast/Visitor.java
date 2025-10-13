@@ -32,4 +32,5 @@ public interface Visitor<T> {
     T visitLambda(Lambda lambda);
     T visitCall(Call call);
     T visitTernaryCondition(TernaryCondition ternary);
+    T visitFunctionDecl(FunctionDecl functionDecl);
 }
