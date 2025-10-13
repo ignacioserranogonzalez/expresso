@@ -1,0 +1,6 @@
+let msg = "Hello \"World\""
+let x:float = 3.14
+print(x + 2.0)
+let flag = true
+let name = "Alice"
+print("Value: " + (x > 2.0))

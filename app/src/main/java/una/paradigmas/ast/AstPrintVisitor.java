@@ -44,6 +44,27 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
+
+    @Override
+    public String visitBoolean(BooleanLiteral bool) {
+        String result = "Boolean(" + bool.value() + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitString(StringLiteral str) {
+        // Escapar el string para mostrarlo correctamente
+        String escapedValue = str.value()
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t")
+                .replace("\r", "\\r");
+        String result = "String(\"" + escapedValue + "\")";
+        System.out.println(result);
+        return result;
+    }
     
     @Override
     public String visitId(Id id) {
@@ -100,11 +121,20 @@ public class AstPrintVisitor implements Visitor<String> {
 
     @Override
     public String visitLet(Let let) {
-        String result = "Let(" + let.id().accept(this) + ", " +
-                        let.value().accept(this) + ")";
-        System.out.println(result);
-        return result;
-    }
+        // Si tiene tipo especificado, mostrarlo
+        if (let.type() != null && !let.type().equals("any")) {
+            String result = "Let(" + let.id().accept(this) + ", " +
+                            let.value().accept(this) + ", type:" + let.type() + ")";
+            System.out.println(result);
+            return result;
+        } else {
+            String result = "Let(" + let.id().accept(this) + ", " +
+                            let.value().accept(this) + ")";
+            System.out.println(result);
+            return result;
+        }
+    }  return result;
+    
 
     @Override
     public String visitPrint(Print print) {
@@ -140,6 +170,17 @@ public class AstPrintVisitor implements Visitor<String> {
         String result = "TernaryCondition(" + ternary.condition().accept(this) + ", " +
                         ternary.value1().accept(this) + ", " +
                         ternary.value2().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
+    @Override
+    public String visitFunctionDecl(FunctionDecl function) {
+        String params = function.params().stream()
+                .map(param -> param.accept(this))
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+        String result = "FunctionDecl(" + function.name() + ", [" + params + "], " +
+                        function.body().accept(this) + ")";
         System.out.println(result);
         return result;
     }

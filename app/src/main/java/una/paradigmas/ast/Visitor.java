@@ -18,6 +18,8 @@ public interface Visitor<T> {
     T visitProgram(Program program);
     T visitInt(IntLiteral num);
     T visitFloat(FloatLiteral num);
+    T visitBoolean(BooleanLiteral booleanLiteral);
+    T visitString(StringLiteral stringLiteral);
     T visitId(Id id);
     T visitPow(Pow pow);
     T visitMultDiv(MultDiv multDiv);

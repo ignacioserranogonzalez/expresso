@@ -44,6 +44,33 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
+    public Node visitFloat(ExpressoParser.FloatContext ctx) {
+        double value = Double.parseDouble(ctx.FLOAT().getText());
+        return new FloatLiteral(value);
+    }
+
+    @Override
+    public Node visitBoolean(ExpressoParser.BooleanContext ctx) {
+        boolean value = Boolean.parseBoolean(ctx.BOOLEAN().getText());
+        return new BooleanLiteral(value);
+    }
+
+        @Override
+    public Node visitString(ExpressoParser.StringContext ctx) {
+        String text = ctx.STRING().getText();
+        // Remover comillas y procesar escapes
+        String value = text.substring(1, text.length() - 1)
+                          .replace("\\\"", "\"")
+                          .replace("\\\\", "\\")
+                          .replace("\\n", "\n")
+                          .replace("\\t", "\t")
+                          .replace("\\r", "\r")
+                          .replace("\\b", "\b")
+                          .replace("\\f", "\f");
+        return new StringLiteral(value);
+    }
+
+    @Override
     public Node visitId(IdContext ctx) {
         return new Id(ctx.ID().getText());
     }
@@ -124,6 +151,15 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new Let(new Id(id), value);
     }
 
+        @Override
+    public Node visitLetDeclWithType(ExpressoParser.LetDeclWithTypeContext ctx) {
+        String id = ctx.ID().getText();
+        Node value = visit(ctx.expr());
+        // Obtener el tipo si está especificado
+        String type = ctx.TYPE() != null ? ctx.TYPE().getText() : "any";
+        return new Let(new Id(id), value, type);
+    }
+
     @Override
     public Node visitPrint(PrintContext ctx) {
         Node expr = visit(ctx.expr());
@@ -138,5 +174,21 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitTernaryCondition(TernaryConditionContext ctx) {
     return new TernaryCondition(visit(ctx.expr(0)), visit(ctx.expr(1)), visit(ctx.expr(2)));
+    }
+
+        @Override
+    public Node visitFunDecl(ExpressoParser.FunDeclContext ctx) {
+        String name = ctx.ID().getText();
+        Node body = visit(ctx.expr());
+        
+        // Procesar parámetros
+        List<Id> params = new ArrayList<>();
+        if (ctx.paramList() != null) {
+            params = ctx.paramList().param().stream()
+                .map(param -> new Id(param.ID().getText()))
+                .collect(Collectors.toList());
+        }
+        
+        return new FunctionDecl(name, params, body);
     }
 }
