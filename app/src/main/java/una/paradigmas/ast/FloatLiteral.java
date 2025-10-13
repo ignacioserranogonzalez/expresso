@@ -13,8 +13,7 @@ package una.paradigmas.ast;
  * 
  * Codigo de grupo: 02-1PM
  */
-
-public record FloatLiteral(float value) implements Node {
+public record FloatLiteral(double value) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitFloat(this);
