@@ -1,0 +1,10 @@
+let PI:float = 3.14
+let x = 666
+let y = "hello"
+let someVar = 42
+let z = someVar
+
+print(PI)
+print(x)
+print(y)
+print(z)

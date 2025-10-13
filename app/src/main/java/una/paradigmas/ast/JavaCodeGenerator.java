@@ -80,7 +80,7 @@ public class JavaCodeGenerator {
         return switch (stat) {
             case Let(var id, var type, var value) -> {
                 String valueCode = generateExpression(value);
-                String varType = type != null ? mapType(type) : lambdaType(value);
+                String varType = type != null ? mapType(type) : lambdaType(value, "var");
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }
             case Print(var expr) -> {
@@ -97,6 +97,7 @@ public class JavaCodeGenerator {
             case "float" -> "double";
             case "boolean", "bool" -> "boolean";
             case "string" -> "String";
+             case "any" -> "var"; // fallback
             default -> "var";
         };
     }
@@ -138,29 +139,35 @@ public class JavaCodeGenerator {
         };
     }
 
-    private String lambdaType(Node expr) {
+    private String lambdaType(Node expr, String fallback) {
         return switch (expr) {
             case IntLiteral ignored -> "int";
             case FloatLiteral ignored -> "double";
             case BoolLiteral ignored -> "boolean";
             case StringLiteral ignored -> "String";
-            case Id ignored -> "var";
-            case AddSub a -> lambdaType(a.left());
-            case MultDiv m -> lambdaType(m.left());
-            case Pow p -> lambdaType(p.left());
-            case UnaryOp u -> lambdaType(u.expr());
-            case PostOp p -> lambdaType(p.expr());
-            case Paren p -> lambdaType(p.expr());
-            case TernaryCondition t -> lambdaType(t.value1());
-            case Call c -> "var"; // fallback para llamadas
+
+            case Id ignored -> fallback;
+
+            case AddSub a -> lambdaType(a.left(), fallback);
+            case MultDiv m -> lambdaType(m.left(), fallback);
+            case Pow p -> lambdaType(p.left(), fallback);
+            case UnaryOp u -> lambdaType(u.expr(), fallback);
+            case PostOp p -> lambdaType(p.expr(), fallback);
+            case Paren p -> lambdaType(p.expr(), fallback);
+
+            case TernaryCondition t -> lambdaType(t.value1(), fallback);
+
+            case Call c -> fallback;
+
             case Lambda l -> {
                 imports.add("java.util.function.*");
                 if (l.args().size() == 0) yield "Supplier<Integer>";
                 else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
                 else yield "BinaryOperator<Integer>";
             }
-            default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
+            default -> fallback;
         };
     }
+
 
 }
