@@ -36,7 +36,7 @@ public class TypeAstBuilder extends ExpressoTypesBaseVisitor<Node> {
 
     @Override
     public Node visitTypeParen(TypeParenContext ctx) {
-        return visit(ctx.type()); // eliminar paréntesis
+        return visit(ctx.type()); // elimina parentesis
     }
 
     @Override

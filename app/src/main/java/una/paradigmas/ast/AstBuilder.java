@@ -150,13 +150,12 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new Lambda(args, expr);
     }
 
-    
-
     @Override
     public Node visitLetDecl(LetDeclContext ctx) {
         String id = ctx.ID().getText();
         Node value = visit(ctx.expr());
-        Node type = ctx.type() != null ? typeAstBuilder.visit(ctx.type()) : null;
+        Node type = ctx.type() != null ? 
+            typeAstBuilder.visit(ctx.type()) : new TypeNode("any");
         return new Let(new Id(id), value, type);
     }
 
