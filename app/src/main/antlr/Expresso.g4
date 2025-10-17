@@ -4,27 +4,27 @@ import ExpressoTypes;
 program: stat* EOF; 
 
 // statements
-stat: NEWLINE                        # blank
-    | expr NEWLINE                   # expression
-    | LET ID (':' type)? ASSIGN expr NEWLINE     # letDecl
-    | PRINT '(' expr ')' NEWLINE     # print
+stat: NEWLINE                                        # blank
+    | expr NEWLINE                                   # expression
+    | LET ID (':' type)? ASSIGN expr NEWLINE         # letDecl
+    | PRINT '(' expr ')' NEWLINE                     # print
 ;
 
 // expressions
-expr: <assoc=right> expr POW expr                           # Pow
-    | <assoc=right> expr '?' expr ':' expr                  # TernaryCondition
-    | (PLUS | MINUS) expr                                   # UnaryOp
-    | expr (PLUS | MINUS) expr                              # AddSub
-    | expr (MULT | DIV) expr                                # MultDiv
-    | lambdaParams LAMBDA expr                              # Lambda
-    | expr (INC | DEC)                                      # PostOp
-    | ID '(' callArgs? ')'                                  # Call
-    | '(' expr ')'                                          # Paren
-    | INT                                                   # Int
-    | FLOAT                                                 # Float
-    | BOOLEAN                                               # Boolean
-    | STRING                                                # String
-    | ID                                                    # Id
+expr: <assoc=right> expr POW expr                    # Pow
+    | <assoc=right> expr '?' expr ':' expr           # TernaryCondition
+    | (PLUS | MINUS) expr                            # UnaryOp
+    | expr (PLUS | MINUS) expr                       # AddSub
+    | expr (MULT | DIV) expr                         # MultDiv
+    | lambdaParams LAMBDA expr                       # Lambda
+    | expr (INC | DEC)                               # PostOp
+    | ID '(' callArgs? ')'                           # Call
+    | '(' expr ')'                                   # Paren
+    | INT                                            # Int
+    | FLOAT                                          # Float
+    | BOOLEAN                                        # Boolean
+    | STRING                                         # String
+    | ID                                             # Id
 ;
 
 lambdaParams: '(' ')'          // 0 args
