@@ -16,7 +16,7 @@ expr: <assoc=right> expr POW expr                           # Pow
     | expr (PLUS | MINUS) expr                              # AddSub
     | expr (MULT | DIV) expr                                # MultDiv
     | lambdaParams LAMBDA expr                              # Lambda
-    | expr (INC)                                      # PostOp
+    | expr (INC | DEC)                                      # PostOp
     | ID '(' callArgs? ')'                                  # Call
     | '(' expr ')'                                          # Paren
     | INT                                                   # Int
@@ -46,7 +46,6 @@ PLUS    : '+';
 MINUS   : '-';
 MULT    : '*';
 DIV     : '/';
-INC     : '++';
 
 ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
