@@ -44,28 +44,14 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
-
-    @Override
-    public String visitBool(BoolLiteral bool) {
-        String result = "Bool(" + bool.value() + ")";
-        System.out.println(result);
-        return result;
-    }
-
-    @Override
-    public String visitString(StringLiteral str) {
-        String result = "String(\"" + str.value().replace("\"", "\\\"") + "\")";
-        System.out.println(result);
-        return result;
-    }
-
+    
     @Override
     public String visitId(Id id) {
         String result = "Id(" + id.value() + ")";
         System.out.println(result);
         return result;
     }
-
+    
     @Override
     public String visitPow(Pow pow) {
         String result = "Pow(" + pow.left().accept(this) + ", " +

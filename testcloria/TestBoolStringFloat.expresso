@@ -1,3 +1,0 @@
-let msg = "Hello \"World\""
-let x:float = 3.14
-print(x + 2.0)
