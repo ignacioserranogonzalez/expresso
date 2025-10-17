@@ -21,11 +21,7 @@ expr: <assoc=right> expr POW expr                           # Pow
     | expr (PLUS | MINUS) expr                              # AddSub
     | expr (MULT | DIV) expr                                # MultDiv
     | lambdaParams LAMBDA expr                              # Lambda
-<<<<<<< HEAD
-    | expr INC                                              # PostOp
-=======
     | expr (INC | DEC)                                      # PostOp
->>>>>>> parent of a420716 (print(--_hasUnderscores_) | falta solucionar conflicto con PostOp)
     | ID '(' callArgs? ')'                                  # Call
     | '(' expr ')'                                          # Paren
     | FLOAT                                                 # Float
@@ -65,15 +61,7 @@ MINUS   : '-';
 MULT    : '*';
 DIV     : '/';
 
-// Números - FLOAT antes de INT
-FLOAT   : [0-9]+ '.' [0-9]+;
-INT     : [0-9]+;
-
-// Strings con escape
-STRING  : '"' ( '\\' ["\\btnfr] | ~["\\] )* '"';
-
-// Identificadores - DESPUÉS de palabras reservadas
-ID      : [a-zA-Z_][a-zA-Z0-9_]*;
+ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
 // Comentarios y whitespace
 COMMENT : '//' ~[\r\n]* -> skip;
