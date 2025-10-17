@@ -32,6 +32,13 @@ public class AstPrintVisitor implements Visitor<String> {
     }
 
     @Override
+    public String visitType(TypeNode type) {
+        String result = "Type(" + type.typeName() + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
     public String visitInt(IntLiteral num) {
         String result = "Int(" + num.value() + ")";
         System.out.println(result);
@@ -41,6 +48,21 @@ public class AstPrintVisitor implements Visitor<String> {
     @Override
     public String visitFloat(FloatLiteral num) {
         String result = "Float(" + num.value() + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    
+    @Override
+    public String visitBoolean(BooleanLiteral num) {
+        String result = "Boolean(" + num.value() + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitString(StringLiteral num) {
+        String result = "String(" + num.value() + ")";
         System.out.println(result);
         return result;
     }

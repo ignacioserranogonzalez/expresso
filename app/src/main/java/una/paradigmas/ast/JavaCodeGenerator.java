@@ -80,9 +80,9 @@ public class JavaCodeGenerator {
 
     private String generateStatement(Node stat) {
         return switch (stat) {
-            case Let(var id, var value) -> {
+            case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
-                String varType = lambdaType(value);
+                String varType = getJavaType(typeNode, value);
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }
 
@@ -98,6 +98,9 @@ public class JavaCodeGenerator {
     private String generateExpression(Node expr) {
         return switch (expr) {
             case IntLiteral(var value) -> Integer.toString(value);
+            case FloatLiteral(var value) -> value + "f";
+            case BooleanLiteral(var value) -> Boolean.toString(value);
+            case StringLiteral(var value) -> "\"" + escapeString(value) + "\"";
 
             case Id(var value) -> value;
 
@@ -148,7 +151,32 @@ public class JavaCodeGenerator {
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
     }
-
+    
+    private String getJavaType(Node typeNode, Node value) {
+        return switch (typeNode) {
+            case TypeNode(var typeName) -> switch (typeName) {
+                case "int" -> "int";
+                case "float" -> "float";
+                case "boolean" -> "boolean";
+                case "string" -> "String";
+                case "any" -> inferTypeFromValue(value);
+                default -> "Object";
+            };
+            default -> inferTypeFromValue(value);
+        };
+    }
+    
+    private String inferTypeFromValue(Node value) {
+        return switch (value) {
+            case IntLiteral _ -> "int";
+            case FloatLiteral _ -> "float";
+            case BooleanLiteral _ -> "boolean";
+            case StringLiteral _ -> "String";
+            case Lambda _ -> lambdaType(value);
+            default -> "Object";
+        };
+    }
+    
     private String lambdaType(Node expr) {
         return switch (expr) {
             case Lambda l -> {
@@ -159,5 +187,15 @@ public class JavaCodeGenerator {
             }
             default -> "int";
         };
+    }
+    
+    private String escapeString(String value) {
+        return value.replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\t", "\\t")
+                    .replace("\r", "\\r")
+                    .replace("\b", "\\b")
+                    .replace("\f", "\\f");
     }
 }

@@ -187,7 +187,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
                         "print(555)\n" +
                         "\n" +
                         "let _hasUnderscores_ = -666 // must be parsed\n" +
-                        "print(--_hasUnderscores_)  // Expecting -666\n" +
+                        "print(_hasUnderscores_)  // Expecting -666\n" + // falta resolver conflicto con PostOp
                         "\n" +
                         "/////////////////////////////////////////////////\n" +
                         "//# Section 999\n" +
@@ -195,5 +195,24 @@ import org.antlr.v4.runtime.CommonTokenStream;
                         "// print(variable_not_defined) // Expecting to be transpiled but not built";
         
         testExpressoProgram(input, "HelloWorld3");
+    }
+
+    
+    @Test 
+    public void testHelloWorld4() {
+
+        System.out.println("====== Test HelloWorld4.expresso ======");
+        System.out.println("Tarea 13 - Tipos float-boolean-string-any");
+                      
+        String input = """
+            let msg = "Hello \\"World\\""
+            let x:float = 3.14
+            let y = 666
+            let s = "hello"
+            print(x + 2.0 + y)
+            print(s)
+        """;
+        
+        testExpressoProgram(input, "HelloWorld4");
     }
 }

@@ -4,12 +4,20 @@ program: stat* EOF;
 
 // statements
 stat: NEWLINE                        # blank
-    | expr NEWLINE        # expression
-    | LET ID ASSIGN expr NEWLINE     # letDecl
+    | expr NEWLINE                   # expression
+    | LET ID (':' type)? ASSIGN expr NEWLINE     # letDecl
     | PRINT '(' expr ')' NEWLINE     # print
 ;
 
-// expressions (igual que antes)
+// types
+type: 'int'     # IntType
+    | 'float'   # FloatType  
+    | 'boolean' # BooleanType
+    | 'string'  # StringType
+    | 'any'     # AnyType
+;
+
+// expressions
 expr: <assoc=right> expr POW expr                           # Pow
     | <assoc=right> expr '?' expr ':' expr                  # TernaryCondition
     | (PLUS | MINUS) expr                                   # UnaryOp
@@ -20,6 +28,9 @@ expr: <assoc=right> expr POW expr                           # Pow
     | ID '(' callArgs? ')'                                  # Call
     | '(' expr ')'                                          # Paren
     | INT                                                   # Int
+    | FLOAT                                                 # Float
+    | BOOLEAN                                               # Boolean
+    | STRING                                                # String
     | ID                                                    # Id
 ;
 
@@ -30,15 +41,32 @@ lambdaParams: '(' ')'          // 0 args
 
 callArgs: expr (',' expr)* ;
 
-num: INT;
-
 // Lexer
 LET     : 'let';
 ASSIGN  : '=';
 PRINT   : 'print';
 LAMBDA  : '->';
 
+// types
+INT_TYPE    : 'int';
+FLOAT_TYPE  : 'float';
+BOOLEAN_TYPE: 'boolean';
+STRING_TYPE : 'string';
+ANY_TYPE    : 'any';
+
+// literals
 INT     : [0-9]+;
+FLOAT   : [0-9]+ '.' [0-9]* 
+        | '.' [0-9]+
+        ;
+BOOLEAN : 'true' | 'false';
+STRING  : '"' (ESC | ~["\\])* '"';
+
+// esto son fragmentos lexicos que permiten escapes para strings
+fragment ESC : '\\' (["\\/bfnrt] | UNICODE);
+fragment UNICODE : 'u' HEX HEX HEX HEX;
+fragment HEX : [0-9a-fA-F];
+
 POW     : '**';
 INC     : '++';
 DEC     : '--';

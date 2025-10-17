@@ -14,9 +14,9 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-public record Let(Id id, Node value, Node type) implements Node {
+public record BooleanLiteral(boolean value) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitLet(this);
+        return visitor.visitBoolean(this);
     }
 }

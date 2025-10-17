@@ -4,6 +4,7 @@ import una.paradigmas.ast.ExpressoParser.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +33,35 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new Program(statements);
     }
 
+    //----------------- type
+
+    @Override
+    public Node visitIntType(IntTypeContext ctx) {
+        return new TypeNode("int");
+    }
+
+    @Override
+    public Node visitFloatType(FloatTypeContext ctx) {
+        return new TypeNode("float");
+    }
+
+    @Override
+    public Node visitBooleanType(BooleanTypeContext ctx) {
+        return new TypeNode("boolean");
+    }
+
+    @Override
+    public Node visitStringType(StringTypeContext ctx) {
+        return new TypeNode("string");
+    }
+
+    @Override
+    public Node visitAnyType(AnyTypeContext ctx) {
+        return new TypeNode("any");
+    }
+
+    //----------------- expr
+
     @Override
     public Node visitExpression(ExpressionContext ctx) {
         return visit(ctx.expr());
@@ -41,6 +71,33 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitInt(IntContext ctx) {
         int value = Integer.parseInt(ctx.INT().getText());
         return new IntLiteral(value);
+    }
+
+    @Override
+    public Node visitFloat(FloatContext ctx) {
+        float value = Float.parseFloat(ctx.FLOAT().getText());
+        return new FloatLiteral(value);
+    }
+
+    @Override
+    public Node visitBoolean(BooleanContext ctx) {
+        boolean value = Boolean.parseBoolean(ctx.BOOLEAN().getText());
+        return new BooleanLiteral(value);
+    }
+
+    @Override
+    public Node visitString(StringContext ctx) {
+        String text = ctx.STRING().getText();
+        // Remover comillas externas y procesar escapes
+        String value = text.substring(1, text.length() - 1)
+                        .replace("\\\\", "\\")
+                        .replace("\\\"", "\"")
+                        .replace("\\n", "\n")
+                        .replace("\\t", "\t")
+                        .replace("\\r", "\r")
+                        .replace("\\b", "\b")
+                        .replace("\\f", "\f");
+        return new StringLiteral(value);
     }
 
     @Override
@@ -129,7 +186,10 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         public Node visitLetDecl(LetDeclContext ctx) {
         String id = ctx.ID().getText();
         Node value = visit(ctx.expr());
-        return new Let(new Id(id), value);
+        Node type = Optional.ofNullable(ctx.type())
+                        .map(this::visit)
+                        .orElse(new TypeNode("any"));
+        return new Let(new Id(id), value, type);
     }
 
     @Override
@@ -139,12 +199,12 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitBlank(BlankContext ctx) {
-        return null;
+    public Node visitTernaryCondition(TernaryConditionContext ctx) {
+        return new TernaryCondition(visit(ctx.expr(0)), visit(ctx.expr(1)), visit(ctx.expr(2)));
     }
 
     @Override
-    public Node visitTernaryCondition(TernaryConditionContext ctx) {
-    return new TernaryCondition(visit(ctx.expr(0)), visit(ctx.expr(1)), visit(ctx.expr(2)));
+    public Node visitBlank(BlankContext ctx) {
+        return null;
     }
 }
