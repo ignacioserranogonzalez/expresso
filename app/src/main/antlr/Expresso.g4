@@ -21,7 +21,11 @@ expr: <assoc=right> expr POW expr                           # Pow
     | expr (PLUS | MINUS) expr                              # AddSub
     | expr (MULT | DIV) expr                                # MultDiv
     | lambdaParams LAMBDA expr                              # Lambda
+<<<<<<< HEAD
     | expr INC                                              # PostOp
+=======
+    | expr (INC | DEC)                                      # PostOp
+>>>>>>> parent of a420716 (print(--_hasUnderscores_) | falta solucionar conflicto con PostOp)
     | ID '(' callArgs? ')'                                  # Call
     | '(' expr ')'                                          # Paren
     | FLOAT                                                 # Float
@@ -54,11 +58,12 @@ LAMBDA  : '->';
 ASSIGN  : '=';
 COLON   : ':';
 POW     : '**';
+INC     : '++';
+DEC     : '--';
 PLUS    : '+';
 MINUS   : '-';
 MULT    : '*';
 DIV     : '/';
-INC     : '++';
 
 // Números - FLOAT antes de INT
 FLOAT   : [0-9]+ '.' [0-9]+;

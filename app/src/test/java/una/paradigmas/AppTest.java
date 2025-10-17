@@ -187,7 +187,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
                         "print(555)\n" +
                         "\n" +
                         "let _hasUnderscores_ = -666 // must be parsed\n" +
-                        "print(-------_hasUnderscores_)  // Expecting -666\n" +
+                        "print(--_hasUnderscores_)  // Expecting -666\n" +
                         "\n" +
                         "/////////////////////////////////////////////////\n" +
                         "//# Section 999\n" +
