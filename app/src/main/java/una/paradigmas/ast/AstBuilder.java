@@ -154,8 +154,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitLetDecl(LetDeclContext ctx) {
         String id = ctx.ID().getText();
         Node value = visit(ctx.expr());
-        Node type = ctx.type() != null ? 
-            typeAstBuilder.visit(ctx.type()) : new TypeNode("any");
+        Node type = ctx.type() != null ? typeAstBuilder.visit(ctx.type()) : null;
         return new Let(new Id(id), value, type);
     }
 
