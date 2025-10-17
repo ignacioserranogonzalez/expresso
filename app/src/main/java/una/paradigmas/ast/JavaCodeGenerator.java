@@ -3,6 +3,7 @@ package una.paradigmas.ast;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -82,7 +83,8 @@ public class JavaCodeGenerator {
         return switch (stat) {
             case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
-                String varType = getJavaType(typeNode, value);
+                String varType = typeNode != null ? 
+                    generateType(typeNode) : inferTypeFromValue(value);
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }
 
@@ -152,17 +154,24 @@ public class JavaCodeGenerator {
         };
     }
     
-    private String getJavaType(Node typeNode, Node value) {
+    private String generateType(Node typeNode) {
         return switch (typeNode) {
             case TypeNode(var typeName) -> switch (typeName) {
                 case "int" -> "int";
                 case "float" -> "float";
                 case "boolean" -> "boolean";
                 case "string" -> "String";
-                case "any" -> inferTypeFromValue(value);
-                default -> "Object";
+                case "any" -> "Object";
+                case "void" -> "void";
+                default -> typeName; // tipo usergiven
             };
-            default -> inferTypeFromValue(value);
+            case ArrowType(var from, var to) -> {
+                String fromType = generateType(from);
+                String toType = generateType(to);
+                yield "java.util.function.Function<" + fromType + ", " + toType + ">";
+            }
+            case TupleType(var _) -> "Object[]";
+            default -> "Object";
         };
     }
     

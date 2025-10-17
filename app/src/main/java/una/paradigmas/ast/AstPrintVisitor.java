@@ -165,4 +165,18 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
+
+    @Override
+    public String visitTupleType(TupleType tupleType) {
+        String result = "TupleType(" + tupleType.toString() + ")";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitArrowType(ArrowType arrowType) {
+        String result = "ArrowType(" + arrowType.toString() + ")";
+        System.out.println(result);
+        return result;
+    }
 }

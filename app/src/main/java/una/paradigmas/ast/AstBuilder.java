@@ -4,7 +4,6 @@ import una.paradigmas.ast.ExpressoParser.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -26,41 +25,14 @@ import java.util.stream.Collectors;
 
 public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
+    private final TypeAstBuilder typeAstBuilder = new TypeAstBuilder();
+
     @Override
     public Program visitProgram(ProgramContext ctx) {
         List<Node> statements = ctx.stat().stream().map(this::visit).filter(expr -> expr != null)
                                     .collect(Collectors.toList());
         return new Program(statements);
     }
-
-    //----------------- type
-
-    @Override
-    public Node visitIntType(IntTypeContext ctx) {
-        return new TypeNode("int");
-    }
-
-    @Override
-    public Node visitFloatType(FloatTypeContext ctx) {
-        return new TypeNode("float");
-    }
-
-    @Override
-    public Node visitBooleanType(BooleanTypeContext ctx) {
-        return new TypeNode("boolean");
-    }
-
-    @Override
-    public Node visitStringType(StringTypeContext ctx) {
-        return new TypeNode("string");
-    }
-
-    @Override
-    public Node visitAnyType(AnyTypeContext ctx) {
-        return new TypeNode("any");
-    }
-
-    //----------------- expr
 
     @Override
     public Node visitExpression(ExpressionContext ctx) {
@@ -88,7 +60,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitString(StringContext ctx) {
         String text = ctx.STRING().getText();
-        // Remover comillas externas y procesar escapes
         String value = text.substring(1, text.length() - 1)
                         .replace("\\\\", "\\")
                         .replace("\\\"", "\"")
@@ -139,11 +110,8 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitUnaryOp(UnaryOpContext ctx) {
         String op = ctx.PLUS() != null ? "+" : "-";
         Node expr = visit(ctx.expr());
-        
-        // Si la expresión ya es un UnaryOp con el mismo operador, 
-        // necesitamos preservar ambos operadores
+
         if (expr instanceof UnaryOp unaryExpr) {
-            // Para --x: crear un nuevo UnaryOp que contenga el existente
             return new UnaryOp(op, unaryExpr);
         }
         
@@ -182,13 +150,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new Lambda(args, expr);
     }
 
+    
+
     @Override
-        public Node visitLetDecl(LetDeclContext ctx) {
+    public Node visitLetDecl(LetDeclContext ctx) {
         String id = ctx.ID().getText();
         Node value = visit(ctx.expr());
-        Node type = Optional.ofNullable(ctx.type())
-                        .map(this::visit)
-                        .orElse(new TypeNode("any"));
+        Node type = ctx.type() != null ? typeAstBuilder.visit(ctx.type()) : null;
         return new Let(new Id(id), value, type);
     }
 

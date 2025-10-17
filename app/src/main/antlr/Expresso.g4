@@ -1,4 +1,5 @@
 grammar Expresso;
+import ExpressoTypes;
 
 program: stat* EOF; 
 
@@ -7,14 +8,6 @@ stat: NEWLINE                        # blank
     | expr NEWLINE                   # expression
     | LET ID (':' type)? ASSIGN expr NEWLINE     # letDecl
     | PRINT '(' expr ')' NEWLINE     # print
-;
-
-// types
-type: 'int'     # IntType
-    | 'float'   # FloatType  
-    | 'boolean' # BooleanType
-    | 'string'  # StringType
-    | 'any'     # AnyType
 ;
 
 // expressions
@@ -41,28 +34,17 @@ lambdaParams: '(' ')'          // 0 args
 
 callArgs: expr (',' expr)* ;
 
-// Lexer
+// Lexer (igual que antes)
 LET     : 'let';
 ASSIGN  : '=';
 PRINT   : 'print';
 LAMBDA  : '->';
 
-// types
-INT_TYPE    : 'int';
-FLOAT_TYPE  : 'float';
-BOOLEAN_TYPE: 'boolean';
-STRING_TYPE : 'string';
-ANY_TYPE    : 'any';
-
-// literals
 INT     : [0-9]+;
-FLOAT   : [0-9]+ '.' [0-9]* 
-        | '.' [0-9]+
-        ;
+FLOAT   : [0-9]+ '.' [0-9]* | '.' [0-9]+;
 BOOLEAN : 'true' | 'false';
 STRING  : '"' (ESC | ~["\\])* '"';
 
-// esto son fragmentos lexicos que permiten escapes para strings
 fragment ESC : '\\' (["\\/bfnrt] | UNICODE);
 fragment UNICODE : 'u' HEX HEX HEX HEX;
 fragment HEX : [0-9a-fA-F];
