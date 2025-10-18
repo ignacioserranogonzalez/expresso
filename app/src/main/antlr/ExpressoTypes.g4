@@ -25,3 +25,7 @@ arrow : tuple '->' flatType                # ArrowTuple
       | atomic '->' flatType               # ArrowAtomic  
       | '(' arrow ')' '->' flatType        # ArrowParen
 ;
+
+// Lexer
+ID: [a-zA-Z_][a-zA-Z0-9_]*;
+WS: [ \t]+ -> skip;

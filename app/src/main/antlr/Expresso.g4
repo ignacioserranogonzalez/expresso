@@ -4,11 +4,15 @@ import ExpressoTypes;
 program: stat* EOF; 
 
 // statements
-stat: NEWLINE                                        # blank
-    | expr NEWLINE                                   # expression
-    | LET ID (':' type)? ASSIGN expr NEWLINE         # letDecl
-    | PRINT '(' expr ')' NEWLINE                     # print
+stat: NEWLINE                                               # blank
+    | expr NEWLINE                                          # expression
+    | LET ID (':' type)? ASSIGN expr NEWLINE                # letDecl
+    | PRINT '(' expr ')' NEWLINE                            # print
+    | FUN ID '(' paramList? ')' ':' type '=' expr NEWLINE   # funDecl
 ;
+
+paramList: param (',' param)*;
+param: ID (':' type)?;
 
 // expressions
 expr: <assoc=right> expr POW expr                    # Pow
@@ -38,6 +42,7 @@ callArgs: expr (',' expr)* ;
 LET     : 'let';
 ASSIGN  : '=';
 PRINT   : 'print';
+FUN     : 'fun';
 LAMBDA  : '->';
 
 INT     : [0-9]+;

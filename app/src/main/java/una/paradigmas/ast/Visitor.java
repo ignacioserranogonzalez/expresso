@@ -32,6 +32,7 @@ public interface Visitor<T> {
     T visitParen(Paren paren);
     T visitLet(Let let);
     T visitPrint(Print print);
+    T visitFun(Fun fun);
     T visitLambda(Lambda lambda);
     T visitCall(Call call);
     T visitTernaryCondition(TernaryCondition ternary);

@@ -1,6 +1,6 @@
 package una.paradigmas.ast;
 
-import una.paradigmas.ast.ExpressoTypesParser.*;
+import una.paradigmas.ast.ExpressoParser.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * con los requerimientos especificos del proyecto.
  */
 
-public class TypeAstBuilder extends ExpressoTypesBaseVisitor<Node> {
+public class TypeAstBuilder extends ExpressoBaseVisitor<Node> {
     
     @Override
     public Node visitTypeFlat(TypeFlatContext ctx) {

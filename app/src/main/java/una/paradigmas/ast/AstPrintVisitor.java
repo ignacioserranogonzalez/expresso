@@ -179,4 +179,16 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
+
+    @Override
+    public String visitFun(Fun fun) {
+        String params = fun.params().stream()
+                .map(param -> param.accept(this))
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+        String result = "Fun(" + fun.name().accept(this) + ", [" + params + "], " +
+                        fun.returnType().accept(this) + ", " + fun.body().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
 }

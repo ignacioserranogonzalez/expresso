@@ -165,6 +165,33 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
+    public Node visitFunDecl(FunDeclContext ctx) {
+        
+        Id name = new Id(ctx.ID().getText());
+        
+        // parametros
+        List<Id> params = List.of();
+        if (ctx.paramList() != null) {
+            params = ctx.paramList().param().stream()
+                .map(paramCtx -> new Id(paramCtx.ID().getText()))
+                .collect(Collectors.toList());
+        }
+        
+        Node returnType = typeAstBuilder.visit(ctx.type());
+        
+        // cuerpo de la funcion
+        Node body = visit(ctx.expr());
+        
+        return new Fun(name, params, returnType, body);
+    }
+
+    @Override
+    public Node visitParam(ParamContext ctx) {
+        // Solo necesitamos el ID del parámetro, el tipo se maneja en el contexto de la función
+        return new Id(ctx.ID().getText());
+    }
+
+    @Override
     public Node visitTernaryCondition(TernaryConditionContext ctx) {
         return new TernaryCondition(visit(ctx.expr(0)), visit(ctx.expr(1)), visit(ctx.expr(2)));
     }

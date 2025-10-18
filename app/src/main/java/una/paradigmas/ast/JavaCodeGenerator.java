@@ -26,28 +26,32 @@ import java.util.Set;
 public class JavaCodeGenerator {
 
     private final Set<String> imports = new HashSet<>();
-    private final Set<String> extraMethods = new HashSet<>();
     private final String className;
+    private final StringBuilder methodDefinitions = new StringBuilder();
+    private final Set<String> extraMethods = new HashSet<>();
 
     public JavaCodeGenerator(String className) {
         this.className = className.toUpperCase().charAt(0) + className.substring(1);
     }
 
     public String generate(Program ast) {
-        // Acumulador para construir el codigo (comentariosIniciales, codigoMain)
-        record CodeBuilderState(StringBuilder comments, StringBuilder mainCode) {}
+
+        // acumulador para construir el codigo del main
+        record CodeBuilderState(StringBuilder mainCode) {}
+
+        methodDefinitions.setLength(0);
         
         List<String> statlist = ast.statements().stream()
                 .map(this::generateStatement)
                 .toList();
 
-        CodeBuilderState state = new CodeBuilderState(new StringBuilder(), new StringBuilder());
+        CodeBuilderState state = new CodeBuilderState(new StringBuilder());
 
         statlist.forEach(line -> {
             state.mainCode.append("        ")
             .append(line)
             .append("\n");
-        });       
+        });
 
         StringBuilder codeBuilder = new StringBuilder();
 
@@ -59,7 +63,10 @@ public class JavaCodeGenerator {
 
         codeBuilder.append("public class ").append(className).append(" {\n");
 
-        // Metodos auxiliares
+        // definiciones de metodos usando fun
+        codeBuilder.append(methodDefinitions);
+
+        // metodos auxiliares
         if (extraMethods.contains("pow")) {
             codeBuilder.append("    public static int pow(int x, int e) {\n");
             codeBuilder.append("        return (int)Math.pow(x, e);\n");
@@ -72,7 +79,7 @@ public class JavaCodeGenerator {
         }
 
         codeBuilder.append("    public static void main(String... args) {\n");
-        codeBuilder.append(state.mainCode); // Añade el código de main
+        codeBuilder.append(state.mainCode);
         codeBuilder.append("    }\n}\n");
 
         return codeBuilder.toString();
@@ -90,6 +97,29 @@ public class JavaCodeGenerator {
             case Print(var expr) -> {
                 extraMethods.add("print");
                 yield "print(" + generateExpression(expr) + ");";
+            }
+
+            case Fun(var name, var params, var returnType, var body) -> {
+                // Generar declaración de parámetros con tipos
+                String paramDecls = params.stream()
+                    .map(p -> {
+                        // Por simplicidad, asumimos que todos los parámetros son int
+                        // En una implementación real necesitarías un contexto de tipos
+                        return "int " + generateExpression(p);
+                    })
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                
+                String returnTypeJava = generateType(returnType);
+                String bodyCode = generateExpression(body);
+                
+                String methodDef = "    public static " + returnTypeJava + " " + 
+                    generateExpression(name) + "(" + paramDecls + ") {\n" +
+                    "        return " + bodyCode + ";\n" +
+                    "    }\n";
+                
+                methodDefinitions.append(methodDef);
+                yield ""; // No generar código en el main
             }
 
             default -> "";

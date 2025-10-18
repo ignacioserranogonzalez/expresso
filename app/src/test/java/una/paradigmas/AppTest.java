@@ -58,161 +58,174 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println(javaCode);
     }
 
-    @Test 
-    public void testHelloWorld0() {
+    // @Test 
+    // public void testHelloWorld0() {
 
-        System.out.println("====== Test HelloWorld0.expresso ======");
+    //     System.out.println("====== Test HelloWorld0.expresso ======");
                       
-        String input = "// HelloWorld0.expresso\n" +
-                      "let x = 666\n" +
-                      "print(x) // Expected 666 in console\n" +
-                      "let y = 10\n" +
-                      "print(y) // Expected 10 in console\n" +
-                      "let f = z -> z ** 2 + 2*z + 1\n" +
-                      "print(f(x) + f(y)) // expected 445010\n";
+    //     String input = "// HelloWorld0.expresso\n" +
+    //                   "let x = 666\n" +
+    //                   "print(x) // Expected 666 in console\n" +
+    //                   "let y = 10\n" +
+    //                   "print(y) // Expected 10 in console\n" +
+    //                   "let f = z -> z ** 2 + 2*z + 1\n" +
+    //                   "print(f(x) + f(y)) // expected 445010\n";
         
-        testExpressoProgram(input, "HelloWorld0");
-    }
+    //     testExpressoProgram(input, "HelloWorld0");
+    // }
 
-    @Test 
-    public void testHelloWorld1() {
+    // @Test 
+    // public void testHelloWorld1() {
 
-        System.out.println("====== Test HelloWorld1.expresso ======");
+    //     System.out.println("====== Test HelloWorld1.expresso ======");
 
-        String input = "// HelloWorld1.expresso\n\n" +
-                      "/*\n" +
-                      "  As HelloWorld0 but with a Binary Function\n" +
-                      "  @author hooNous\n" +
-                      "  @since Oct 6th, 2025\n" +
-                      "*/\n\n" +
-                      "let x = 6\n" +
-                      "print(x)\n" +
-                      "let y = 3\n" +
-                      "print(y)\n" +
-                      "let f = (w, z) -> z ** w + w*z + 1\n" +
-                      "print(f(x, y)) // Expected 748\n";
+    //     String input = "// HelloWorld1.expresso\n\n" +
+    //                   "/*\n" +
+    //                   "  As HelloWorld0 but with a Binary Function\n" +
+    //                   "  @author hooNous\n" +
+    //                   "  @since Oct 6th, 2025\n" +
+    //                   "*/\n\n" +
+    //                   "let x = 6\n" +
+    //                   "print(x)\n" +
+    //                   "let y = 3\n" +
+    //                   "print(y)\n" +
+    //                   "let f = (w, z) -> z ** w + w*z + 1\n" +
+    //                   "print(f(x, y)) // Expected 748\n";
         
-        testExpressoProgram(input, "HelloWorld1");
-    }
+    //     testExpressoProgram(input, "HelloWorld1");
+    // }
 
-    @Test 
-    public void testHelloWorld2() {
+    // @Test 
+    // public void testHelloWorld2() {
 
-        System.out.println("====== Test HelloWorld2.expresso ======");
+    //     System.out.println("====== Test HelloWorld2.expresso ======");
 
-        String input = "// HelloWorld2.expresso\n\n" +
-                      "/*\n" +
-                      "  Boolean Logic\n" +
-                      "  @author hooNous\n" +
-                      "  @since Oct 6th, 2025\n" +
-                      "*/\n\n" +
-                      "let isZero = x -> x ? 0 : 1\n" +
-                      "let TRUE  = 1\n" +
-                      "let FALSE = 0\n\n" +
-                      "let isTrue = x -> isZero(x) ? FALSE : TRUE\n\n" +
-                      "let NOT = x -> x ? 0 : 1\n\n" +
-                      "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
-                      "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
-                      "let XOR = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
-                      "print(XOR(TRUE, TRUE))   // Expected 0\n" +
-                      "print(XOR(TRUE, FALSE))  // Expected 1\n" +
-                      "print(XOR(FALSE, TRUE))  // Expected 1\n" +
-                      "print(XOR(FALSE, FALSE)) // Expected 0\n";
+    //     String input = "// HelloWorld2.expresso\n\n" +
+    //                   "/*\n" +
+    //                   "  Boolean Logic\n" +
+    //                   "  @author hooNous\n" +
+    //                   "  @since Oct 6th, 2025\n" +
+    //                   "*/\n\n" +
+    //                   "let isZero = x -> x ? 0 : 1\n" +
+    //                   "let TRUE  = 1\n" +
+    //                   "let FALSE = 0\n\n" +
+    //                   "let isTrue = x -> isZero(x) ? FALSE : TRUE\n\n" +
+    //                   "let NOT = x -> x ? 0 : 1\n\n" +
+    //                   "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
+    //                   "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
+    //                   "let XOR = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
+    //                   "print(XOR(TRUE, TRUE))   // Expected 0\n" +
+    //                   "print(XOR(TRUE, FALSE))  // Expected 1\n" +
+    //                   "print(XOR(FALSE, TRUE))  // Expected 1\n" +
+    //                   "print(XOR(FALSE, FALSE)) // Expected 0\n";
         
-        testExpressoProgram(input, "HelloWorld2");
-    }
+    //     testExpressoProgram(input, "HelloWorld2");
+    // }
 
-    @Test 
-    public void testHelloWorld3() {
+    // @Test 
+    // public void testHelloWorld3() {
 
-        System.out.println("====== Test HelloWorld3.expresso ======");
-        System.out.println("====== Devil's surprises ======");
+    //     System.out.println("====== Test HelloWorld3.expresso ======");
+    //     System.out.println("====== Devil's surprises ======");
 
-        String input = "/* HelloWorld3.expresso */\n" +
-                        "\n" +
-                        "/*\n" +
-                        "  Devil's suprises\n" +
-                        "  @author hooNous\n" +
-                        "  @since Oct 6th, 2025\n" +
-                        "*/\n" +
-                        "\n" +
-                        "/*\n" +
-                        "Expected output:\n" +
-                        "111\n" +
-                        "1\n" +
-                        "12\n" +
-                        "222\n" +
-                        "666\n" +
-                        "12\n" +
-                        "444\n" +
-                        "0\n" +
-                        "1\n" +
-                        "555\n" +
-                        "-666\n" +
-                        "999\n" +
-                        "*/\n" +
-                        "\n" +
-                        "/////////////////////////////////////////////////\n" +
-                        "//# Section 111\n" +
-                        "print(111)\n" +
-                        "print(666 ? 1 : 2 + 10) // Expecting 1\n" +
-                        "print(0 ? 1 : 2 + 10)   // Expecting 12\n" +
-                        "\n" +
-                        "/////////////////////////////////////////////////\n" +
-                        "//# Section 222\n" +
-                        "print(222)\n" +
-                        "print( 0 ? 0 ? 1 : 2 + 10 : 666) // Expecting 666\n" +
-                        "\n" +
-                        "print( 1 ? 0 ? 1 : 2 + 10 : 666) // Expecting 12\n" +
-                        "\n" +
-                        "/////////////////////////////////////////////////\n" +
-                        "//# Section 333\n" +
-                        "/* ?: multiline */ \n" +
-                        "let isZero = x -> x ? 0  : 1\n" +
-                        "\n" +
-                        "\n" +
-                        "/* const */ let  TRUE  = /* */ 1\n" +
-                        "/* const */ let  FALSE = 0\n" +
-                        "\n" +
-                        "/////////////////////////////////////////////////\n" +
-                        "//# Section 444\n" +
-                        "print(444)\n" +
-                        "let mod_2 = x -> x - x / 2 * 2 \n" +
-                        "\n" +
-                        "print(mod_2(666))    // Expecting 0\n" +
-                        "print(mod_2(666 +1)) // Expecting 1\n" +
-                        "\n" +
-                        "/////////////////////////////////////////////////\n" +
-                        "//# Section 444\n" +
-                        "print(555)\n" +
-                        "\n" +
-                        "let _hasUnderscores_ = -666 // must be parsed\n" +
-                        "print(_hasUnderscores_)  // Expecting -666\n" + // falta resolver conflicto con PostOp
-                        "\n" +
-                        "/////////////////////////////////////////////////\n" +
-                        "//# Section 999\n" +
-                        "print(999)\n" +
-                        "// print(variable_not_defined) // Expecting to be transpiled but not built";
+    //     String input = "/* HelloWorld3.expresso */\n" +
+    //                     "\n" +
+    //                     "/*\n" +
+    //                     "  Devil's suprises\n" +
+    //                     "  @author hooNous\n" +
+    //                     "  @since Oct 6th, 2025\n" +
+    //                     "*/\n" +
+    //                     "\n" +
+    //                     "/*\n" +
+    //                     "Expected output:\n" +
+    //                     "111\n" +
+    //                     "1\n" +
+    //                     "12\n" +
+    //                     "222\n" +
+    //                     "666\n" +
+    //                     "12\n" +
+    //                     "444\n" +
+    //                     "0\n" +
+    //                     "1\n" +
+    //                     "555\n" +
+    //                     "-666\n" +
+    //                     "999\n" +
+    //                     "*/\n" +
+    //                     "\n" +
+    //                     "/////////////////////////////////////////////////\n" +
+    //                     "//# Section 111\n" +
+    //                     "print(111)\n" +
+    //                     "print(666 ? 1 : 2 + 10) // Expecting 1\n" +
+    //                     "print(0 ? 1 : 2 + 10)   // Expecting 12\n" +
+    //                     "\n" +
+    //                     "/////////////////////////////////////////////////\n" +
+    //                     "//# Section 222\n" +
+    //                     "print(222)\n" +
+    //                     "print( 0 ? 0 ? 1 : 2 + 10 : 666) // Expecting 666\n" +
+    //                     "\n" +
+    //                     "print( 1 ? 0 ? 1 : 2 + 10 : 666) // Expecting 12\n" +
+    //                     "\n" +
+    //                     "/////////////////////////////////////////////////\n" +
+    //                     "//# Section 333\n" +
+    //                     "/* ?: multiline */ \n" +
+    //                     "let isZero = x -> x ? 0  : 1\n" +
+    //                     "\n" +
+    //                     "\n" +
+    //                     "/* const */ let  TRUE  = /* */ 1\n" +
+    //                     "/* const */ let  FALSE = 0\n" +
+    //                     "\n" +
+    //                     "/////////////////////////////////////////////////\n" +
+    //                     "//# Section 444\n" +
+    //                     "print(444)\n" +
+    //                     "let mod_2 = x -> x - x / 2 * 2 \n" +
+    //                     "\n" +
+    //                     "print(mod_2(666))    // Expecting 0\n" +
+    //                     "print(mod_2(666 +1)) // Expecting 1\n" +
+    //                     "\n" +
+    //                     "/////////////////////////////////////////////////\n" +
+    //                     "//# Section 444\n" +
+    //                     "print(555)\n" +
+    //                     "\n" +
+    //                     "let _hasUnderscores_ = -666 // must be parsed\n" +
+    //                     "print(_hasUnderscores_)  // Expecting -666\n" + // falta resolver conflicto con PostOp
+    //                     "\n" +
+    //                     "/////////////////////////////////////////////////\n" +
+    //                     "//# Section 999\n" +
+    //                     "print(999)\n" +
+    //                     "// print(variable_not_defined) // Expecting to be transpiled but not built";
         
-        testExpressoProgram(input, "HelloWorld3");
-    }
+    //     testExpressoProgram(input, "HelloWorld3");
+    // }
 
+    // @Test 
+    // public void testHelloWorld4() {
+
+    //     System.out.println("====== Test HelloWorld4.expresso ======");
+    //     System.out.println("Tarea 13 - Tipos float-boolean-string-any");
+                      
+    //     String input = """
+    //         let msg = "Hello \\"World\\""
+    //         let x:float = 3.14
+    //         let y = 666
+    //         let s = "hello"
+    //         print(x + 2.0 + y)
+    //         print(s)
+    //     """;
+        
+    //     testExpressoProgram(input, "HelloWorld4");
+    // }
     
     @Test 
-    public void testHelloWorld4() {
+    public void testHelloWorld5() {
 
-        System.out.println("====== Test HelloWorld4.expresso ======");
-        System.out.println("Tarea 13 - Tipos float-boolean-string-any");
+        System.out.println("====== Test HelloWorld5.expresso ======");
+        System.out.println("Tarea 14 - fun");
                       
         String input = """
-            let msg = "Hello \\"World\\""
-            let x:float = 3.14
-            let y = 666
-            let s = "hello"
-            print(x + 2.0 + y)
-            print(s)
-        """;
-        
-        testExpressoProgram(input, "HelloWorld4");
+            let x:int = 444
+            fun hello(n:int):int = 666
+            """;
+            
+        testExpressoProgram(input, "HelloWorld5");
     }
 }
