@@ -183,11 +183,16 @@ public class AstPrintVisitor implements Visitor<String> {
     @Override
     public String visitFun(Fun fun) {
         String params = fun.params().stream()
-                .map(param -> param.accept(this))
+                .map(p -> {
+                    String id = p.id().accept(this);
+                    String type = p.type() != null ? p.type().accept(this) : "null";
+                    return "Param(" + id + ", " + type + ")";
+                })
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("");
         String result = "Fun(" + fun.name().accept(this) + ", [" + params + "], " +
-                        fun.returnType().accept(this) + ", " + fun.body().accept(this) + ")";
+                        (fun.returnType() != null ? fun.returnType().accept(this) : "null") + ", " +
+                        (fun.body() != null ? fun.body().accept(this) : "null") + ")";
         System.out.println(result);
         return result;
     }

@@ -166,20 +166,22 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitFunDecl(FunDeclContext ctx) {
-        
         Id name = new Id(ctx.ID().getText());
         
         // parametros
-        List<Id> params = List.of();
+        List<Fun.Param> params = List.of();
         if (ctx.paramList() != null) {
             params = ctx.paramList().param().stream()
-                .map(paramCtx -> new Id(paramCtx.ID().getText()))
+                .map(paramCtx -> {
+                    Id paramId = new Id(paramCtx.ID().getText());
+                    Node paramType = paramCtx.type() != null ? 
+                        typeAstBuilder.visit(paramCtx.type()) : new TypeNode("any");
+                    return new Fun.Param(paramId, paramType);
+                })
                 .collect(Collectors.toList());
         }
-        
+    
         Node returnType = typeAstBuilder.visit(ctx.type());
-        
-        // cuerpo de la funcion
         Node body = visit(ctx.expr());
         
         return new Fun(name, params, returnType, body);
@@ -187,7 +189,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitParam(ParamContext ctx) {
-        // Solo necesitamos el ID del parámetro, el tipo se maneja en el contexto de la función
         return new Id(ctx.ID().getText());
     }
 

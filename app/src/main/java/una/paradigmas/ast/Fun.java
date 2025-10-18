@@ -16,8 +16,9 @@ package una.paradigmas.ast;
 
 import java.util.List;
 
-// Usar List<Id> para parámetros y Node para el tipo de retorno
-public record Fun(Id name, List<Id> params, Node returnType, Node body) implements Node {
+public record Fun(Id name, List<Param> params, Node returnType, Node body) implements Node {
+    public record Param(Id id, Node type) {}  // ← Param con tipo
+    
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitFun(this);

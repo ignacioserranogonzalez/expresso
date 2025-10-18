@@ -48,9 +48,11 @@ public class JavaCodeGenerator {
         CodeBuilderState state = new CodeBuilderState(new StringBuilder());
 
         statlist.forEach(line -> {
-            state.mainCode.append("        ")
-            .append(line)
-            .append("\n");
+            if (!line.isBlank()) {
+                state.mainCode.append("        ")
+                    .append(line)
+                    .append("\n");
+            }
         });
 
         StringBuilder codeBuilder = new StringBuilder();
@@ -100,12 +102,11 @@ public class JavaCodeGenerator {
             }
 
             case Fun(var name, var params, var returnType, var body) -> {
-                // Generar declaración de parámetros con tipos
+                // Generar declaración de parámetros con sus tipos reales
                 String paramDecls = params.stream()
-                    .map(p -> {
-                        // Por simplicidad, asumimos que todos los parámetros son int
-                        // En una implementación real necesitarías un contexto de tipos
-                        return "int " + generateExpression(p);
+                    .map(param -> {
+                        String paramType = generateType(param.type());
+                        return paramType + " " + generateExpression(param.id());
                     })
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
@@ -119,7 +120,7 @@ public class JavaCodeGenerator {
                     "    }\n";
                 
                 methodDefinitions.append(methodDef);
-                yield ""; // No generar código en el main
+                yield "";
             }
 
             default -> "";
@@ -176,7 +177,7 @@ public class JavaCodeGenerator {
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
-                yield generateExpression(id) + ".apply(" + params + ")";
+                yield generateExpression(id) + ".apply(" + params + ")";  // hacer distincion entre lambda y id (fun)
             }
 
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());

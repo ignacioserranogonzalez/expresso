@@ -197,23 +197,23 @@ import org.antlr.v4.runtime.CommonTokenStream;
     //     testExpressoProgram(input, "HelloWorld3");
     // }
 
-    // @Test 
-    // public void testHelloWorld4() {
+    @Test 
+    public void testHelloWorld4() {
 
-    //     System.out.println("====== Test HelloWorld4.expresso ======");
-    //     System.out.println("Tarea 13 - Tipos float-boolean-string-any");
+        System.out.println("====== Test HelloWorld4.expresso ======");
+        System.out.println("Tarea 13 - Tipos float-boolean-string-any");
                       
-    //     String input = """
-    //         let msg = "Hello \\"World\\""
-    //         let x:float = 3.14
-    //         let y = 666
-    //         let s = "hello"
-    //         print(x + 2.0 + y)
-    //         print(s)
-    //     """;
+        String input = """
+            let msg = "Hello \\"World\\""
+            let x:float = 3.14
+            let y = 666
+            let s = "hello"
+            print(x + 2.0 + y)
+            print(s)
+        """;
         
-    //     testExpressoProgram(input, "HelloWorld4");
-    // }
+        testExpressoProgram(input, "HelloWorld4");
+    }
     
     @Test 
     public void testHelloWorld5() {
@@ -222,8 +222,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println("Tarea 14 - fun");
                       
         String input = """
-            let x:int = 444
-            fun hello(n:int):int = 666
+            fun fact(n:int):int = n ? n * fact(n - 1) : 1
             """;
             
         testExpressoProgram(input, "HelloWorld5");
