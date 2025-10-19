@@ -187,35 +187,35 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new Fun(name, params, returnType, body);
     }
 
-      @Override
-public Node visitDataDecl(DataDeclContext ctx) {
-    String id = ctx.ID().getText();
-    
-    List<DataDecl.Constructor> constructors = ctx.constructorList() != null
-        ? ctx.constructorList().constructor().stream()
-            .map(constructorCtx -> {
-                String constructorId = constructorCtx.ID().getText();
-                
-                List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
-                    ? constructorCtx.arguments().argument().stream()
-                        .map(argCtx -> {
-                            String argName = argCtx.ID() != null 
-                                ? argCtx.ID().getText() 
-                                : "";
-                            Node argType = argCtx.type() != null ? 
-                                typeAstBuilder.visit(argCtx.type()) : new TypeNode("any");
-                            return new DataDecl.Argument(argName, argType);
-                        })
-                        .collect(Collectors.toList())
-                    : List.of();
-                
-                return new DataDecl.Constructor(constructorId, arguments);
-            })
-            .collect(Collectors.toList())
-        : List.of();
-    
-    return new DataDecl(id, constructors);
-}
+    @Override
+    public Node visitDataDecl(DataDeclContext ctx) {
+        String id = ctx.ID().getText();
+        
+        List<DataDecl.Constructor> constructors = ctx.constructorList() != null
+            ? ctx.constructorList().constructor().stream()
+                .map(constructorCtx -> {
+                    String constructorId = constructorCtx.ID().getText();
+                    
+                    List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
+                        ? constructorCtx.arguments().argument().stream()
+                            .map(argCtx -> {
+                                String argName = argCtx.ID() != null 
+                                    ? argCtx.ID().getText() 
+                                    : "";
+                                Node argType = argCtx.type() != null ? 
+                                    typeAstBuilder.visit(argCtx.type()) : new TypeNode("any");
+                                return new DataDecl.Argument(argName, argType);
+                            })
+                            .collect(Collectors.toList())
+                        : List.of();
+                    
+                    return new DataDecl.Constructor(constructorId, arguments);
+                })
+                .collect(Collectors.toList())
+            : List.of();
+        
+        return new DataDecl(id, constructors);
+    }
 
     @Override
     public Node visitParam(ParamContext ctx) {
