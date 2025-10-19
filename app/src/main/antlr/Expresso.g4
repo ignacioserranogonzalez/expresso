@@ -3,10 +3,11 @@ grammar Expresso;
 program: stat* EOF; 
 
 // statements
-stat: NEWLINE                        # blank
-    | expr NEWLINE                   # expression
+stat: NEWLINE                                    # blank
+    | expr NEWLINE                               # expression
     | LET ID (':' type)? ASSIGN expr NEWLINE     # letDecl
-    | PRINT '(' expr ')' NEWLINE     # print
+    | DATA ID ASSIGN '{' constructorList '}' NEWLINE # dataDecl
+    | PRINT '(' expr ')' NEWLINE                 # print
 ;
 
 // types
@@ -15,7 +16,15 @@ type: 'int'     # IntType
     | 'boolean' # BooleanType
     | 'string'  # StringType
     | 'any'     # AnyType
+    | ID        # CustomType
 ;
+
+// data declarations
+constructorList: constructor (',' constructor)*;
+constructor: ID arguments?;
+arguments: '(' argument (',' argument)* ')';
+argument: (ID ':')? type;
+
 
 // expressions
 expr: <assoc=right> expr POW expr                           # Pow
@@ -43,6 +52,7 @@ callArgs: expr (',' expr)* ;
 
 // Lexer
 LET     : 'let';
+DATA    : 'data';
 ASSIGN  : '=';
 PRINT   : 'print';
 LAMBDA  : '->';

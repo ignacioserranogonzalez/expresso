@@ -28,25 +28,36 @@ public class JavaCodeGenerator {
     private final Set<String> imports = new HashSet<>();
     private final Set<String> extraMethods = new HashSet<>();
     private final String className;
+    private final StringBuilder sealedTypes = new StringBuilder();
 
     public JavaCodeGenerator(String className) {
-        this.className = className.toUpperCase().charAt(0) + className.substring(1);
+        this.className = capitalizeFirst(className);
     }
 
     public String generate(Program ast) {
-        // Acumulador para construir el codigo (comentariosIniciales, codigoMain)
-        record CodeBuilderState(StringBuilder comments, StringBuilder mainCode) {}
+        record CodeBuilderState(StringBuilder mainCode) {}
         
+        sealedTypes.setLength(0);
+        
+        List<DataDecl> dataDecls = ast.statements().stream()
+            .filter(statement -> statement instanceof DataDecl)
+            .map(statement -> (DataDecl) statement)
+            .toList();
+
         List<String> statlist = ast.statements().stream()
                 .map(this::generateStatement)
                 .toList();
 
-        CodeBuilderState state = new CodeBuilderState(new StringBuilder(), new StringBuilder());
+        CodeBuilderState state = new CodeBuilderState(new StringBuilder());
+
+        dataDecls.forEach(dataDecl -> generateDataDecl(dataDecl.id(), dataDecl.constructors()));
 
         statlist.forEach(line -> {
-            state.mainCode.append("        ")
-            .append(line)
-            .append("\n");
+            if (!line.isEmpty()) {
+                state.mainCode.append("        ")
+                .append(line)
+                .append("\n");
+            }
         });       
 
         StringBuilder codeBuilder = new StringBuilder();
@@ -58,6 +69,11 @@ public class JavaCodeGenerator {
         }
 
         codeBuilder.append("public class ").append(className).append(" {\n");
+
+        // Tipos algebraicos (sealed interfaces y records)
+        if (sealedTypes.length() > 0) {
+            codeBuilder.append(sealedTypes);
+        }
 
         // Metodos auxiliares
         if (extraMethods.contains("pow")) {
@@ -72,24 +88,76 @@ public class JavaCodeGenerator {
         }
 
         codeBuilder.append("    public static void main(String... args) {\n");
-        codeBuilder.append(state.mainCode); // Añade el código de main
+        codeBuilder.append(state.mainCode);
         codeBuilder.append("    }\n}\n");
 
         return codeBuilder.toString();
     }
 
+    private void generateDataDecl(String dataId, List<DataDecl.Constructor> constructors) {
+        String typeName = capitalizeFirst(dataId);
+        
+        String permits = constructors.stream()
+            .map(DataDecl.Constructor::id)
+            .map(this::capitalizeFirst)
+            .reduce((a, b) -> a + ", " + b)
+            .orElse("");
+        
+        sealedTypes.append("    sealed interface ").append(typeName)
+            .append(" permits ").append(permits).append(" {}\n");
+        
+        constructors.forEach(constructor -> {
+            String constructorName = capitalizeFirst(constructor.id());
+            
+            if (constructor.arguments().isEmpty()) {
+                sealedTypes.append("    record ").append(constructorName)
+                    .append("() implements ").append(typeName).append(" {}\n");
+            } else {
+                String argParams = constructor.arguments().stream()
+                    .map(arg -> {
+                        String argType = getJavaTypeFromNode(arg.type());
+                        String argName = arg.name().isEmpty() 
+                            ? "arg" + arg.hashCode() % 1000 
+                            : arg.name();
+                        return argType + " " + argName;
+                    })
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                
+                sealedTypes.append("    record ").append(constructorName)
+                    .append("(").append(argParams).append(") implements ")
+                    .append(typeName).append(" {}\n");
+            }
+        });
+        
+        sealedTypes.append("\n");
+    }
+
+    private String getJavaTypeFromNode(Node typeNode) {
+        return switch (typeNode) {
+            case TypeNode(String typeName) -> switch (typeName) {
+                case "int" -> "int";
+                case "float" -> "float";
+                case "boolean" -> "boolean";
+                case "string" -> "String";
+                case "any" -> "Object";
+                default -> capitalizeFirst(typeName);
+            };
+            default -> "Object";
+        };
+    }
+   
     private String generateStatement(Node stat) {
         return switch (stat) {
-            case Let(var id, var value, var typeNode) -> {
-                String valueCode = generateExpression(value);
-                String varType = getJavaType(typeNode, value);
-                yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
-            }
+            case Let(Id id, Node value, Node typeNode) -> 
+                getJavaType(typeNode, value) + " " + generateExpression(id) + " = " + generateExpression(value) + ";";
 
-            case Print(var expr) -> {
+            case Print(Node expr) -> {
                 extraMethods.add("print");
                 yield "print(" + generateExpression(expr) + ");";
             }
+            
+            case DataDecl(String id, List<DataDecl.Constructor> constructors) -> "";
 
             default -> "";
         };
@@ -97,39 +165,39 @@ public class JavaCodeGenerator {
 
     private String generateExpression(Node expr) {
         return switch (expr) {
-            case IntLiteral(var value) -> Integer.toString(value);
-            case FloatLiteral(var value) -> value + "f";
-            case BooleanLiteral(var value) -> Boolean.toString(value);
-            case StringLiteral(var value) -> "\"" + escapeString(value) + "\"";
+            case IntLiteral(int value) -> Integer.toString(value);
+            case FloatLiteral(float value) -> value + "f";
+            case BooleanLiteral(boolean value) -> Boolean.toString(value);
+            case StringLiteral(String value) -> "\"" + escapeString(value) + "\"";
 
-            case Id(var value) -> value;
+            case Id(String value) -> value;
 
-            case Pow(var left, var right) -> {
+            case Pow(Node left, Node right) -> {
                 extraMethods.add("pow");
                 yield "pow(" + generateExpression(left) + ", " + generateExpression(right) + ")";
             }
 
-            case MultDiv(var left, var op, var right) ->
+            case MultDiv(Node left, String op, Node right) ->
                 generateExpression(left) + " " + op + " " + generateExpression(right);
 
-            case AddSub(var left, var op, var right) ->
+            case AddSub(Node left, String op, Node right) ->
                 generateExpression(left) + " " + op + " " + generateExpression(right);
 
-            case UnaryOp(var op, var expr2) ->
+            case UnaryOp(String op, Node expr2) ->
                 op + generateExpression(expr2);
 
-            case PostOp(var expr1, var op) ->
+            case PostOp(Node expr1, String op) ->
                 generateExpression(expr1) + op;
 
-            case Paren(var value) ->
+            case Paren(Node value) ->
                 "(" + generateExpression(value) + ")";
 
-            case TernaryCondition(var condition, var value1, var value2) -> 
+            case TernaryCondition(Node condition, Node value1, Node value2) -> 
                 "(" + generateExpression(condition) + " != 0 ? " 
                     + generateExpression(value1) + " : " 
                     + generateExpression(value2) + ")";
 
-            case Lambda(var args, var body) -> {
+            case Lambda(List<Id> args, Node body) -> {
                 imports.add("java.util.function.*");
                 String params = args.stream()
                     .map(Id::value)
@@ -140,7 +208,7 @@ public class JavaCodeGenerator {
                 yield params + " -> " + generateExpression(body);
             }
 
-            case Call(var id, var paramList) -> {
+            case Call(Id id, List<Node> paramList) -> {
                 String params = paramList.stream()
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
@@ -154,7 +222,7 @@ public class JavaCodeGenerator {
     
     private String getJavaType(Node typeNode, Node value) {
         return switch (typeNode) {
-            case TypeNode(var typeName) -> switch (typeName) {
+            case TypeNode(String typeName) -> switch (typeName) {
                 case "int" -> "int";
                 case "float" -> "float";
                 case "boolean" -> "boolean";
@@ -197,5 +265,10 @@ public class JavaCodeGenerator {
                     .replace("\r", "\\r")
                     .replace("\b", "\\b")
                     .replace("\f", "\\f");
+    }
+
+    private String capitalizeFirst(String str) {
+        return str == null || str.isEmpty() ? str 
+            : str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 }

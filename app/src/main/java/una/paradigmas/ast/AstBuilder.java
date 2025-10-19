@@ -2,6 +2,7 @@ package una.paradigmas.ast;
 
 import una.paradigmas.ast.ExpressoParser.*;
 
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +59,40 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitAnyType(AnyTypeContext ctx) {
         return new TypeNode("any");
+    }
+    @Override
+    public Node visitCustomType(CustomTypeContext ctx) {
+        return new TypeNode(ctx.ID().getText());
+    }
+
+//----------------- dataDecl
+     @Override
+    public Node visitDataDecl(DataDeclContext ctx) {
+        String id = ctx.ID().getText();
+        
+        List<DataDecl.Constructor> constructors = ctx.constructorList() != null
+            ? ctx.constructorList().constructor().stream()
+                .map(constructorCtx -> {
+                    String constructorId = constructorCtx.ID().getText();
+                    
+                    List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
+                        ? constructorCtx.arguments().argument().stream()
+                            .map(argCtx -> {
+                                String argName = argCtx.ID() != null 
+                                    ? argCtx.ID().getText() 
+                                    : "";
+                                Node argType = visit(argCtx.type());
+                                return new DataDecl.Argument(argName, argType);
+                            })
+                            .collect(Collectors.toList())
+                        : List.of();
+                    
+                    return new DataDecl.Constructor(constructorId, arguments);
+                })
+                .collect(Collectors.toList())
+            : List.of();
+        
+        return new DataDecl(id, constructors);
     }
 
     //----------------- expr
