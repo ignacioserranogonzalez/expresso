@@ -9,10 +9,16 @@ stat: NEWLINE                                               # blank
     | LET ID (':' type)? ASSIGN expr NEWLINE                # letDecl
     | PRINT '(' expr ')' NEWLINE                            # print
     | FUN ID '(' paramList? ')' ':' type '=' expr NEWLINE   # funDecl
+    | DATA ID ASSIGN '{' constructorList '}' NEWLINE        # dataDecl
 ;
 
 paramList: param (',' param)*;
 param: ID (':' type)?;
+
+constructorList: constructor (',' constructor)*;
+constructor: ID arguments?;
+arguments: '(' argument (',' argument)* ')';
+argument: (ID ':')? type;
 
 // expressions
 expr: <assoc=right> expr POW expr                    # Pow
@@ -40,6 +46,7 @@ callArgs: expr (',' expr)* ;
 
 // Lexer (igual que antes)
 LET     : 'let';
+DATA    : 'data';
 ASSIGN  : '=';
 PRINT   : 'print';
 FUN     : 'fun';

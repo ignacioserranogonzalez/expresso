@@ -73,6 +73,11 @@ public class TypeAstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitAtomicString(AtomicStringContext ctx) {
         return new TypeNode("string");
     }
+
+      @Override
+    public Node visitCustomType(CustomTypeContext ctx) {
+        return new TypeNode(ctx.ID().getText());
+    }
     
     @Override
     public Node visitTupleType(TupleTypeContext ctx) {

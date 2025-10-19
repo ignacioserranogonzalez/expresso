@@ -29,9 +29,10 @@ public class JavaCodeGenerator {
     private final String className;
     private final StringBuilder methodDefinitions = new StringBuilder();
     private final Set<String> extraMethods = new HashSet<>();
+    private final StringBuilder sealedTypes = new StringBuilder();
 
-    public JavaCodeGenerator(String className) {
-        this.className = className.toUpperCase().charAt(0) + className.substring(1);
+     public JavaCodeGenerator(String className) {
+        this.className = capitalizeFirst(className);
     }
 
     public String generate(Program ast) {
@@ -40,12 +41,20 @@ public class JavaCodeGenerator {
         record CodeBuilderState(StringBuilder mainCode) {}
 
         methodDefinitions.setLength(0);
+         sealedTypes.setLength(0);
         
         List<String> statlist = ast.statements().stream()
                 .map(this::generateStatement)
                 .toList();
 
+         List<DataDecl> dataDecls = ast.statements().stream()
+            .filter(statement -> statement instanceof DataDecl)
+            .map(statement -> (DataDecl) statement)
+            .toList();
+
         CodeBuilderState state = new CodeBuilderState(new StringBuilder());
+
+        dataDecls.forEach(dataDecl -> generateDataDecl(dataDecl.id(), dataDecl.constructors()));
 
         statlist.forEach(line -> {
             if (!line.isBlank()) {
@@ -65,6 +74,10 @@ public class JavaCodeGenerator {
 
         codeBuilder.append("public class ").append(className).append(" {\n");
 
+        //(sealed interfaces y records)
+         if (sealedTypes.length() > 0) {
+            codeBuilder.append(sealedTypes);
+        }
         // definiciones de metodos usando fun
         codeBuilder.append(methodDefinitions);
 
@@ -85,6 +98,59 @@ public class JavaCodeGenerator {
         codeBuilder.append("    }\n}\n");
 
         return codeBuilder.toString();
+    }
+        private void generateDataDecl(String dataId, List<DataDecl.Constructor> constructors) {
+        String typeName = capitalizeFirst(dataId);
+        
+        String permits = constructors.stream()
+            .map(DataDecl.Constructor::id)
+            .map(this::capitalizeFirst)
+            .reduce((a, b) -> a + ", " + b)
+            .orElse("");
+        
+        sealedTypes.append("    sealed interface ").append(typeName)
+            .append(" permits ").append(permits).append(" {}\n");
+        
+        constructors.forEach(constructor -> {
+            String constructorName = capitalizeFirst(constructor.id());
+            
+            if (constructor.arguments().isEmpty()) {
+                sealedTypes.append("    record ").append(constructorName)
+                    .append("() implements ").append(typeName).append(" {}\n");
+            } else {
+                String argParams = constructor.arguments().stream()
+                    .map(arg -> {
+                        String argType = getJavaTypeFromNode(arg.type());
+                        String argName = arg.name().isEmpty() 
+                            ? "arg" + arg.hashCode() % 1000 
+                            : arg.name();
+                        return argType + " " + argName;
+                    })
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                
+                sealedTypes.append("    record ").append(constructorName)
+                    .append("(").append(argParams).append(") implements ")
+                    .append(typeName).append(" {}\n");
+            }
+        });
+        
+        sealedTypes.append("\n");
+    }
+        
+    //tipos para parametros de record y sealed
+    private String getJavaTypeFromNode(Node typeNode) {
+        return switch (typeNode) {
+            case TypeNode(String typeName) -> switch (typeName) {
+                case "int" -> "int";
+                case "float" -> "float";
+                case "boolean" -> "boolean";
+                case "string" -> "String";
+                case "any" -> "Object";
+                default -> capitalizeFirst(typeName);
+            };
+            default -> "Object";
+        };
     }
 
     private String generateStatement(Node stat) {
@@ -122,6 +188,7 @@ public class JavaCodeGenerator {
                 methodDefinitions.append(methodDef);
                 yield "";
             }
+            case DataDecl(String id, List<DataDecl.Constructor> constructors) -> "";
 
             default -> "";
         };
@@ -236,5 +303,9 @@ public class JavaCodeGenerator {
                     .replace("\r", "\\r")
                     .replace("\b", "\\b")
                     .replace("\f", "\\f");
+    }
+     private String capitalizeFirst(String str) {
+        return str == null || str.isEmpty() ? str 
+            : str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 }

@@ -229,4 +229,17 @@ import org.antlr.v4.runtime.CommonTokenStream;
             
         testExpressoProgram(input, "HelloWorld5");
     }
+    
+    @Test 
+    public void testHelloWorld6() {
+    System.out.println("====== Test HelloWorld6.expresso ======");
+    
+    String input = "data nat = { Zero, S(n:nat) }\n" +
+                   "data list = { Nil, Cons(car:any, cdr:list) }\n" +
+                   "data gender = { Male, Female }\n" +
+                   "let x = 666\n" +
+                   "print(x)\n";
+    
+    testExpressoProgram(input, "HelloWorld6");
+    }
 }

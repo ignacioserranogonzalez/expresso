@@ -196,4 +196,27 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
+
+      @Override
+    public String visitDataDecl(DataDecl dataDecl) {
+        String constructors = dataDecl.constructors().stream()
+            .map(constructor -> {
+                String arguments = constructor.arguments().stream()
+                    .map(arg -> {
+                        String argName = arg.name().isEmpty() ? "unnamed" : arg.name();
+                        String argType = arg.type().accept(this);
+                        return "Argument(" + argName + ", " + argType + ")";
+                    })
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                
+                return "Constructor(" + constructor.id() + ", [" + arguments + "])";
+            })
+            .reduce((a, b) -> a + ", " + b)
+            .orElse("");
+        
+        String result = "DataDecl(" + dataDecl.id() + ", [" + constructors + "])";
+        System.out.println(result);
+        return result;
+    }
 }
