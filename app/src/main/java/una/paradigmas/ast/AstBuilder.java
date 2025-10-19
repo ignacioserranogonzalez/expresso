@@ -1,6 +1,7 @@
 package una.paradigmas.ast;
 
 import una.paradigmas.ast.ExpressoParser.*;
+import una.paradigmas.node.*;
 
 import java.util.ArrayList;
 import java.util.List;

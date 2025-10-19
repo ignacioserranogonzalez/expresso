@@ -1,4 +1,4 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -14,10 +14,14 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-public record PostOp(Node expr, String op) implements Node {
+import java.util.List;
+
+import una.paradigmas.ast.Visitor;
+
+public record Call(Id id, List<Node> args) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitPostOp(this);
+        return visitor.visitCall(this);
     }
 }
 

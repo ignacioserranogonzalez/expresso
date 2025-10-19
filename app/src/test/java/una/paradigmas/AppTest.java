@@ -7,8 +7,7 @@ import una.paradigmas.ast.AstBuilder;
 import una.paradigmas.ast.ExpressoLexer;
 import una.paradigmas.ast.ExpressoParser;
 import una.paradigmas.ast.JavaCodeGenerator;
-import una.paradigmas.ast.Program;
-
+import una.paradigmas.node.Program;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;

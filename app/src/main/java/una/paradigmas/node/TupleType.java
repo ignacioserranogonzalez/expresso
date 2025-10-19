@@ -1,4 +1,4 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -14,9 +14,13 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-record AddSub(Node left, String op, Node right) implements BinaryOp {
+import java.util.List;
+
+import una.paradigmas.ast.Visitor;
+
+public record TupleType(List<TypeNode> types) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitAddSub(this);
+        return visitor.visitTupleType(this);
     }
 }

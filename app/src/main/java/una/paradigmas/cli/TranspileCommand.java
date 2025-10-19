@@ -15,7 +15,7 @@ import una.paradigmas.ast.AstBuilder;
 import una.paradigmas.ast.ExpressoLexer;
 import una.paradigmas.ast.ExpressoParser;
 import una.paradigmas.ast.JavaCodeGenerator;
-import una.paradigmas.ast.Program;
+import una.paradigmas.node.Program;
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
  * Curso: [EIF400-II-2025] Paradigmas de Programacion

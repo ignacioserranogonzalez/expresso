@@ -1,6 +1,10 @@
 package una.paradigmas.ast;
 
 import una.paradigmas.ast.ExpressoParser.*;
+import una.paradigmas.node.ArrowType;
+import una.paradigmas.node.Node;
+import una.paradigmas.node.TupleType;
+import una.paradigmas.node.TypeNode;
 
 import java.util.List;
 import java.util.stream.Collectors;

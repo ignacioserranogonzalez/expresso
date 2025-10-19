@@ -1,4 +1,4 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -14,9 +14,15 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-record MultDiv(Node left, String op, Node right) implements BinaryOp {
+import java.util.List;
+
+import una.paradigmas.ast.Visitor;
+
+public record Fun(Id name, List<Param> params, Node returnType, Node body) implements Node {
+    public record Param(Id id, Node type) {}  // ← Param con tipo
+    
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitMultDiv(this);
+        return visitor.visitFun(this);
     }
 }

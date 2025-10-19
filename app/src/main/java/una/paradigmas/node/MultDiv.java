@@ -1,4 +1,6 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
+
+import una.paradigmas.ast.Visitor;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -14,9 +16,9 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-public record BooleanLiteral(boolean value) implements Node {
+public record MultDiv(Node left, String op, Node right) implements BinaryOp {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitBoolean(this);
+        return visitor.visitMultDiv(this);
     }
 }

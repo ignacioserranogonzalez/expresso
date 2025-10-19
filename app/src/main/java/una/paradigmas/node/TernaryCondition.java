@@ -1,4 +1,6 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
+
+import una.paradigmas.ast.Visitor;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -14,9 +16,9 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-public record Let(Id id, Node value, Node type) implements Node {
+public record TernaryCondition(Node condition, Node value1, Node value2) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitLet(this);
+        return visitor.visitTernaryCondition(this);
     }
 }

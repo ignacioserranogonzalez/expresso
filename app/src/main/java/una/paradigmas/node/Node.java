@@ -1,4 +1,6 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
+
+import una.paradigmas.ast.Visitor;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -14,13 +16,6 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-import java.util.List;
-
-public record Fun(Id name, List<Param> params, Node returnType, Node body) implements Node {
-    public record Param(Id id, Node type) {}  // ← Param con tipo
-    
-    @Override
-    public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitFun(this);
-    }
+public interface Node { // clase para nodos (statements y expressions)
+    public <T> T accept(Visitor<T> visitor);
 }

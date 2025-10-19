@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import una.paradigmas.node.*;
+
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
  * Curso: [EIF400-II-2025] Paradigmas de Programacion

@@ -1,4 +1,6 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
+
+import una.paradigmas.ast.Visitor;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -14,10 +16,9 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-interface BinaryOp extends Node {
-    Node left();
-    Node right();
+public record ArrowType(Node from, Node to) implements Node {
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+        return visitor.visitArrowType(this);
+    }
 }
-
-
-

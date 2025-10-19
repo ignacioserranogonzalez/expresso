@@ -1,6 +1,8 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
 
 import java.util.List;
+
+import una.paradigmas.ast.Visitor;
 
 public record DataDecl(String id, List<DataDecl.Constructor> constructors) implements Node {
     

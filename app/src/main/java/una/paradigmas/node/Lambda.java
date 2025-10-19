@@ -1,4 +1,8 @@
-package una.paradigmas.ast;
+package una.paradigmas.node;
+
+import java.util.List;
+
+import una.paradigmas.ast.Visitor;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -14,11 +18,9 @@ package una.paradigmas.ast;
  * Codigo de grupo: 02-1PM
  */
 
-import java.util.List;
-
-public record TupleType(List<TypeNode> types) implements Node {
+public record Lambda(List<Id> args, Node expr) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitTupleType(this);
+        return visitor.visitLambda(this);
     }
 }
