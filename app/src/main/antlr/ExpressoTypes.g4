@@ -15,7 +15,6 @@ atomic : 'any'           # AtomicAny
       | 'int'            # AtomicInt
       | 'float'          # AtomicFloat
       | 'string'         # AtomicString
-      | ID               # AtomicId
 ;
 
 tuple : '(' flatType (',' flatType)+ ')'   # TupleType
@@ -27,5 +26,4 @@ arrow : tuple '->' flatType                # ArrowTuple
 ;
 
 // Lexer
-ID: [a-zA-Z_][a-zA-Z0-9_]*;
 WS: [ \t]+ -> skip;

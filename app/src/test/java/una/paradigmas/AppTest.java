@@ -207,9 +207,11 @@ import org.antlr.v4.runtime.CommonTokenStream;
             let msg = "Hello \\"World\\""
             let x:float = 3.14
             let y = 666
+            let b = true
             let s = "hello"
             print(x + 2.0 + y)
             print(s)
+            print(b)
         """;
         
         testExpressoProgram(input, "HelloWorld4");
