@@ -129,8 +129,8 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitCall(CallContext ctx) {
         String id = ctx.ID().getText();
         List<Node> args = new ArrayList<>();
-        if (ctx.callArgs() != null) {
-            args = ctx.callArgs().expr().stream()
+        if (ctx.argList() != null) {
+            args = ctx.argList().expr().stream()
                 .map(this::visit)
                 .collect(Collectors.toList());
         }
@@ -231,5 +231,17 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitBlank(BlankContext ctx) {
         return null;
+    }
+
+    @Override
+    public Node visitConstructorInvocation(ConstructorInvocationContext ctx) {
+        String id = ctx.constructorExpr().ID().getText();
+        List<Node> args = new ArrayList<>();
+        if (ctx.constructorExpr().argList() != null) {
+            args = ctx.constructorExpr().argList().expr().stream()
+                .map(this::visit)
+                .collect(Collectors.toList());
+        }
+        return new ConstructorInvocation(id, args);
     }
 }

@@ -199,7 +199,7 @@ public class AstPrintVisitor implements Visitor<String> {
         return result;
     }
 
-      @Override
+    @Override
     public String visitDataDecl(DataDecl dataDecl) {
         String constructors = dataDecl.constructors().stream()
             .map(constructor -> {
@@ -218,6 +218,17 @@ public class AstPrintVisitor implements Visitor<String> {
             .orElse("");
         
         String result = "DataDecl(" + dataDecl.id() + ", [" + constructors + "])";
+        System.out.println(result);
+        return result;
+    }
+
+    @Override
+    public String visitConstructorInvocation(ConstructorInvocation constructorInvocation) { 
+        String args = constructorInvocation.args().stream()
+                .map(arg -> arg.accept(this))
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+        String result = "ConstructorInvocation(" + constructorInvocation.id() + ", [" + args + "])";
         System.out.println(result);
         return result;
     }
