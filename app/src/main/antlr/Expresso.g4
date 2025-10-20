@@ -28,7 +28,8 @@ expr: <assoc=right> expr POW expr                    # Pow
     | expr (MULT | DIV) expr                         # MultDiv
     | lambdaParams LAMBDA expr                       # Lambda
     | expr (INC | DEC)                               # PostOp
-    | ID '(' callArgs? ')'                           # Call
+    | ID '(' argList? ')'                            # Call
+    | NEW constructorExpr                            # ConstructorInvocation
     | '(' expr ')'                                   # Paren
     | INT                                            # Int
     | FLOAT                                          # Float
@@ -37,12 +38,14 @@ expr: <assoc=right> expr POW expr                    # Pow
     | ID                                             # Id
 ;
 
+// gramatica sugerida para ^
+constructorExpr: ID ('(' argList ')')?;
+argList: expr (',' expr)*;  // Regla unificada para listas de argumentos de Call y ConstructorInvocation
+
 lambdaParams: '(' ')'          // 0 args
     | '(' ID (',' ID)? ')'     // 1-2 args con ()
     | ID                       // 1 arg sin ()
 ;
-
-callArgs: expr (',' expr)* ;
 
 // Lexer (igual que antes)
 LET     : 'let';
@@ -51,6 +54,7 @@ ASSIGN  : '=';
 PRINT   : 'print';
 FUN     : 'fun';
 LAMBDA  : '->';
+NEW     : '^';
 
 INT     : [0-9]+;
 FLOAT   : [0-9]+ '.' [0-9]* | '.' [0-9]+;
