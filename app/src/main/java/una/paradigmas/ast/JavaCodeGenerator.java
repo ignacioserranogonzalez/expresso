@@ -283,6 +283,15 @@ public class JavaCodeGenerator {
                 yield generateExpression(id) + ".apply(" + params + ")";  // hacer distincion entre lambda y id (fun)
             }
 
+            case ConstructorInvocation(var id, var args) -> {
+                String capitalizedId = capitalizeFirst(id);  // Capitaliza el nombre del constructor
+                String argCode = args.stream()
+                    .map(this::generateExpression)
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                yield "new " + capitalizedId + "(" + argCode + ")";
+            }
+
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
     }
