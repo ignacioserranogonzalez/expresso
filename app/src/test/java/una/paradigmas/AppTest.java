@@ -57,69 +57,69 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println(javaCode);
     }
 
-    // @Test 
-    // public void testHelloWorld0() {
+    @Test 
+    public void testHelloWorld0() {
 
-    //     System.out.println("====== Test HelloWorld0.expresso ======");
+        System.out.println("====== Test HelloWorld0.expresso ======");
                       
-    //     String input = "// HelloWorld0.expresso\n" +
-    //                   "let x = 666\n" +
-    //                   "print(x) // Expected 666 in console\n" +
-    //                   "let y = 10\n" +
-    //                   "print(y) // Expected 10 in console\n" +
-    //                   "let f = z -> z ** 2 + 2*z + 1\n" +
-    //                   "print(f(x) + f(y)) // expected 445010\n";
+        String input = "// HelloWorld0.expresso\n" +
+                      "let x = 666\n" +
+                      "print(x) // Expected 666 in console\n" +
+                      "let y = 10\n" +
+                      "print(y) // Expected 10 in console\n" +
+                      "let f = z -> z ** 2 + 2*z + 1\n" +
+                      "print(f(x) + f(y)) // expected 445010\n";
         
-    //     testExpressoProgram(input, "HelloWorld0");
-    // }
+        testExpressoProgram(input, "HelloWorld0");
+    }
 
-    // @Test 
-    // public void testHelloWorld1() {
+    @Test 
+    public void testHelloWorld1() {
 
-    //     System.out.println("====== Test HelloWorld1.expresso ======");
+        System.out.println("====== Test HelloWorld1.expresso ======");
 
-    //     String input = "// HelloWorld1.expresso\n\n" +
-    //                   "/*\n" +
-    //                   "  As HelloWorld0 but with a Binary Function\n" +
-    //                   "  @author hooNous\n" +
-    //                   "  @since Oct 6th, 2025\n" +
-    //                   "*/\n\n" +
-    //                   "let x = 6\n" +
-    //                   "print(x)\n" +
-    //                   "let y = 3\n" +
-    //                   "print(y)\n" +
-    //                   "let f = (w, z) -> z ** w + w*z + 1\n" +
-    //                   "print(f(x, y)) // Expected 748\n";
+        String input = "// HelloWorld1.expresso\n\n" +
+                      "/*\n" +
+                      "  As HelloWorld0 but with a Binary Function\n" +
+                      "  @author hooNous\n" +
+                      "  @since Oct 6th, 2025\n" +
+                      "*/\n\n" +
+                      "let x = 6\n" +
+                      "print(x)\n" +
+                      "let y = 3\n" +
+                      "print(y)\n" +
+                      "let f = (w, z) -> z ** w + w*z + 1\n" +
+                      "print(f(x, y)) // Expected 748\n";
         
-    //     testExpressoProgram(input, "HelloWorld1");
-    // }
+        testExpressoProgram(input, "HelloWorld1");
+    }
 
-    // @Test 
-    // public void testHelloWorld2() {
+    @Test 
+    public void testHelloWorld2() {
 
-    //     System.out.println("====== Test HelloWorld2.expresso ======");
+        System.out.println("====== Test HelloWorld2.expresso ======");
 
-    //     String input = "// HelloWorld2.expresso\n\n" +
-    //                   "/*\n" +
-    //                   "  Boolean Logic\n" +
-    //                   "  @author hooNous\n" +
-    //                   "  @since Oct 6th, 2025\n" +
-    //                   "*/\n\n" +
-    //                   "let isZero = x -> x ? 0 : 1\n" +
-    //                   "let TRUE  = 1\n" +
-    //                   "let FALSE = 0\n\n" +
-    //                   "let isTrue = x -> isZero(x) ? FALSE : TRUE\n\n" +
-    //                   "let NOT = x -> x ? 0 : 1\n\n" +
-    //                   "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
-    //                   "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
-    //                   "let XOR = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
-    //                   "print(XOR(TRUE, TRUE))   // Expected 0\n" +
-    //                   "print(XOR(TRUE, FALSE))  // Expected 1\n" +
-    //                   "print(XOR(FALSE, TRUE))  // Expected 1\n" +
-    //                   "print(XOR(FALSE, FALSE)) // Expected 0\n";
+        String input = "// HelloWorld2.expresso\n\n" +
+                      "/*\n" +
+                      "  Boolean Logic\n" +
+                      "  @author hooNous\n" +
+                      "  @since Oct 6th, 2025\n" +
+                      "*/\n\n" +
+                      "let isZero = x -> x ? 0 : 1\n" +
+                      "let TRUE  = 1\n" +
+                      "let FALSE = 0\n\n" +
+                      "let isTrue = x -> isZero(x) ? FALSE : TRUE\n\n" +
+                      "let NOT = x -> x ? 0 : 1\n\n" +
+                      "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
+                      "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
+                      "let XOR = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
+                      "print(XOR(TRUE, TRUE))   // Expected 0\n" +
+                      "print(XOR(TRUE, FALSE))  // Expected 1\n" +
+                      "print(XOR(FALSE, TRUE))  // Expected 1\n" +
+                      "print(XOR(FALSE, FALSE)) // Expected 0\n";
         
-    //     testExpressoProgram(input, "HelloWorld2");
-    // }
+        testExpressoProgram(input, "HelloWorld2");
+    }
 
     // @Test 
     // public void testHelloWorld3() {
@@ -255,5 +255,20 @@ import org.antlr.v4.runtime.CommonTokenStream;
         """;
 
         testExpressoProgram(input, "ConstructorInvocation");
+    }
+
+    @Test 
+    public void testHelloWorld8() {
+
+        System.out.println("====== Test HelloWorld8.expresso ======");
+
+        String input = """
+                let x = 666
+                print(------x)
+                print(x--)
+                print(x)
+        """;
+        
+        testExpressoProgram(input, "HelloWorld8");
     }
 }

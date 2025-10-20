@@ -24,10 +24,10 @@ argument: (ID ':')? type;
 expr: <assoc=right> expr POW expr                    # Pow
     | <assoc=right> expr '?' expr ':' expr           # TernaryCondition
     | (PLUS | MINUS) expr                            # UnaryOp
+    | expr (MINUS MINUS | PLUS PLUS)                 # PostOp
     | expr (PLUS | MINUS) expr                       # AddSub
     | expr (MULT | DIV) expr                         # MultDiv
     | lambdaParams LAMBDA expr                       # Lambda
-    | expr (INC | DEC)                               # PostOp
     | ID '(' argList? ')'                            # Call
     | NEW constructorExpr                            # ConstructorInvocation
     | '(' expr ')'                                   # Paren
@@ -40,14 +40,14 @@ expr: <assoc=right> expr POW expr                    # Pow
 
 // gramatica sugerida para ^
 constructorExpr: ID ('(' argList ')')?;
-argList: expr (',' expr)*;  // Regla unificada para listas de argumentos de Call y ConstructorInvocation
+argList: expr (',' expr)*;  
 
-lambdaParams: '(' ')'          // 0 args
-    | '(' ID (',' ID)? ')'     // 1-2 args con ()
-    | ID                       // 1 arg sin ()
+lambdaParams: '(' ')'          
+    | '(' ID (',' ID)? ')'     
+    | ID                       
 ;
 
-// Lexer (igual que antes)
+// Lexer
 LET     : 'let';
 DATA    : 'data';
 ASSIGN  : '=';
@@ -66,8 +66,6 @@ fragment UNICODE : 'u' HEX HEX HEX HEX;
 fragment HEX : [0-9a-fA-F];
 
 POW     : '**';
-INC     : '++';
-DEC     : '--';
 PLUS    : '+';
 MINUS   : '-';
 MULT    : '*';

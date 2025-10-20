@@ -251,7 +251,7 @@ public class JavaCodeGenerator {
                 generateExpression(left) + " " + op + " " + generateExpression(right);
 
             case UnaryOp(var op, var expr2) ->
-                op + generateExpression(expr2);
+                op + "(" + generateExpression(expr2) + ")";
 
             case PostOp(var expr1, var op) ->
                 generateExpression(expr1) + op;

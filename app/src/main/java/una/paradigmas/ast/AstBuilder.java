@@ -103,7 +103,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitPostOp(PostOpContext ctx) {
         Node expr = visit(ctx.expr());
-        String op = ctx.INC().getText();
+        String op = ctx.getText().substring(ctx.getText().length() - 2);
         return new PostOp(expr, op);
     }
 
