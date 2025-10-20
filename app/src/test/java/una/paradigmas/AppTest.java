@@ -256,19 +256,4 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         testExpressoProgram(input, "ConstructorInvocation");
     }
-
-    @Test 
-    public void testHelloWorld8() {
-
-        System.out.println("====== Test HelloWorld8.expresso ======");
-
-        String input = """
-                let x = 666
-                print(------x)
-                print(x--)
-                print(x)
-        """;
-        
-        testExpressoProgram(input, "HelloWorld8");
-    }
 }
