@@ -38,7 +38,6 @@ expr: <assoc=right> expr POW expr                    # Pow
     | ID                                             # Id
 ;
 
-// gramatica sugerida para ^
 constructorExpr: ID ('(' argList ')')?;
 argList: expr (',' expr)*;  
 

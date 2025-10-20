@@ -35,6 +35,7 @@ public class JavaCodeGenerator {
     private final StringBuilder constructorTypes = new StringBuilder();
     private final StringBuilder mainCodeBuilder = new StringBuilder();
     private final List<DataDecl> dataDeclarations = new ArrayList<>();
+    private final Set<String> functionNames = new HashSet<>(); // tabla de simbolos simple ??
 
      public JavaCodeGenerator(String className) {
         this.className = capitalizeFirst(className);
@@ -43,6 +44,8 @@ public class JavaCodeGenerator {
     public String generate(Program ast) {
         resetBuilders();
         extractDataDeclarations(ast);
+
+        collectFunctionNames(ast);
         
         dataDeclarations.forEach(dataDecl -> 
             generateDataDecl(dataDecl.id(), dataDecl.constructors()));
@@ -60,6 +63,14 @@ public class JavaCodeGenerator {
         mainCodeBuilder.setLength(0);
         extraMethods.clear();
         dataDeclarations.clear();
+    }
+
+    private void collectFunctionNames(Program ast) {
+        functionNames.clear();
+        ast.statements().stream()
+            .filter(statement -> statement instanceof Fun)
+            .map(statement -> (Fun) statement)
+            .forEach(fun -> functionNames.add(fun.name().value()));
     }
 
     private void extractDataDeclarations(Program ast) {
@@ -280,7 +291,11 @@ public class JavaCodeGenerator {
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
-                yield generateExpression(id) + ".apply(" + params + ")";  // hacer distincion entre lambda y id (fun)
+                
+                if (functionNames.contains(id.value())) 
+                    yield id.value() + "(" + params + ")";
+                else yield generateExpression(id) + ".apply(" + params + ")";
+                
             }
 
             case ConstructorInvocation(var id, var args) -> {
