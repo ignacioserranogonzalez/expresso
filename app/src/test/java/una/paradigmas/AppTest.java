@@ -241,4 +241,19 @@ import org.antlr.v4.runtime.CommonTokenStream;
     
     testExpressoProgram(input, "HelloWorld6");
     }
+
+    @Test
+    public void testConstructorInvocation() {
+        System.out.println("====== Test ConstructorInvocation.expresso ======");
+        System.out.println("Tarea 17 - Soporte para el operador ^");
+
+        String input = """
+            data list = { Nil, Cons(car:any, cdr:list) }
+            let x = ^Nil
+            let y = ^Cons(666, ^Nil)
+            print(y)
+        """;
+
+        testExpressoProgram(input, "ConstructorInvocation");
+    }
 }
