@@ -18,7 +18,7 @@ import java.util.List;
 
 import una.paradigmas.ast.Visitor;
 
-public record TupleType(List<TypeNode> types) implements Node {
+public record TupleType(List<Node> types) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitTupleType(this);

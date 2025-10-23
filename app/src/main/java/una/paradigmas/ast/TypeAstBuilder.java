@@ -83,14 +83,13 @@ public class TypeAstBuilder extends ExpressoBaseVisitor<Node> {
         return new TypeNode(ctx.ID().getText());
     }
     
-    @Override
-    public Node visitTupleType(TupleTypeContext ctx) {
-        List<TypeNode> types = ctx.flatType().stream()
-            .map(this::visit)
-            .map(t -> (TypeNode) t)
-            .collect(Collectors.toList());
-        return new TupleType(types);
-    }
+@Override
+public Node visitTupleType(TupleTypeContext ctx) {
+    List<Node> types = ctx.flatType().stream()
+        .map(this::visit)
+        .collect(Collectors.toList());
+    return new TupleType(types);  // TupleType debe aceptar List<Node>
+}
 
     @Override
     public Node visitArrowTuple(ArrowTupleContext ctx) {
