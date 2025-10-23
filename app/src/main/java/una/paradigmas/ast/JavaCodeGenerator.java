@@ -307,6 +307,8 @@ public class JavaCodeGenerator {
                 yield "new " + capitalizedId + "(" + argCode + ")";
             }
 
+            case Match(var matchExpr, var cases) -> generateMatchExpression(matchExpr, cases);
+
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
     }
@@ -369,4 +371,111 @@ public class JavaCodeGenerator {
         return str == null || str.isEmpty() ? str 
             : str.substring(0, 1).toUpperCase() + str.substring(1);
     }
+
+    private String generateMatchExpression(Node expr, List<MatchCase> cases) {
+    String tempVar = "match_" + System.identityHashCode(expr);
+    StringBuilder code = new StringBuilder();
+    
+    code.append("((__").append(tempVar).append("_fn) -> {\n");
+    code.append("        Object ").append(tempVar).append(" = ")
+        .append(generateExpression(expr)).append(";\n");
+    
+    for (int i = 0; i < cases.size(); i++) {
+        MatchCase matchCase = cases.get(i);
+        
+        if (i == 0) {
+            code.append("        if (");
+        } else {
+            code.append("        else if (");
+        }
+        
+        code.append(generatePatternTest(matchCase.pattern(), tempVar));
+        code.append(") {\n");
+        code.append(generatePatternBindings(matchCase.pattern(), tempVar, "            "));
+        code.append("            return ").append(generateExpression(matchCase.result())).append(";\n");
+        code.append("        }\n");
+    }
+    
+    code.append("        else {\n");
+    code.append("            throw new RuntimeException(\"Non-exhaustive patterns in match\");\n");
+    code.append("        }\n");
+    code.append("    }).apply(").append(generateExpression(expr)).append(")");
+    
+    return code.toString();
+}
+
+private String generatePatternTest(Pattern pattern, String varName) {
+    return switch (pattern) {
+        case DataPattern dataPat ->
+            varName + " instanceof " + capitalizeFirst(dataPat.constructor());
+            
+        case NativePattern nativePat -> {
+            String valueStr = switch (nativePat.value()) {
+                case String s -> "\"" + escapeString(s) + "\"";
+                case Float f -> f + "f";
+                case null -> "null";
+                default -> nativePat.value().toString();
+            };
+            yield "java.util.Objects.equals(" + varName + ", " + valueStr + ")";
+        }
+        
+        case VarPattern _ -> "true";
+        case WildcardPattern _ -> "true";
+    };
+}
+
+private String generatePatternBindings(Pattern pattern, String varName, String indent) {
+    return switch (pattern) {
+        case DataPattern dataPat -> {
+            StringBuilder bindings = new StringBuilder();
+            String constructor = capitalizeFirst(dataPat.constructor());
+            List<Pattern> subPatterns = dataPat.subPatterns();
+            
+            for (int i = 0; i < subPatterns.size(); i++) {
+                Pattern subPattern = subPatterns.get(i);
+                
+                // Buscar el nombre del argumento en la declaración del constructor
+                String fieldName = getConstructorFieldName(dataPat.constructor(), i);
+                String fieldAccess = "((" + constructor + ")" + varName + ")." + fieldName;
+                
+                if (subPattern instanceof VarPattern varPat) {
+                    bindings.append(indent).append("Object ").append(varPat.varName())
+                        .append(" = ").append(fieldAccess).append(";\n");
+                } else if (subPattern instanceof DataPattern) {
+                    String subTemp = "sub_" + System.identityHashCode(subPattern);
+                    bindings.append(indent).append("Object ").append(subTemp)
+                        .append(" = ").append(fieldAccess).append(";\n");
+                    bindings.append(generatePatternBindings(subPattern, subTemp, indent));
+                }
+                // WildcardPattern no genera bindings
+            }
+            
+            yield bindings.toString();
+        }
+        
+        case VarPattern varPat ->
+            indent + "Object " + varPat.varName() + " = " + varName + ";\n";
+        
+        case NativePattern _, WildcardPattern _ -> "";
+    };
+}
+
+// Helper para obtener el nombre del campo del constructor
+private String getConstructorFieldName(String constructorName, int fieldIndex) {
+    // Buscar en las declaraciones de data types
+    for (DataDecl dataDecl : dataDeclarations) {
+        for (DataDecl.Constructor constructor : dataDecl.constructors()) {
+            if (constructor.id().equals(constructorName)) {
+                List<DataDecl.Argument> arguments = constructor.arguments();
+                if (fieldIndex < arguments.size()) {
+                    String argName = arguments.get(fieldIndex).name();
+                    // Si el argumento tiene nombre, usarlo; sino usar "argN"
+                    return argName.isEmpty() ? "arg" + (arguments.get(fieldIndex).hashCode() % 1000) : argName;
+                }
+            }
+        }
+    }
+    // Fallback
+    return "field" + fieldIndex;
+}
 }

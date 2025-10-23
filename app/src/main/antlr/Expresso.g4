@@ -30,12 +30,34 @@ expr: <assoc=right> expr POW expr                    # Pow
     | lambdaParams LAMBDA expr                       # Lambda
     | ID '(' argList? ')'                            # Call
     | NEW constructorExpr                            # ConstructorInvocation
+    | MATCH expr WITH matchCases                     # Match
     | '(' expr ')'                                   # Paren
     | INT                                            # Int
     | FLOAT                                          # Float
     | BOOLEAN                                        # Boolean
     | STRING                                         # String
     | ID                                             # Id
+;
+
+// Match expression
+matchCases: ('|'? matchCase)+;
+matchCase: pattern LAMBDA expr;
+
+pattern: dataPattern                                 # DataPat
+       | nativePattern                               # NativePat
+       | ID                                          # VarPat
+       | '_'                                         # WildcardPat
+;
+
+// Pattern for data constructors: Cons(x, xs) or Nil
+dataPattern: ID ('(' patternList ')')?;
+patternList: pattern (',' pattern)*;
+
+// Pattern for native types: 42, 3.14, "hello", true
+nativePattern: INT                                   # IntPattern
+             | FLOAT                                 # FloatPattern
+             | STRING                                # StringPattern
+             | BOOLEAN                               # BooleanPattern
 ;
 
 constructorExpr: ID ('(' argList ')')?;
@@ -54,6 +76,8 @@ PRINT   : 'print';
 FUN     : 'fun';
 LAMBDA  : '->';
 NEW     : '^';
+MATCH   : 'match';
+WITH    : 'with';
 
 INT     : [0-9]+;
 FLOAT   : [0-9]+ '.' [0-9]* | '.' [0-9]+;

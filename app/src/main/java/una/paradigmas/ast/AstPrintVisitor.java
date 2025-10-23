@@ -34,6 +34,39 @@ public class AstPrintVisitor implements Visitor<String> {
     }
 
     @Override
+public String visitMatch(Match match) {
+    String exprStr = match.expr().accept(this);
+    String cases = match.cases().stream()
+        .map(matchCase -> {
+            String patternStr = formatPattern(matchCase.pattern());
+            String resultStr = matchCase.result().accept(this);
+            return "Case(" + patternStr + " -> " + resultStr + ")";
+        })
+        .reduce((a, b) -> a + ", " + b)
+        .orElse("");
+    
+    String result = "Match(" + exprStr + ", [" + cases + "])";
+    System.out.println(result);
+    return result;
+}
+
+private String formatPattern(Pattern pattern) {
+    return switch (pattern) {
+        case DataPattern dp -> {
+            String subPats = dp.subPatterns().isEmpty() ? "" : 
+                "(" + dp.subPatterns().stream()
+                    .map(this::formatPattern)
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("") + ")";
+            yield dp.constructor() + subPats;
+        }
+        case NativePattern np -> String.valueOf(np.value());
+        case VarPattern vp -> vp.varName();
+        case WildcardPattern _ -> "_";
+    };
+}
+
+    @Override
     public String visitType(TypeNode type) {
         String result = "Type(" + type.typeName() + ")";
         System.out.println(result);
