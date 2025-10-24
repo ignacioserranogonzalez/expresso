@@ -89,32 +89,34 @@ public class JavaCodeGenerator {
             .reduce((a, b) -> a + ", " + b)
             .orElse("");
         
-            constructorTypes.append("    sealed interface ").append(typeName)
+        constructorTypes.append("    sealed interface ").append(typeName)
             .append(" permits ").append(permits).append(" {}\n");
         
-        constructors.forEach(constructor -> {
+        for (DataDecl.Constructor constructor : constructors) {
             String constructorName = capitalizeFirst(constructor.id());
             
             if (constructor.arguments().isEmpty()) {
                 constructorTypes.append("    record ").append(constructorName)
                     .append("() implements ").append(typeName).append(" {}\n");
             } else {
-                String argParams = constructor.arguments().stream()
-                    .map(arg -> {
-                        String argType = generateType(arg.type());
-                        String argName = arg.name().isEmpty() 
-                            ? "arg" + arg.hashCode() % 1000 
-                            : arg.name();
-                        return argType + " " + argName;
-                    })
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
+                List<DataDecl.Argument> arguments = constructor.arguments();
+                String argParams = "";
+                
+                for (int i = 0; i < arguments.size(); i++) {
+                    DataDecl.Argument arg = arguments.get(i);
+                    String argType = generateType(arg.type());
+                    // ✅ Usar índice consistente
+                    String argName = arg.name().isEmpty() ? "arg" + i : arg.name();
+                    
+                    if (i > 0) argParams += ", ";
+                    argParams += argType + " " + argName;
+                }
                 
                 constructorTypes.append("    record ").append(constructorName)
                     .append("(").append(argParams).append(") implements ")
                     .append(typeName).append(" {}\n");
             }
-        });
+        }
         
         constructorTypes.append("\n");
     }
@@ -203,8 +205,15 @@ public class JavaCodeGenerator {
         return switch (stat) {
             case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
-                String varType = typeNode != null ? 
-                    generateType(typeNode) : inferTypeFromValue(value);
+                String varType;
+                
+                if (typeNode != null) {
+                    varType = generateType(typeNode);
+                } else if (value instanceof ConstructorInvocation ci) {
+                    varType = capitalizeFirst(ci.id());
+                } else {
+                    varType = inferTypeFromValue(value);
+                }
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }
 
@@ -276,7 +285,7 @@ public class JavaCodeGenerator {
                     + generateExpression(value2) + ")";
 
             case Lambda(var args, var body) -> {
-                imports.add("java.util.function.*");
+                imports.add("java.util.function.*;");
                 String params = args.stream()
                     .map(Id::value)
                     .reduce((a, b) -> a + ", " + b)
@@ -348,7 +357,7 @@ public class JavaCodeGenerator {
     private String lambdaType(Node expr) {
         return switch (expr) {
             case Lambda l -> {
-                imports.add("java.util.function.*");
+                imports.add("java.util.function.*;");
                 if (l.args().size() == 0) yield "Supplier<Integer>";
                 else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
                 else yield "BinaryOperator<Integer>";
@@ -372,37 +381,58 @@ public class JavaCodeGenerator {
             : str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
-    private String generateMatchExpression(Node expr, List<MatchCase> cases) {
+private String generateMatchExpression(Node expr, List<MatchCase> cases) {
     String tempVar = "match_" + System.identityHashCode(expr);
+    String exprCode = generateExpression(expr);
     StringBuilder code = new StringBuilder();
-    
-    code.append("((__").append(tempVar).append("_fn) -> {\n");
-    code.append("        Object ").append(tempVar).append(" = ")
-        .append(generateExpression(expr)).append(";\n");
-    
-    for (int i = 0; i < cases.size(); i++) {
-        MatchCase matchCase = cases.get(i);
-        
-        if (i == 0) {
-            code.append("        if (");
-        } else {
-            code.append("        else if (");
+
+    code.append("switch (").append(exprCode).append(") {\n");
+    code.append("    default -> {\n");
+    code.append("        Object ").append(tempVar).append(" = ").append(exprCode).append(";\n");
+
+    boolean first = true;
+    for (MatchCase matchCase : cases) {
+        Pattern pattern = matchCase.pattern();
+        String patternTest = generatePatternTest(pattern, tempVar);
+
+        String alias = null;
+        if (pattern instanceof DataPattern dataPat) {
+            alias = "c" + Math.abs(System.identityHashCode(dataPat));
         }
-        
-        code.append(generatePatternTest(matchCase.pattern(), tempVar));
-        code.append(") {\n");
-        code.append(generatePatternBindings(matchCase.pattern(), tempVar, "            "));
-        code.append("            return ").append(generateExpression(matchCase.result())).append(";\n");
+
+        if (first) {
+            code.append("        if (").append(patternTest).append(") {\n");
+            first = false;
+        } else {
+            code.append("        else if (").append(patternTest).append(") {\n");
+        }
+
+
+        if (pattern instanceof DataPattern dataPat) {
+            String constructor = capitalizeFirst(dataPat.constructor());
+            code.append("            ").append(constructor).append(" ").append(alias)
+                .append(" = (").append(constructor).append(") ").append(tempVar).append(";\n");
+            code.append(generatePatternBindings(pattern, alias, "            "));
+        }
+
+        else if (pattern instanceof VarPattern varPat) {
+            code.append("            var ").append(varPat.varName())
+                .append(" = ").append(tempVar).append(";\n");
+        }
+
+        code.append("            yield ").append(generateExpression(matchCase.result())).append(";\n");
         code.append("        }\n");
     }
-    
+
     code.append("        else {\n");
     code.append("            throw new RuntimeException(\"Non-exhaustive patterns in match\");\n");
     code.append("        }\n");
-    code.append("    }).apply(").append(generateExpression(expr)).append(")");
-    
+    code.append("    }\n");
+    code.append("}");
+
     return code.toString();
 }
+
 
 private String generatePatternTest(Pattern pattern, String varName) {
     return switch (pattern) {
@@ -424,58 +454,60 @@ private String generatePatternTest(Pattern pattern, String varName) {
     };
 }
 
-private String generatePatternBindings(Pattern pattern, String varName, String indent) {
-    return switch (pattern) {
-        case DataPattern dataPat -> {
-            StringBuilder bindings = new StringBuilder();
-            String constructor = capitalizeFirst(dataPat.constructor());
-            List<Pattern> subPatterns = dataPat.subPatterns();
-            
-            for (int i = 0; i < subPatterns.size(); i++) {
-                Pattern subPattern = subPatterns.get(i);
-                
-                // Buscar el nombre del argumento en la declaración del constructor
-                String fieldName = getConstructorFieldName(dataPat.constructor(), i);
-                String fieldAccess = "((" + constructor + ")" + varName + ")." + fieldName;
-                
-                if (subPattern instanceof VarPattern varPat) {
-                    bindings.append(indent).append("Object ").append(varPat.varName())
-                        .append(" = ").append(fieldAccess).append(";\n");
-                } else if (subPattern instanceof DataPattern) {
-                    String subTemp = "sub_" + System.identityHashCode(subPattern);
-                    bindings.append(indent).append("Object ").append(subTemp)
-                        .append(" = ").append(fieldAccess).append(";\n");
-                    bindings.append(generatePatternBindings(subPattern, subTemp, indent));
-                }
-                // WildcardPattern no genera bindings
-            }
-            
-            yield bindings.toString();
-        }
-        
-        case VarPattern varPat ->
-            indent + "Object " + varPat.varName() + " = " + varName + ";\n";
-        
-        case NativePattern _, WildcardPattern _ -> "";
-    };
-}
+    private String generatePatternBindings(Pattern pattern, String varName, String indent) {
+        return switch (pattern) {
+            case DataPattern dataPat -> {
+                StringBuilder bindings = new StringBuilder();
+                String aliasVar = "c" + Math.abs(System.identityHashCode(dataPat));
+                List<Pattern> subs = dataPat.subPatterns();
 
-// Helper para obtener el nombre del campo del constructor
-private String getConstructorFieldName(String constructorName, int fieldIndex) {
-    // Buscar en las declaraciones de data types
-    for (DataDecl dataDecl : dataDeclarations) {
-        for (DataDecl.Constructor constructor : dataDecl.constructors()) {
-            if (constructor.id().equals(constructorName)) {
-                List<DataDecl.Argument> arguments = constructor.arguments();
-                if (fieldIndex < arguments.size()) {
-                    String argName = arguments.get(fieldIndex).name();
-                    // Si el argumento tiene nombre, usarlo; sino usar "argN"
-                    return argName.isEmpty() ? "arg" + (arguments.get(fieldIndex).hashCode() % 1000) : argName;
+                for (int i = 0; i < subs.size(); i++) {
+                    Pattern sub = subs.get(i);
+                    String fieldName = getConstructorFieldName(dataPat.constructor(), i);
+                    String access = aliasVar + "." + fieldName + "()";
+
+                    if (sub instanceof VarPattern varPat) {
+                        bindings.append(indent)
+                                .append("var ")
+                                .append(varPat.varName())
+                                .append(" = ")
+                                .append(access)
+                                .append(";\n");
+                    } else if (sub instanceof DataPattern nested) {
+                        String subTemp = "sub_" + Math.abs(System.identityHashCode(nested));
+                        bindings.append(indent)
+                                .append("var ")
+                                .append(subTemp)
+                                .append(" = ")
+                                .append(access)
+                                .append(";\n");
+                        bindings.append(generatePatternBindings(nested, subTemp, indent));
+                    }
+                }
+                yield bindings.toString();
+            }
+
+            case VarPattern varPat -> indent + "var " + varPat.varName() + " = " + varName + ";\n";
+
+            default -> "";
+        };
+    }
+
+    private String getConstructorFieldName(String constructorName, int fieldIndex) {
+        // Buscar en las declaraciones de data types
+        for (DataDecl dataDecl : dataDeclarations) {
+            for (DataDecl.Constructor constructor : dataDecl.constructors()) {
+                if (constructor.id().equals(constructorName)) {
+                    List<DataDecl.Argument> arguments = constructor.arguments();
+                    if (fieldIndex < arguments.size()) {
+                        String argName = arguments.get(fieldIndex).name();
+                        // ✅ Usar índice consistente en lugar de hashCode
+                        return argName.isEmpty() ? "arg" + fieldIndex : argName;
+                    }
                 }
             }
         }
+        // Fallback
+        return "field" + fieldIndex;
     }
-    // Fallback
-    return "field" + fieldIndex;
-}
 }

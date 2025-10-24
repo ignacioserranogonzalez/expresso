@@ -49,58 +49,70 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new Match(expr, cases);
     }
 
-    private Pattern visitPattern(PatternContext ctx) {
-        return switch (ctx) {
-            case DataPatContext dataPat -> {
-                DataPatternContext dataPattern = dataPat.dataPattern();
-                String constructor = dataPattern.ID().getText();
-                
-                List<Pattern> subPatterns = null;
+private Pattern visitPattern(PatternContext ctx) {
+    System.out.println("DEBUG visitPattern - ctx type: " + ctx.getClass().getSimpleName());
+    System.out.println("DEBUG visitPattern - text: " + ctx.getText());
+
+    return switch (ctx) {
+        case DataPatContext dataPat -> {
+            System.out.println("DEBUG - Es DataPatContext");
+            DataPatternContext dataPattern = dataPat.dataPattern();
+            String id = dataPattern.ID().getText();
+
+            // 👇 Distinguimos por la primera letra
+            if (Character.isUpperCase(id.charAt(0))) {
+                // ✅ Es un constructor (Nil, Cons, etc.)
+                List<Pattern> subPatterns = new ArrayList<>();
                 if (dataPattern.patternList() != null) {
                     subPatterns = dataPattern.patternList().pattern().stream()
                         .map(this::visitPattern)
                         .collect(Collectors.toList());
                 }
-                
-                yield new DataPattern(constructor, subPatterns);
+                yield new DataPattern(id, subPatterns);
+            } else {
+                // ✅ Es una variable (ej. h, x, xs)
+                yield new VarPattern(id);
             }
-            
-            case NativePatContext nativePat -> {
-                NativePatternContext nativePattern = nativePat.nativePattern();
-                
-                Object value = switch (nativePattern) {
-                    case IntPatternContext intPat ->
-                        Integer.parseInt(intPat.INT().getText());
-                    case FloatPatternContext floatPat ->
-                        Float.parseFloat(floatPat.FLOAT().getText());
-                    case StringPatternContext strPat -> {
-                        String text = strPat.STRING().getText();
-                        yield text.substring(1, text.length() - 1)
-                            .replace("\\\\", "\\")
-                            .replace("\\\"", "\"")
-                            .replace("\\n", "\n")
-                            .replace("\\t", "\t")
-                            .replace("\\r", "\r")
-                            .replace("\\b", "\b")
-                            .replace("\\f", "\f");
-                    }
-                    case BooleanPatternContext boolPat ->
-                        Boolean.parseBoolean(boolPat.BOOLEAN().getText());
-                    default -> throw new RuntimeException("Unknown native pattern");
-                };
-                
-                yield new NativePattern(value);
-            }
-            
-            case VarPatContext varPat ->
-                new VarPattern(varPat.ID().getText());
-            
-            case WildcardPatContext ignored ->
-                new WildcardPattern();
-            
-            default -> throw new RuntimeException("Unknown pattern type");
-        };
-    }
+        }
+
+        case NativePatContext nativePat -> {
+            System.out.println("DEBUG - Es NativePatContext");
+            NativePatternContext nativePattern = nativePat.nativePattern();
+
+            Object value = switch (nativePattern) {
+                case IntPatternContext intPat -> Integer.parseInt(intPat.INT().getText());
+                case FloatPatternContext floatPat -> Float.parseFloat(floatPat.FLOAT().getText());
+                case StringPatternContext strPat -> {
+                    String text = strPat.STRING().getText();
+                    yield text.substring(1, text.length() - 1)
+                        .replace("\\\\", "\\")
+                        .replace("\\\"", "\"")
+                        .replace("\\n", "\n")
+                        .replace("\\t", "\t")
+                        .replace("\\r", "\r")
+                        .replace("\\b", "\b")
+                        .replace("\\f", "\f");
+                }
+                case BooleanPatternContext boolPat -> Boolean.parseBoolean(boolPat.BOOLEAN().getText());
+                default -> throw new RuntimeException("Unknown native pattern");
+            };
+            yield new NativePattern(value);
+        }
+
+        case VarPatContext varPat -> {
+            System.out.println("DEBUG - Es VarPatContext, ID: " + varPat.ID().getText());
+            yield new VarPattern(varPat.ID().getText());
+        }
+
+        case WildcardPatContext wildcardPat -> {
+            System.out.println("DEBUG - Es WildcardPatContext");
+            yield new WildcardPattern();
+        }
+
+        default -> throw new RuntimeException("Unknown pattern type: " + ctx.getClass().getSimpleName());
+    };
+}
+
 
     @Override
     public Node visitExpression(ExpressionContext ctx) {

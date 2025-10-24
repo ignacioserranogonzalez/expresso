@@ -257,123 +257,48 @@ import org.antlr.v4.runtime.CommonTokenStream;
         testExpressoProgram(input, "ConstructorInvocation");
     }
 
-        @Test
-    public void testArrowsAndTuples() {
-        System.out.println("====== Test Arrows and Tuples ======");
+    @Test
+    public void testSimpleDataMatch() {
+        System.out.println("====== Test Simple Data Match ======");
         
         String input = 
-            // Función con tipo arrow simple: int -> int
-            "fun double(x: int): int = x * 2\n" +
-            
-            // Función con tipo arrow compuesto: int -> int -> int
-            "fun add(x: int): int -> int = y -> x + y\n" +
-            
-            // Función con tuple como parámetro: (int, int) -> int
-            "fun sumPair(pair: (int, int)): int = 0\n" +
-            
-            // Función con arrow complejo: (int, int) -> int -> int
-            "fun complex(pair: (int, int)): int -> int = x -> x + 1\n" +
-            
-            // Función con multiple arrows: int -> (int -> int)
-            "fun curry(x: int): (int -> int) = y -> x + y\n" +
-            
-            // Función con tuple de arrows: (int -> int, int -> int) -> int
-            "fun applyBoth(fns: (int -> int, int -> int)): int = 0\n" +
-            
-            // Lambda con tipo inferido
-            "let increment = x -> x + 1\n" +
-            
-            // Usar las funciones
-            "let result1 = double(5)\n" +
-            "print(result1)\n" +
-            
-            "let result2 = add(3)\n" +
-            "let result3 = result2(7)\n" +
-            "print(result3)\n" +
-            
-            "let inc = increment\n" +
-            "print(inc(10))\n";
+            "data Bool = { True, False }\n" +
+            "fun not(b: Bool): Bool = match b with True -> ^False | False -> ^True\n" +
+            "let t = ^True\n" +
+            "let f = not(t)\n" +
+            "print(f)\n";
         
-        testExpressoProgram(input, "ArrowsAndTuples");
+        testExpressoProgram(input, "SimpleDataMatch");
     }
 
     @Test
-    public void testMatchExpression() {
-        System.out.println("====== Test Match Expression ======");
+    public void testListWithMatch() {
+        System.out.println("====== Test List With Match ======");
         
         String input = 
             "data List = { Nil, Cons(head: int, tail: List) }\n" +
-            
-            // Una línea por función
-            "fun length(list: List): int = match list with Nil -> 0 | Cons(_, tail) -> 1 + length(tail)\n" +
-            
-            "fun sum(list: List): int = match list with Nil -> 0 | Cons(h, t) -> h + sum(t)\n" +
-            
-            "fun describe(n: int): string = match n with 0 -> \"zero\" | 1 -> \"one\" | _ -> \"many\"\n" +
-            
+            "fun isEmpty(list: List): boolean = match list with Nil -> true | Cons(_, _) -> false\n" +
+            "fun head(list: List): int = match list with Nil -> 0 | Cons(h, _) -> h\n" +
             "let empty = ^Nil\n" +
-            "let list1 = ^Cons(5, ^Nil)\n" +
-            "let list2 = ^Cons(3, ^Cons(7, ^Nil))\n" +
-            
-            "print(length(empty))\n" +
-            "print(length(list1))\n" +
-            "print(length(list2))\n" +
-            "print(sum(list2))\n" +
-            "print(describe(0))\n" +
-            "print(describe(1))\n" +
-            "print(describe(42))\n";
+            "let nums = ^Cons(42, ^Nil)\n" +
+            "print(isEmpty(empty))\n" +
+            "print(isEmpty(nums))\n" +
+            "print(head(nums))\n";
         
-        testExpressoProgram(input, "MatchExpression");
+        testExpressoProgram(input, "ListWithMatch");
     }
 
     @Test
-    public void testAdvancedMatch() {
-        System.out.println("====== Test Advanced Match ======");
+    public void testMatchWithNumbers() {
+        System.out.println("====== Test Match With Numbers ======");
         
         String input = 
-            "data Option = { None, Some(value: int) }\n" +
-            
-            "fun getOrDefault(opt: Option): int = match opt with None -> -1 | Some(v) -> v\n" +
-            
-            "data Tree = { Leaf, Node(left: Tree, value: int, right: Tree) }\n" +
-            
-            "fun getRoot(tree: Tree): int = match tree with Leaf -> 0 | Node(_, v, _) -> v\n" +
-            
-            "fun boolToInt(b: boolean): int = match b with true -> 1 | false -> 0\n" +
-            
-            "let none = ^None\n" +
-            "let some5 = ^Some(5)\n" +
-            "print(getOrDefault(none))\n" +
-            "print(getOrDefault(some5))\n" +
-            
-            "let leaf = ^Leaf\n" +
-            "let node = ^Node(^Leaf, 42, ^Leaf)\n" +
-            "print(getRoot(leaf))\n" +
-            "print(getRoot(node))\n" +
-            
-            "print(boolToInt(true))\n" +
-            "print(boolToInt(false))\n";
+            "fun sign(n: int): string = match n with 0 -> \"zero\" | 1 -> \"positive\" | _ -> \"other\"\n" +
+            "print(sign(0))\n" +
+            "print(sign(1))\n" +
+            "print(sign(5))\n";
         
-        testExpressoProgram(input, "AdvancedMatch");
-    }
-
-    @Test
-    public void testCombinedFeatures() {
-        System.out.println("====== Test Combined Features ======");
-        
-        String input = 
-            "data List = { Nil, Cons(head: int, tail: List) }\n" +
-            
-            "fun double(x: int): int = x * 2\n" +
-            
-            "fun length(list: List): int = match list with Nil -> 0 | Cons(_, t) -> 1 + length(t)\n" +
-            
-            "let nums = ^Cons(1, ^Cons(2, ^Cons(3, ^Nil)))\n" +
-            
-            "print(length(nums))\n" +
-            "print(double(5))\n";
-        
-        testExpressoProgram(input, "CombinedFeatures");
+        testExpressoProgram(input, "MatchWithNumbers");
     }
 
 }

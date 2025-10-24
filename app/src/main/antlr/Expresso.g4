@@ -3,7 +3,7 @@ import ExpressoTypes;
 
 program: stat* EOF; 
 
-// statements
+// Statements
 stat: NEWLINE                                               # blank
     | expr NEWLINE                                          # expression
     | LET ID (':' type)? ASSIGN expr NEWLINE                # letDecl
@@ -20,7 +20,7 @@ constructor: ID arguments?;
 arguments: '(' argument (',' argument)* ')';
 argument: (ID ':')? type;
 
-// expressions
+// Expressions
 expr: <assoc=right> expr POW expr                    # Pow
     | <assoc=right> expr '?' expr ':' expr           # TernaryCondition
     | (PLUS | MINUS) expr                            # UnaryOp
