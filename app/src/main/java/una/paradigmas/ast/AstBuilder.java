@@ -36,71 +36,71 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-public Node visitMatch(ExpressoParser.MatchContext ctx) {
-    Node expr = visit(ctx.expr());
-    List<MatchCase> cases = new ArrayList<>();
-    
-    for (ExpressoParser.MatchCaseContext caseCtx : ctx.matchCases().matchCase()) {
-        Pattern pattern = visitPattern(caseCtx.pattern());
-        Node result = visit(caseCtx.expr());
-        cases.add(new MatchCase(pattern, result));
+    public Node visitMatch(MatchContext ctx) {
+        Node expr = visit(ctx.expr());
+        List<MatchCase> cases = new ArrayList<>();
+        
+        for (MatchCaseContext caseCtx : ctx.matchCases().matchCase()) {
+            Pattern pattern = visitPattern(caseCtx.pattern());
+            Node result = visit(caseCtx.expr());
+            cases.add(new MatchCase(pattern, result));
+        }
+        
+        return new Match(expr, cases);
     }
-    
-    return new Match(expr, cases);
-}
 
-private Pattern visitPattern(ExpressoParser.PatternContext ctx) {
-    return switch (ctx) {
-        case ExpressoParser.DataPatContext dataPat -> {
-            ExpressoParser.DataPatternContext dataPattern = dataPat.dataPattern();
-            String constructor = dataPattern.ID().getText();
-            
-            List<Pattern> subPatterns = null;
-            if (dataPattern.patternList() != null) {
-                subPatterns = dataPattern.patternList().pattern().stream()
-                    .map(this::visitPattern)
-                    .collect(Collectors.toList());
+    private Pattern visitPattern(PatternContext ctx) {
+        return switch (ctx) {
+            case DataPatContext dataPat -> {
+                DataPatternContext dataPattern = dataPat.dataPattern();
+                String constructor = dataPattern.ID().getText();
+                
+                List<Pattern> subPatterns = null;
+                if (dataPattern.patternList() != null) {
+                    subPatterns = dataPattern.patternList().pattern().stream()
+                        .map(this::visitPattern)
+                        .collect(Collectors.toList());
+                }
+                
+                yield new DataPattern(constructor, subPatterns);
             }
             
-            yield new DataPattern(constructor, subPatterns);
-        }
-        
-        case ExpressoParser.NativePatContext nativePat -> {
-            ExpressoParser.NativePatternContext nativePattern = nativePat.nativePattern();
+            case NativePatContext nativePat -> {
+                NativePatternContext nativePattern = nativePat.nativePattern();
+                
+                Object value = switch (nativePattern) {
+                    case IntPatternContext intPat ->
+                        Integer.parseInt(intPat.INT().getText());
+                    case FloatPatternContext floatPat ->
+                        Float.parseFloat(floatPat.FLOAT().getText());
+                    case StringPatternContext strPat -> {
+                        String text = strPat.STRING().getText();
+                        yield text.substring(1, text.length() - 1)
+                            .replace("\\\\", "\\")
+                            .replace("\\\"", "\"")
+                            .replace("\\n", "\n")
+                            .replace("\\t", "\t")
+                            .replace("\\r", "\r")
+                            .replace("\\b", "\b")
+                            .replace("\\f", "\f");
+                    }
+                    case BooleanPatternContext boolPat ->
+                        Boolean.parseBoolean(boolPat.BOOLEAN().getText());
+                    default -> throw new RuntimeException("Unknown native pattern");
+                };
+                
+                yield new NativePattern(value);
+            }
             
-            Object value = switch (nativePattern) {
-                case ExpressoParser.IntPatternContext intPat ->
-                    Integer.parseInt(intPat.INT().getText());
-                case ExpressoParser.FloatPatternContext floatPat ->
-                    Float.parseFloat(floatPat.FLOAT().getText());
-                case ExpressoParser.StringPatternContext strPat -> {
-                    String text = strPat.STRING().getText();
-                    yield text.substring(1, text.length() - 1)
-                        .replace("\\\\", "\\")
-                        .replace("\\\"", "\"")
-                        .replace("\\n", "\n")
-                        .replace("\\t", "\t")
-                        .replace("\\r", "\r")
-                        .replace("\\b", "\b")
-                        .replace("\\f", "\f");
-                }
-                case ExpressoParser.BooleanPatternContext boolPat ->
-                    Boolean.parseBoolean(boolPat.BOOLEAN().getText());
-                default -> throw new RuntimeException("Unknown native pattern");
-            };
+            case VarPatContext varPat ->
+                new VarPattern(varPat.ID().getText());
             
-            yield new NativePattern(value);
-        }
-        
-        case ExpressoParser.VarPatContext varPat ->
-            new VarPattern(varPat.ID().getText());
-        
-        case ExpressoParser.WildcardPatContext ignored ->
-            new WildcardPattern();
-        
-        default -> throw new RuntimeException("Unknown pattern type");
-    };
-}
+            case WildcardPatContext ignored ->
+                new WildcardPattern();
+            
+            default -> throw new RuntimeException("Unknown pattern type");
+        };
+    }
 
     @Override
     public Node visitExpression(ExpressionContext ctx) {
