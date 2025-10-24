@@ -1,5 +1,6 @@
-package una.paradigmas.node;
+package una.paradigmas.pattern;
 
-public sealed interface Pattern 
+public sealed interface Pattern
     permits DataPattern, NativePattern, VarPattern, WildcardPattern {
 }
+

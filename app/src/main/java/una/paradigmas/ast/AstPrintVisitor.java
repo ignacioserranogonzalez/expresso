@@ -1,6 +1,11 @@
 package una.paradigmas.ast;
 
 import una.paradigmas.node.*;
+import una.paradigmas.pattern.DataPattern;
+import una.paradigmas.pattern.NativePattern;
+import una.paradigmas.pattern.Pattern;
+import una.paradigmas.pattern.VarPattern;
+import una.paradigmas.pattern.WildcardPattern;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java

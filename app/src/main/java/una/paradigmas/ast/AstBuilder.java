@@ -2,6 +2,12 @@ package una.paradigmas.ast;
 
 import una.paradigmas.ast.ExpressoParser.*;
 import una.paradigmas.node.*;
+import una.paradigmas.pattern.DataPattern;
+import una.paradigmas.pattern.MatchCase;
+import una.paradigmas.pattern.NativePattern;
+import una.paradigmas.pattern.Pattern;
+import una.paradigmas.pattern.VarPattern;
+import una.paradigmas.pattern.WildcardPattern;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -301,4 +301,35 @@ import org.antlr.v4.runtime.CommonTokenStream;
         testExpressoProgram(input, "MatchWithNumbers");
     }
 
+        @Test
+    public void testTreeWithMatch() {
+        System.out.println("====== Test Tree With Match ======");
+
+        String input =
+            "data Tree = { Leaf(value: int), Node(left: Tree, right: Tree) }\n" +
+            "fun sum(t: Tree): int = match t with\n" +
+            "    Leaf(x) -> x\n" +
+            "  | Node(l, r) -> sum(l) + sum(r)\n" +
+            "let t = ^Node(^Leaf(5), ^Node(^Leaf(2), ^Leaf(3)))\n" +
+            "print(sum(t))\n";
+
+        testExpressoProgram(input, "TreeWithMatch");
+    }
+
+        @Test
+    public void testBooleanMatch() {
+        System.out.println("====== Test Boolean Match ======");
+
+        String input =
+            "fun describe(b: boolean): string = match b with\n" +
+            "    true -> \"yes\"\n" +
+            "  | false -> \"no\"\n" +
+            "  | _ -> \"unknown\"\n" +
+            "print(describe(true))\n" +
+            "print(describe(false))\n" +
+            "print(describe(true))\n";
+
+        testExpressoProgram(input, "BooleanMatch");
+    }
+
 }

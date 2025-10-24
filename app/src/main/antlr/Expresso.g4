@@ -30,7 +30,7 @@ expr: <assoc=right> expr POW expr                    # Pow
     | lambdaParams LAMBDA expr                       # Lambda
     | ID '(' argList? ')'                            # Call
     | NEW constructorExpr                            # ConstructorInvocation
-    | MATCH expr WITH matchCases                     # Match
+    | MATCH expr WITH NEWLINE* matchCases            # Match
     | '(' expr ')'                                   # Paren
     | INT                                            # Int
     | FLOAT                                          # Float
@@ -40,8 +40,8 @@ expr: <assoc=right> expr POW expr                    # Pow
 ;
 
 // Match expression
-matchCases: ('|'? matchCase)+;
-matchCase: pattern LAMBDA expr;
+matchCases: ('|'? matchCase (NEWLINE* '|' NEWLINE* matchCase)*) ;
+matchCase: pattern LAMBDA expr ;
 
 pattern: dataPattern                                 # DataPat
        | nativePattern                               # NativePat

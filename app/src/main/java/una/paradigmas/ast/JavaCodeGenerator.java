@@ -6,6 +6,12 @@ import java.util.List;
 import java.util.Set;
 
 import una.paradigmas.node.*;
+import una.paradigmas.pattern.DataPattern;
+import una.paradigmas.pattern.MatchCase;
+import una.paradigmas.pattern.NativePattern;
+import una.paradigmas.pattern.Pattern;
+import una.paradigmas.pattern.VarPattern;
+import una.paradigmas.pattern.WildcardPattern;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -386,7 +392,15 @@ private String generateMatchExpression(Node expr, List<MatchCase> cases) {
     String exprCode = generateExpression(expr);
     StringBuilder code = new StringBuilder();
 
-    code.append("switch (").append(exprCode).append(") {\n");
+    String safeExprCode = exprCode.matches("^[a-zA-Z_][a-zA-Z0-9_]*$") 
+        ? "(Object) " + exprCode 
+        : exprCode;
+
+    String safeExpr = exprCode.equals("true") || exprCode.equals("false")
+    ? "(Object) " + exprCode
+    : exprCode;
+
+    code.append("switch (").append(safeExprCode).append(") {\n");
     code.append("    default -> {\n");
     code.append("        Object ").append(tempVar).append(" = ").append(exprCode).append(";\n");
 
@@ -395,11 +409,6 @@ private String generateMatchExpression(Node expr, List<MatchCase> cases) {
         Pattern pattern = matchCase.pattern();
         String patternTest = generatePatternTest(pattern, tempVar);
 
-        String alias = null;
-        if (pattern instanceof DataPattern dataPat) {
-            alias = "c" + Math.abs(System.identityHashCode(dataPat));
-        }
-
         if (first) {
             code.append("        if (").append(patternTest).append(") {\n");
             first = false;
@@ -407,17 +416,14 @@ private String generateMatchExpression(Node expr, List<MatchCase> cases) {
             code.append("        else if (").append(patternTest).append(") {\n");
         }
 
-
         if (pattern instanceof DataPattern dataPat) {
+            String alias = "c" + Math.abs(System.identityHashCode(dataPat));
             String constructor = capitalizeFirst(dataPat.constructor());
             code.append("            ").append(constructor).append(" ").append(alias)
                 .append(" = (").append(constructor).append(") ").append(tempVar).append(";\n");
             code.append(generatePatternBindings(pattern, alias, "            "));
-        }
-
-        else if (pattern instanceof VarPattern varPat) {
-            code.append("            var ").append(varPat.varName())
-                .append(" = ").append(tempVar).append(";\n");
+        } else if (pattern instanceof VarPattern varPat) {
+            code.append("            var ").append(varPat.varName()).append(" = ").append(tempVar).append(";\n");
         }
 
         code.append("            yield ").append(generateExpression(matchCase.result())).append(";\n");
@@ -432,7 +438,6 @@ private String generateMatchExpression(Node expr, List<MatchCase> cases) {
 
     return code.toString();
 }
-
 
 private String generatePatternTest(Pattern pattern, String varName) {
     return switch (pattern) {

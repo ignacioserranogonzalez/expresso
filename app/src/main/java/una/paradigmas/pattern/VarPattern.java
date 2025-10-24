@@ -1,4 +1,4 @@
-package una.paradigmas.node;
+package una.paradigmas.pattern;
 
 public record VarPattern(String varName) implements Pattern {
 }
