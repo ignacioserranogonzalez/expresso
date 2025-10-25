@@ -275,7 +275,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
             fun sum(x:nat, y:nat):nat = match x with 
                                     Zero -> y 
-                                    S(z) -> ^S(x)
+                                    S(z) -> S(sum(z, y))
         """;
 
         testExpressoProgram(input, "MatchWith");

@@ -292,10 +292,12 @@ public class JavaCodeGenerator {
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
                 
-                if (functionNames.contains(id.value())) 
+                if (functionNames.contains(id.value())) {
                     yield id.value() + "(" + params + ")";
-                else yield generateExpression(id) + ".apply(" + params + ")";
-                
+                } else {
+                    // Asumir que es constructor si no es función
+                    yield "new " + capitalizeFirst(id.value()) + "(" + params + ")";
+                }
             }
 
             case ConstructorInvocation(var id, var args) -> {
