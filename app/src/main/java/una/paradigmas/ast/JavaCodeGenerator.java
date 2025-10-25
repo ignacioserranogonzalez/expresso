@@ -103,7 +103,7 @@ public class JavaCodeGenerator {
                     .map(arg -> {
                         String argType = generateType(arg.type());
                         String argName = arg.name().isEmpty() 
-                            ? "arg" + arg.hashCode() % 1000 
+                            ? "arg" + arg.hashCode() % 100
                             : arg.name();
                         return argType + " " + argName;
                     })
@@ -299,7 +299,7 @@ public class JavaCodeGenerator {
             }
 
             case ConstructorInvocation(var id, var args) -> {
-                String capitalizedId = capitalizeFirst(id);  // Capitaliza el nombre del constructor
+                String capitalizedId = capitalizeFirst(id);
                 String argCode = args.stream()
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
@@ -328,11 +328,17 @@ public class JavaCodeGenerator {
         return switch (rule.pattern()) {
             case ConstructorPattern cp -> {
                 String patternName = capitalizeFirst(cp.name());
-                String vars = cp.vars().isEmpty()
-                    ? ""
-                    : "(var " + String.join(", var ", cp.vars()) + ")";
                 String body = generateExpression(rule.body());
-                yield "case " + patternName + " " + vars + " -> " + body + ";";
+                
+                if (cp.vars().isEmpty()) {
+                    // Caso 1: Zero -> y → case Zero zero -> y
+                    String varName = patternName.toLowerCase() + "_var";
+                    yield "case " + patternName + " " + varName + " -> " + body + ";";
+                } else {
+                    // Caso 2: S(z) -> ... → case S(var z) -> ...
+                    String vars = "(var " + String.join(", var ", cp.vars()) + ")";
+                    yield "case " + patternName + vars + " -> " + body + ";";
+                }
             }
             case VariablePattern vp -> {
                 yield "case var " + vp.name() + " -> " + generateExpression(rule.body()) + ";";

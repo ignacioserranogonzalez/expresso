@@ -9,14 +9,14 @@ stat: NEWLINE                                               # blank
     | LET ID (':' type)? ASSIGN expr NEWLINE                # letDecl
     | PRINT '(' expr ')' NEWLINE                            # print
     | FUN ID '(' paramList? ')' ':' type '=' expr NEWLINE   # funDecl
-    | DATA ID ASSIGN '{' constructorList '}' NEWLINE        # dataDecl
+    | DATA ID ASSIGN '{' NEWLINE* constructorList NEWLINE* '}' NEWLINE        # dataDecl
 ;
 
 paramList: param (',' param)*;
 
 param: ID (':' type)?;
 
-constructorList: constructor (',' constructor)*;
+constructorList: constructor (',' NEWLINE* constructor)*;
 
 constructor: ID arguments?;
 
@@ -43,7 +43,7 @@ expr: <assoc=right> expr POW expr                    # Pow
     | ID                                             # Id
 ;
 
-matchRule: pattern '->' expr ('|' matchRule)*?;
+matchRule: pattern '->' expr NEWLINE* (matchRule)*?;
 
 pattern
     : ID patternArgsList?      # ConstructorPattern
