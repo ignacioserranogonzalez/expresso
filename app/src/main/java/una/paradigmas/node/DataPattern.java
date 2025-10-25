@@ -18,7 +18,7 @@ import una.paradigmas.ast.Visitor;
  * Codigo de grupo: 02-1PM
  */
 
-public record DataPattern(String name, List<Pattern> subPatterns) implements Pattern {
+public record DataPattern(String name, List<Node> subPatterns) implements Pattern {
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitDataPattern(this);

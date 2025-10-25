@@ -5,6 +5,8 @@ import una.paradigmas.node.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -263,14 +265,18 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitDataPattern(DataPatternContext ctx) {
         String name = ctx.ID().getText();
-        List<Pattern> subPatterns = ctx.pattern() != null
-            ? ctx.pattern().stream()
+    
+        List<Node> subPatterns = Optional.ofNullable(ctx.pattern())
+            .filter(list -> !list.isEmpty())
+            .map(list -> list.stream()
                 .map(this::visit)
-                .map(p -> (Pattern) p)
-                .collect(Collectors.toList())
-            : List.of();
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()))
+            .orElseGet(List::of);
+    
+        System.out.println("DataPattern: " + name + " with subPatterns: " + subPatterns);
         return new DataPattern(name, subPatterns);
-    }
+    }    
 
     @Override
     public Node visitIntPattern(IntPatternContext ctx) {

@@ -43,11 +43,11 @@ expr: <assoc=right> expr POW expr                    # Pow
     | ID                                             # Id
 ;
 
-matchRule: pattern ('if' expr)? '->' expr NEWLINE*;
+matchRule: pattern ('if' expr)? '->' expr NEWLINE+;
 
 pattern
-    : data_pattern
-    | native_pattern
+    : native_pattern
+    | data_pattern
 ;
 
 data_pattern
@@ -55,12 +55,12 @@ data_pattern
 ;
 
 native_pattern
-    : '_'                                              # WildcardPattern
-    | INT                                              # IntPattern
-    | STRING                                           # StringPattern
-    | BOOLEAN                                          # BooleanPattern
-    | 'none'                                           # NonePattern
-    | ID                                               # VariablePattern
+    : '_'             # WildcardPattern
+    | 'none'          # NonePattern
+    | INT             # IntPattern
+    | STRING          # StringPattern
+    | BOOLEAN         # BooleanPattern
+    | ID              # VariablePattern
 ;
 
 lambdaParams: '(' ')'          

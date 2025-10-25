@@ -270,7 +270,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
             } 
 
             fun sum(x:nat, y:nat):nat = match x with 
-                                    Zero -> y 
+                                    Zero() -> y 
                                     S(z) -> S(sum(z, y))
                                     _ -> x
         """;
