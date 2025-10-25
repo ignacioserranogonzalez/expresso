@@ -336,7 +336,7 @@ public class JavaCodeGenerator {
         
         return switch (rule.pattern()) {
             case DataPattern dp -> {
-                String patternName = dp.name();
+                String patternName = capitalizeFirst(dp.name());
                 if (dp.subPatterns().isEmpty()) {
                     String varName = patternName.toLowerCase() + "_var";
                     yield "case " + patternName + " " + varName + guardCode + " -> " + bodyCode + ";";

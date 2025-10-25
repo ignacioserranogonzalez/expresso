@@ -18,7 +18,7 @@ param: ID (':' type)?;
 
 constructorList: constructor (',' NEWLINE* constructor)*;
 
-constructor: CONSTRUCTOR_ID arguments?;
+constructor: ID arguments?;
 
 arguments: '(' argument (',' argument)* ')';
 
@@ -51,7 +51,7 @@ pattern
 ;
 
 data_pattern
-    : CONSTRUCTOR_ID ('(' pattern (',' pattern)* ')')?  # DataPattern
+    : ID ('(' pattern (',' pattern)* ')')?  # DataPattern
 ;
 
 native_pattern
@@ -68,7 +68,7 @@ lambdaParams: '(' ')'
     | ID
 ;
 
-constructorExpr: CONSTRUCTOR_ID ('(' argList ')')?;
+constructorExpr: ID ('(' argList ')')?;
 
 argList: expr (',' expr)*;
 
@@ -95,8 +95,7 @@ MINUS   : '-';
 MULT    : '*';
 DIV     : '/';
 
-ID: [a-z_][a-zA-Z0-9_]*;
-CONSTRUCTOR_ID: [A-Z][a-zA-Z0-9_]*;
+ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
 COMMENT: '//' ~[\r\n]* -> skip;
 MULTILINE_COMMENT: '/*' (~[*] | '*' ~[/])* '*/' -> skip;

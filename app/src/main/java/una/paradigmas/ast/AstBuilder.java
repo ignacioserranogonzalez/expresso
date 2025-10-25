@@ -195,7 +195,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         List<DataDecl.Constructor> constructors = ctx.constructorList() != null
             ? ctx.constructorList().constructor().stream()
                 .map(constructorCtx -> {
-                    String constructorId = constructorCtx.CONSTRUCTOR_ID().getText();
+                    String constructorId = constructorCtx.ID().getText();
                     
                     List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
                         ? constructorCtx.arguments().argument().stream()
@@ -229,7 +229,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override public Node visitConstructorInvocation(ConstructorInvocationContext ctx) { 
-        String id = ctx.constructorExpr().CONSTRUCTOR_ID().getText(); List<Node> args = new ArrayList<>(); 
+        String id = ctx.constructorExpr().ID().getText(); List<Node> args = new ArrayList<>(); 
         if (ctx.constructorExpr().argList() != null) { 
             args = ctx.constructorExpr().argList().expr().stream() 
                 .map(this::visit) .collect(Collectors.toList()); 
@@ -262,7 +262,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitDataPattern(DataPatternContext ctx) {
-        String name = ctx.CONSTRUCTOR_ID().getText();
+        String name = ctx.ID().getText();
         List<Pattern> subPatterns = ctx.pattern() != null
             ? ctx.pattern().stream()
                 .map(this::visit)
