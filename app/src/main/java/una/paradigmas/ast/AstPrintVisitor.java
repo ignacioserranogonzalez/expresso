@@ -232,4 +232,17 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
+     @Override
+    public String visitNone(NoneLiteral noneLiteral) {
+        String result = "None()";
+        System.out.println(result);
+        return result;
+    }
+    
+    @Override
+    public String visitPrintExpr(PrintExpr printExpr) {
+        String result = "PrintExpr(" + printExpr.expr().accept(this) + ")";
+        System.out.println(result);
+        return result;
+    }
 }

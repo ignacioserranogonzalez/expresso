@@ -256,4 +256,18 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         testExpressoProgram(input, "ConstructorInvocation");
     }
+
+    @Test
+    public void testPrintAsNone() {
+        System.out.println("====== Test printAsNone.expresso ======");
+        System.out.println("Tarea 19 - print como expresion que retorna None");
+
+        String input = """
+            let x = none
+            print(x)
+            let y = print(42)
+            print(y)
+        """;
+        testExpressoProgram(input, "HelloWorld7");
+    }
 }

@@ -40,4 +40,6 @@ public interface Visitor<T> {
     T visitTernaryCondition(TernaryCondition ternary);
     T visitDataDecl(DataDecl dataDecl);
     T visitConstructorInvocation(ConstructorInvocation constructorInvocation);
+    T visitNone(NoneLiteral noneLiteral);
+    T visitPrintExpr(PrintExpr printExpr);
 }

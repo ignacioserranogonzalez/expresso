@@ -189,6 +189,12 @@ public class JavaCodeGenerator {
             codeBuilder.append("        System.out.println(arg);\n");
             codeBuilder.append("    }\n\n");
         }
+         if (extraMethods.contains("printAndReturnNull")) {
+        codeBuilder.append("    public static Object printAndReturnNull(Object arg) {\n");
+        codeBuilder.append("        System.out.println(arg);\n");
+        codeBuilder.append("        return null;\n");
+        codeBuilder.append("    }\n\n");
+    }
     }
 
     private void generateMainMethodSection(StringBuilder codeBuilder) {
@@ -196,6 +202,7 @@ public class JavaCodeGenerator {
         codeBuilder.append(mainCodeBuilder);
         codeBuilder.append("    }\n");
     }
+    
 
     //------------------------------------------
 
@@ -212,6 +219,11 @@ public class JavaCodeGenerator {
                 extraMethods.add("print");
                 yield "print(" + generateExpression(expr) + ");";
             }
+
+            case PrintExpr(var expr) -> {
+            extraMethods.add("printAndReturnNull");
+            yield "printAndReturnNull(" + generateExpression(expr) + ");";
+        }
 
             case Fun(var name, var params, var returnType, var body) -> {
                 // parametros con tipos
@@ -306,11 +318,19 @@ public class JavaCodeGenerator {
                     .orElse("");
                 yield "new " + capitalizedId + "(" + argCode + ")";
             }
+             case NoneLiteral() -> "null"; 
 
+             case PrintExpr(Node innerExpr) -> {
+            extraMethods.add("printAndReturnNull");
+            String exprCode = generateExpression(innerExpr);
+            yield "printAndReturnNull(" + exprCode + ")";
+        }
+             
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
     }
     
+
     private String generateType(Node typeNode) {
         return switch (typeNode) {
             case TypeNode(var typeName) -> switch (typeName) {
