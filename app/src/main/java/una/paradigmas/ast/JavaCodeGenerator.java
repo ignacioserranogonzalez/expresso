@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.*;
+import java.util.function.*;
 
 import una.paradigmas.node.*;
+import una.paradigmas.node.Node;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -81,42 +87,49 @@ public class JavaCodeGenerator {
     }
 
     private void generateDataDecl(String dataId, List<DataDecl.Constructor> constructors) {
-        String typeName = capitalizeFirst(dataId);
+    String typeName = capitalizeFirst(dataId);
+    String permits = constructors.stream()
+        .map(DataDecl.Constructor::id)
+        .map(this::capitalizeFirst)
+        .collect(Collectors.joining(", "));
+    
+    constructorTypes.append("    sealed interface ")
+        .append(typeName)
+        .append(" permits ")
+        .append(permits)
+        .append(" {}\n");
+
+    constructors.forEach(constructor -> {
+        String constructorName = capitalizeFirst(constructor.id());
         
-        String permits = constructors.stream()
-            .map(DataDecl.Constructor::id)
-            .map(this::capitalizeFirst)
-            .reduce((a, b) -> a + ", " + b)
-            .orElse("");
-        
-            constructorTypes.append("    sealed interface ").append(typeName)
-            .append(" permits ").append(permits).append(" {}\n");
-        
-        constructors.forEach(constructor -> {
-            String constructorName = capitalizeFirst(constructor.id());
+        if (constructor.arguments().isEmpty()) {
+            constructorTypes.append("    record ")
+                .append(constructorName)
+                .append("() implements ")
+                .append(typeName)
+                .append(" {}\n");
+        } else {
+            var argsList = constructor.arguments();
+            String argParams = IntStream.range(0, argsList.size())
+                .mapToObj(i -> {
+                    var arg = argsList.get(i);
+                    String argType = generateType(arg.type());
+                    String argName = arg.name().isEmpty() ? "arg" + i : arg.name();
+                    return argType + " " + argName;
+                })
+                .collect(Collectors.joining(", "));
             
-            if (constructor.arguments().isEmpty()) {
-                constructorTypes.append("    record ").append(constructorName)
-                    .append("() implements ").append(typeName).append(" {}\n");
-            } else {
-                String argParams = constructor.arguments().stream()
-                    .map(arg -> {
-                        String argType = generateType(arg.type());
-                        String argName = arg.name().isEmpty() 
-                            ? "arg" + arg.hashCode() % 1000 
-                            : arg.name();
-                        return argType + " " + argName;
-                    })
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
-                
-                constructorTypes.append("    record ").append(constructorName)
-                    .append("(").append(argParams).append(") implements ")
-                    .append(typeName).append(" {}\n");
-            }
-        });
-        
-        constructorTypes.append("\n");
+            constructorTypes.append("    record ")
+                .append(constructorName)
+                .append("(")
+                .append(argParams)
+                .append(") implements ")
+                .append(typeName)
+                .append(" {}\n");
+        }
+    });
+    
+    constructorTypes.append("\n");
     }
 
     private void generateMethodDefinitions(Program ast) {
@@ -197,10 +210,9 @@ public class JavaCodeGenerator {
         codeBuilder.append("    }\n");
     }
 
-    //------------------------------------------
-
     private String generateStatement(Node stat) {
         return switch (stat) {
+
             case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
                 String varType = typeNode != null ? 
@@ -214,7 +226,6 @@ public class JavaCodeGenerator {
             }
 
             case Fun(var name, var params, var returnType, var body) -> {
-                // parametros con tipos
                 String paramDecls = params.stream()
                     .map(param -> {
                         String paramType = generateType(param.type());
@@ -222,15 +233,24 @@ public class JavaCodeGenerator {
                     })
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
-                
+
                 String returnTypeJava = generateType(returnType);
                 String bodyCode = generateExpression(body);
-                
-                String methodDef = "    public static " + returnTypeJava + " " + 
-                    generateExpression(name) + "(" + paramDecls + ") {\n" +
+
+                if (body instanceof Match) {
+                    switch (returnTypeJava) {
+                        case "int" -> bodyCode = "((Integer)" + bodyCode + ")";
+                        case "float" -> bodyCode = "((Float)" + bodyCode + ")";
+                        case "boolean" -> bodyCode = "((Boolean)" + bodyCode + ")";
+                        default -> { }
+                    }
+                }
+
+                String methodDef =
+                    "    public static " + returnTypeJava + " " + generateExpression(name) + "(" + paramDecls + ") {\n" +
                     "        return " + bodyCode + ";\n" +
                     "    }\n";
-                
+
                 methodDefinitions.append(methodDef);
                 yield "";
             }
@@ -241,39 +261,42 @@ public class JavaCodeGenerator {
         };
     }
 
+
     private String generateExpression(Node expr) {
         return switch (expr) {
+
             case IntLiteral(var value) -> Integer.toString(value);
             case FloatLiteral(var value) -> value + "f";
             case BooleanLiteral(var value) -> Boolean.toString(value);
             case StringLiteral(var value) -> "\"" + escapeString(value) + "\"";
+            case NoneLiteral _ -> "null";
 
             case Id(var value) -> value;
 
             case Pow(var left, var right) -> {
                 extraMethods.add("pow");
-                yield "pow(" + generateExpression(left) + ", " + generateExpression(right) + ")";
+                yield "pow(" + autoUnbox(generateExpression(left)) + ", " + autoUnbox(generateExpression(right)) + ")";
             }
 
             case MultDiv(var left, var op, var right) ->
-                generateExpression(left) + " " + op + " " + generateExpression(right);
+                autoUnbox(generateExpression(left)) + " " + op + " " + autoUnbox(generateExpression(right));
 
             case AddSub(var left, var op, var right) ->
-                generateExpression(left) + " " + op + " " + generateExpression(right);
+                autoUnbox(generateExpression(left)) + " " + op + " " + autoUnbox(generateExpression(right));
 
             case UnaryOp(var op, var expr2) ->
-                op + "(" + generateExpression(expr2) + ")";
+                op + "(" + autoUnbox(generateExpression(expr2)) + ")";
 
             case PostOp(var expr1, var op) ->
-                generateExpression(expr1) + op;
+                autoUnbox(generateExpression(expr1)) + op;
 
             case Paren(var value) ->
                 "(" + generateExpression(value) + ")";
 
             case TernaryCondition(var condition, var value1, var value2) -> 
-                "(" + generateExpression(condition) + " != 0 ? " 
-                    + generateExpression(value1) + " : " 
-                    + generateExpression(value2) + ")";
+                "(" + autoUnbox(generateExpression(condition)) + " != 0 ? " 
+                    + autoUnbox(generateExpression(value1)) + " : " 
+                    + autoUnbox(generateExpression(value2)) + ")";
 
             case Lambda(var args, var body) -> {
                 imports.add("java.util.function.*");
@@ -282,24 +305,22 @@ public class JavaCodeGenerator {
                     .reduce((a, b) -> a + ", " + b)
                     .map(s -> args.size() == 1 ? s : "(" + s + ")")
                     .orElse("()");
-                
                 yield params + " -> " + generateExpression(body);
             }
+
 
             case Call(var id, var paramList) -> {
                 String params = paramList.stream()
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
-                
                 if (functionNames.contains(id.value())) 
                     yield id.value() + "(" + params + ")";
                 else yield generateExpression(id) + ".apply(" + params + ")";
-                
             }
 
             case ConstructorInvocation(var id, var args) -> {
-                String capitalizedId = capitalizeFirst(id);  // Capitaliza el nombre del constructor
+                String capitalizedId = capitalizeFirst(id);
                 String argCode = args.stream()
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
@@ -307,9 +328,26 @@ public class JavaCodeGenerator {
                 yield "new " + capitalizedId + "(" + argCode + ")";
             }
 
+            case Match(var scrut, var cases) -> generateMatch(scrut, cases);
+
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
     }
+
+    private String autoUnbox(String expr) {
+    if (expr == null || expr.isBlank()) return expr;
+    if (expr.matches("-?\\d+(\\.\\d+)?") || expr.startsWith("\"") || expr.equals("null"))
+        return expr;
+
+    if (expr.contains("Math.pow") || expr.contains("pow(") || expr.contains("+") || expr.contains("-") || expr.contains("*") || expr.contains("/"))
+        return expr;
+
+    if (expr.contains("(") && expr.contains(")")) return expr;
+
+    return "((Integer)" + expr + ")";
+    }
+
+
     
     private String generateType(Node typeNode) {
         return switch (typeNode) {
@@ -334,6 +372,7 @@ public class JavaCodeGenerator {
     
     private String inferTypeFromValue(Node value) {
         return switch (value) {
+            case ConstructorInvocation(var id, var args) -> capitalizeFirst(id);
             case IntLiteral _ -> "int";
             case FloatLiteral _ -> "float";
             case BooleanLiteral _ -> "boolean";
@@ -344,14 +383,14 @@ public class JavaCodeGenerator {
     }
     
     private String lambdaType(Node expr) {
+        imports.add("java.util.function.*");
         return switch (expr) {
             case Lambda l -> {
-                imports.add("java.util.function.*");
-                if (l.args().size() == 0) yield "Supplier<Integer>";
-                else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
-                else yield "BinaryOperator<Integer>";
+                if (l.args().isEmpty()) yield "Supplier<Object>";
+                if (l.args().size() == 1) yield "Function<Object, Object>";
+                yield "BiFunction<Object, Object, Object>";
             }
-            default -> "int";
+            default -> "Function<Object, Object>";
         };
     }
     
@@ -369,4 +408,103 @@ public class JavaCodeGenerator {
         return str == null || str.isEmpty() ? str 
             : str.substring(0, 1).toUpperCase() + str.substring(1);
     }
+
+    private String generateMatch(Node scrutinee, List<Match.Case> cases) {
+    imports.add("java.util.function.*");
+
+    String sVar = freshTmp("scrut");
+
+    String caseCode = IntStream.range(0, cases.size())
+        .mapToObj(i -> {
+            Match.Case c = cases.get(i);
+            StringBuilder bindings = new StringBuilder();
+
+            String cond = emitPatternTest(sVar, c.pattern(), bindings);
+            String guard = (c.guard() != null) ? generateExpression(c.guard()) : null;
+            String fullCond = (guard == null) ? cond : "(" + cond + ") && (" + guard + ")";
+            String body = generateExpression(c.body());
+            String prefix = (i == 0) ? "    if (" : "    else if (";
+
+            return prefix + fullCond + ") {\n"
+                + bindings
+                + "        return " + autoCastIfNeeded(body, c.body()) + ";\n"
+                + "    }\n";
+        })
+        .collect(Collectors.joining());
+
+    return Stream.of(
+            "((Supplier<Object>) () -> {",
+            "    var " + sVar + " = " + generateExpression(scrutinee) + ";",
+            caseCode,
+            "    else { throw new RuntimeException(\"Match failure\"); }",
+            "}).get()"
+        )
+        .collect(Collectors.joining("\n"));
+    }
+
+
+    private int tmpCounter = 0;
+    private String freshTmp(String p){ return "__" + p + (tmpCounter++); }
+
+    private String emitPatternTest(String base, Pattern pat, StringBuilder bindings) {
+        if (pat instanceof WildcardPat) return "true";
+
+
+        if (pat instanceof VarPat vp) {
+            bindings.append("        var ").append(vp.name())
+                    .append(" = ").append(base).append(";\n");
+            return "true";
+        }
+
+        if (pat instanceof NativePat np) {
+            Node v = np.value();
+
+            if (v instanceof NoneLiteral) return base + " == null";
+            if (v instanceof StringLiteral s) return base + ".equals(" + generateExpression(s) + ")";
+            if (v instanceof BooleanLiteral || v instanceof IntLiteral || v instanceof FloatLiteral)
+                return base + " instanceof " + getBoxedType(v)
+                    + " && ((" + getBoxedType(v) + ")" + base + ") == " + generateExpression(v);
+            return "Objects.equals(" + base + ", " + generateExpression(v) + ")";
+        }
+
+        if (pat instanceof DataPat dp) {
+            String cname = capitalizeFirst(dp.id());
+            String castVar = freshTmp("c");
+
+            String subConds = IntStream.range(0, dp.args().size())
+                .mapToObj(i -> {
+                    var subpat = dp.args().get(i);
+                    String fieldName = switch (dp.id()) {
+                        case "Cons" -> (i == 0 ? "car" : "cdr");
+                        default -> "arg" + i;
+                    };
+                    String fieldAccess = castVar + "." + fieldName + "()";
+                    return emitPatternTest(fieldAccess, subpat, bindings);
+                })
+                .collect(Collectors.joining(" && "));
+
+            return Stream.of(base + " instanceof " + cname + " " + castVar, subConds)
+                        .filter(s -> !s.isBlank())
+                        .collect(Collectors.joining(" && "));
+        }
+
+        throw new IllegalArgumentException("Unsupported pattern: " + pat.getClass().getSimpleName());
+    }
+
+    private String getBoxedType(Node literal) {
+    return switch (literal) {
+        case IntLiteral _ -> "Integer";
+        case FloatLiteral _ -> "Float";
+        case BooleanLiteral _ -> "Boolean";
+        default -> "Object";
+        };
+    }
+
+    private String autoCastIfNeeded(String bodyCode, Node bodyExpr) {
+    if (bodyExpr instanceof IntLiteral) return "((Integer)" + bodyCode + ")";
+    if (bodyExpr instanceof FloatLiteral) return "((Float)" + bodyCode + ")";
+    if (bodyExpr instanceof BooleanLiteral) return "((Boolean)" + bodyCode + ")";
+    return bodyCode;
+    }
+
 }

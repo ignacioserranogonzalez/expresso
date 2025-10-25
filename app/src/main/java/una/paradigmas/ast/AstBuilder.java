@@ -234,6 +234,11 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
+    public Node visitNone(ExpressoParser.NoneContext ctx) {
+    return new NoneLiteral();
+    }
+
+    @Override
     public Node visitConstructorInvocation(ConstructorInvocationContext ctx) {
         String id = ctx.constructorExpr().ID().getText();
         List<Node> args = new ArrayList<>();
@@ -244,4 +249,59 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         }
         return new ConstructorInvocation(id, args);
     }
+
+    @Override
+    public Node visitMatchExpr(ExpressoParser.MatchExprContext ctx) {
+        Node scrut = visit(ctx.expr());
+        List<Match.Case> cases = ctx.ruleList().caseRule().stream().map(r -> {
+            Pattern p = (Pattern) visit(r.pattern());
+            Node guard = r.guard() != null ? visit(r.guard().expr()) : null;
+            Node body = visit(r.expr());
+            return new Match.Case(p, guard, body);
+        }).toList();
+        return new Match(scrut, cases);
+    }
+
+    @Override
+    public Node visitDataPat(ExpressoParser.DataPatContext ctx) {
+        String id = ctx.dataPattern().ID().getText();
+
+        boolean hasArgs = ctx.dataPattern().pattern() != null && !ctx.dataPattern().pattern().isEmpty();
+        if (!hasArgs && Character.isLowerCase(id.charAt(0))) {
+            return new VarPat(id);
+        }
+
+        List<Pattern> args = new ArrayList<>();
+        if (hasArgs) {
+            args = ctx.dataPattern().pattern().stream()
+                    .map(p -> (Pattern) visit(p))
+                    .toList();
+        }
+        return new DataPat(id, args);
+    }
+
+    @Override
+    public Node visitNativePat(ExpressoParser.NativePatContext ctx) {
+        if (ctx.nativePattern().NONE() != null) return new NativePat(new NoneLiteral());
+        if (ctx.nativePattern().BOOLEAN() != null) return new NativePat(new BooleanLiteral(Boolean.parseBoolean(ctx.nativePattern().BOOLEAN().getText())));
+        if (ctx.nativePattern().INT() != null) return new NativePat(new IntLiteral(Integer.parseInt(ctx.nativePattern().INT().getText())));
+        if (ctx.nativePattern().FLOAT() != null) return new NativePat(new FloatLiteral(Float.parseFloat(ctx.nativePattern().FLOAT().getText())));
+        String s = ctx.nativePattern().STRING().getText();
+        return new NativePat(new StringLiteral(s.substring(1, s.length()-1)));
+    }
+
+    @Override
+    public Node visitWildcardPat(ExpressoParser.WildcardPatContext ctx) {
+        return new WildcardPat();
+    }
+
+    @Override
+    public Node visitVarPat(ExpressoParser.VarPatContext ctx) {
+        return new VarPat(ctx.ID().getText());
+    }
+
+    private static boolean startsLower(String s) {
+    return !s.isEmpty() && Character.isLowerCase(s.codePointAt(0));
+    }
+
 }

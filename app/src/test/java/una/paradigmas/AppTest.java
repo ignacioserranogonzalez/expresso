@@ -256,4 +256,53 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         testExpressoProgram(input, "ConstructorInvocation");
     }
+
+    @Test
+    public void testMatchListFirst_none() {
+        System.out.println("====== Test MatchListFirst_none.expresso ======");
+
+        String input = """
+            data list = { Nil, Cons(car:any, cdr:list) }
+            fun first(a:list):any = match a with Nil -> none | Cons(f, _) -> f
+            let l1 = ^Nil
+            let l2 = ^Cons(666, ^Nil)
+            print(first(l1)) // Expected: null (none)
+            print(first(l2)) // Expected: 666
+            """;
+
+        testExpressoProgram(input, "MatchListFirst_none");
+    }
+
+    @Test
+    public void testMatchListLength() {
+        System.out.println("====== Test MatchListLength.expresso ======");
+        System.out.println("Match recursivo con list (versión una línea por regla)");
+
+        String input = """
+            data list = { Nil, Cons(car:any, cdr:list) }
+            fun len(xs:list):int = match xs with Nil -> 0 | Cons(_, tl) -> 1 + len(tl)
+            let empty = ^Nil
+            let xs = ^Cons(1, ^Cons(2, ^Cons(3, ^Nil)))
+            print(len(empty)) // Expected: 0
+            print(len(xs))    // Expected: 3
+            """;
+
+        testExpressoProgram(input, "MatchListLength");
+    }
+
+    @Test
+    public void testMatchNativePatterns() {
+        System.out.println("====== Test MatchNativePatterns.expresso ======");
+        System.out.println("Match con patrones nativos: INT y _ (versión una línea)");
+
+        String input = """
+            let describe = (n) -> match n with 0 -> "zero" | 1 -> "one" | _ -> "many"
+            print(describe(0)) // Expected: "zero"
+            print(describe(1)) // Expected: "one"
+            print(describe(2)) // Expected: "many"
+            """;
+
+        testExpressoProgram(input, "MatchNativePatterns");
+    }
+
 }

@@ -232,4 +232,25 @@ public class AstPrintVisitor implements Visitor<String> {
         System.out.println(result);
         return result;
     }
+
+    @Override public String visitMatch(Match m) { 
+    String cs = m.cases().stream()
+        .map(c -> "Case(" + c.pattern().accept(this) + 
+                  (c.guard()!=null? ", guard=" + c.guard().accept(this):"") + 
+                  ", " + c.body().accept(this) + ")")
+        .reduce((a,b)->a+", "+b).orElse("");
+    String r = "Match(" + m.scrutinee().accept(this) + ", [" + cs + "])";
+    System.out.println(r); return r;
+    }
+
+    @Override public String visitDataPat(DataPat p) {
+        String as = p.args().stream().map(a->a.accept(this)).reduce((a,b)->a+", "+b).orElse("");
+        String r = "DataPat(" + p.id() + (as.isEmpty()?")":", ["+as+"])");
+        System.out.println(r); return r;
+    }
+    @Override public String visitNativePat(NativePat p){ var r="NativePat("+p.value().accept(this)+")"; System.out.println(r); return r; }
+    @Override public String visitWildcardPat(WildcardPat p){ System.out.println("WildcardPat(_)"); return "WildcardPat(_)"; }
+    @Override public String visitVarPat(VarPat p){ var r="VarPat("+p.name()+")"; System.out.println(r); return r; }
+    @Override public String visitNone(NoneLiteral n){ System.out.println("none"); return "none"; }
+
 }

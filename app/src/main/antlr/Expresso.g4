@@ -28,6 +28,7 @@ expr: <assoc=right> expr POW expr                    # Pow
     | expr (PLUS | MINUS) expr                       # AddSub
     | expr (MULT | DIV) expr                         # MultDiv
     | lambdaParams LAMBDA expr                       # Lambda
+    | MATCH expr WITH NEWLINE* ruleList              # MatchExpr
     | ID '(' argList? ')'                            # Call
     | NEW constructorExpr                            # ConstructorInvocation
     | '(' expr ')'                                   # Paren
@@ -35,11 +36,43 @@ expr: <assoc=right> expr POW expr                    # Pow
     | FLOAT                                          # Float
     | BOOLEAN                                        # Boolean
     | STRING                                         # String
+    | NONE                                           # None
     | ID                                             # Id
 ;
 
 constructorExpr: ID ('(' argList ')')?;
 argList: expr (',' expr)*;  
+
+ruleList
+  : caseRule (NEWLINE* '|' NEWLINE* caseRule)* NEWLINE*  // tolerante a saltos
+  ;
+
+caseRule
+  : pattern (guard)? LAMBDA expr
+  ;
+
+guard
+  : expr
+  ;                       
+
+pattern
+    : dataPattern                         # DataPat
+    | nativePattern                       # NativePat
+    | UNDERSCORE                          # WildcardPat
+    | ID                                  # VarPat
+    ;
+
+dataPattern
+    : ID ('(' pattern (',' pattern)* ')')?
+    ;
+
+nativePattern
+    : NONE
+    | STRING
+    | INT
+    | FLOAT
+    | BOOLEAN
+    ;
 
 lambdaParams: '(' ')'          
     | '(' ID (',' ID)? ')'     
@@ -54,6 +87,10 @@ PRINT   : 'print';
 FUN     : 'fun';
 LAMBDA  : '->';
 NEW     : '^';
+MATCH   : 'match';
+WITH    : 'with';
+NONE    : 'none';
+UNDERSCORE : '_';
 
 INT     : [0-9]+;
 FLOAT   : [0-9]+ '.' [0-9]* | '.' [0-9]+;

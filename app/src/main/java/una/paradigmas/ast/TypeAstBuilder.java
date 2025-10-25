@@ -40,7 +40,7 @@ public class TypeAstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitTypeParen(TypeParenContext ctx) {
-        return visit(ctx.type()); // elimina parentesis
+        return visit(ctx.type()); 
     }
 
     @Override
