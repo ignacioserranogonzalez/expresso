@@ -13,23 +13,28 @@ stat: NEWLINE                                               # blank
 ;
 
 paramList: param (',' param)*;
+
 param: ID (':' type)?;
 
 constructorList: constructor (',' constructor)*;
+
 constructor: ID arguments?;
+
 arguments: '(' argument (',' argument)* ')';
+
 argument: (ID ':')? type;
 
 // expressions
 expr: <assoc=right> expr POW expr                    # Pow
     | <assoc=right> expr '?' expr ':' expr           # TernaryCondition
+    | 'match' expr 'with' matchRule+                 # Match
     | (PLUS | MINUS) expr                            # UnaryOp
     | expr (MINUS MINUS | PLUS PLUS)                 # PostOp
     | expr (PLUS | MINUS) expr                       # AddSub
     | expr (MULT | DIV) expr                         # MultDiv
     | lambdaParams LAMBDA expr                       # Lambda
     | ID '(' argList? ')'                            # Call
-    | NEW constructorExpr                            # ConstructorInvocation
+    | '^' constructorExpr                            # ConstructorInvocation
     | '(' expr ')'                                   # Paren
     | INT                                            # Int
     | FLOAT                                          # Float
@@ -38,13 +43,26 @@ expr: <assoc=right> expr POW expr                    # Pow
     | ID                                             # Id
 ;
 
-constructorExpr: ID ('(' argList ')')?;
-argList: expr (',' expr)*;  
+matchRule: pattern '->' expr ('|' matchRule)*?;
+
+pattern
+    : ID patternArgsList?      # ConstructorPattern
+    | '_'                      # WildcardPattern  
+    | ID                       # VariablePattern
+    ;
+
+patternArgsList
+    : '(' ID (',' ID)* ')'
+    ;
 
 lambdaParams: '(' ')'          
     | '(' ID (',' ID)? ')'     
     | ID                       
 ;
+
+constructorExpr: ID ('(' argList ')')?;
+
+argList: expr (',' expr)*;
 
 // Lexer
 LET     : 'let';
@@ -53,7 +71,6 @@ ASSIGN  : '=';
 PRINT   : 'print';
 FUN     : 'fun';
 LAMBDA  : '->';
-NEW     : '^';
 
 INT     : [0-9]+;
 FLOAT   : [0-9]+ '.' [0-9]* | '.' [0-9]+;

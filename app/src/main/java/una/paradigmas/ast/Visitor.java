@@ -1,5 +1,7 @@
 package una.paradigmas.ast;
 
+import org.antlr.v4.parse.ANTLRParser.wildcard_return;
+
 import una.paradigmas.node.*;
 
 /**
@@ -19,8 +21,6 @@ import una.paradigmas.node.*;
 public interface Visitor<T> {
     T visitProgram(Program program);
     T visitType(TypeNode num);
-    T visitTupleType(TupleType tupleType);
-    T visitArrowType(ArrowType arrowType);
     T visitInt(IntLiteral num);
     T visitFloat(FloatLiteral num);
     T visitBoolean(BooleanLiteral num);
@@ -38,6 +38,14 @@ public interface Visitor<T> {
     T visitLambda(Lambda lambda);
     T visitCall(Call call);
     T visitTernaryCondition(TernaryCondition ternary);
+    T visitTupleType(TupleType tupleType);
+    T visitArrowType(ArrowType arrowType);
     T visitDataDecl(DataDecl dataDecl);
     T visitConstructorInvocation(ConstructorInvocation constructorInvocation);
+    T visitMatch(Match match);
+    T visitMatchRule(MatchRule matchRule);
+    T visitConstructorPattern(ConstructorPattern constructorPattern);
+    T visitVariablePattern(VariablePattern variablePattern);
+    T visitWildcardPattern(WildcardPattern wildcardPattern);
+    
 }

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.antlr.v4.runtime.tree.ParseTree;
+
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
  * Curso: [EIF400-II-2025] Paradigmas de Programacion
@@ -228,20 +230,57 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new TernaryCondition(visit(ctx.expr(0)), visit(ctx.expr(1)), visit(ctx.expr(2)));
     }
 
+    @Override public Node visitConstructorInvocation(ConstructorInvocationContext ctx) { 
+        String id = ctx.constructorExpr().ID().getText(); List<Node> args = new ArrayList<>(); 
+        if (ctx.constructorExpr().argList() != null) { 
+            args = ctx.constructorExpr().argList().expr().stream() 
+                .map(this::visit) .collect(Collectors.toList()); 
+            } 
+        return new ConstructorInvocation(id, args); 
+    }
+    
     @Override
-    public Node visitBlank(BlankContext ctx) {
-        return null;
+    public Node visitMatch(MatchContext ctx) {
+        Node expr = visit(ctx.expr());
+        List<Node> rules = ctx.matchRule().stream()
+            .map(this::visitMatchRule)
+            .collect(Collectors.toList());
+        return new Match(expr, rules);
     }
 
     @Override
-    public Node visitConstructorInvocation(ConstructorInvocationContext ctx) {
-        String id = ctx.constructorExpr().ID().getText();
-        List<Node> args = new ArrayList<>();
-        if (ctx.constructorExpr().argList() != null) {
-            args = ctx.constructorExpr().argList().expr().stream()
-                .map(this::visit)
+    public Node visitMatchRule(MatchRuleContext ctx) {
+        Node pattern = visit(ctx.pattern());
+        Node body = visit(ctx.expr());
+        return new MatchRule(pattern, body);
+    }
+
+    @Override
+    public Node visitConstructorPattern(ConstructorPatternContext ctx) {
+        String name = ctx.ID().getText();
+        List<String> vars = new ArrayList<>();
+    
+        if (ctx.patternArgsList() != null) {
+            vars = ctx.patternArgsList().ID().stream()
+                .map(ParseTree::getText)
                 .collect(Collectors.toList());
         }
-        return new ConstructorInvocation(id, args);
+    
+        return new ConstructorPattern(name, vars);
+    }    
+
+    @Override
+    public Node visitVariablePattern(VariablePatternContext ctx) {
+        return new VariablePattern(ctx.ID().getText());
+    }
+
+    @Override
+    public Node visitWildcardPattern(WildcardPatternContext ctx) {
+        return new WildcardPattern();
+    }
+
+    @Override
+    public Node visitBlank(BlankContext ctx) {
+        return null;
     }
 }

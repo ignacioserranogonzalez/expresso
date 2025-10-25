@@ -307,7 +307,40 @@ public class JavaCodeGenerator {
                 yield "new " + capitalizedId + "(" + argCode + ")";
             }
 
+            case Match(var exprToMatch, var rules) -> {
+                String exprCode = generateExpression(exprToMatch);
+                StringBuilder sb = new StringBuilder();
+                sb.append("switch (").append(exprCode).append(") {\n");
+                for (Node ruleNode : rules) {
+                    MatchRule rule = (MatchRule) ruleNode;
+                    sb.append("            ").append(generateMatchRule(rule)).append("\n");
+                }
+                sb.append("        }");
+                yield sb.toString();
+            }
+            
+
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
+        };
+    }
+
+    private String generateMatchRule(MatchRule rule) {
+        return switch (rule.pattern()) {
+            case ConstructorPattern cp -> {
+                String patternName = capitalizeFirst(cp.name());
+                String vars = cp.vars().isEmpty()
+                    ? ""
+                    : "(var " + String.join(", var ", cp.vars()) + ")";
+                String body = generateExpression(rule.body());
+                yield "case " + patternName + " " + vars + " -> " + body + ";";
+            }
+            case VariablePattern vp -> {
+                yield "case var " + vp.name() + " -> " + generateExpression(rule.body()) + ";";
+            }
+            case WildcardPattern _ -> {
+                yield "default -> " + generateExpression(rule.body()) + ";";
+            }
+            default -> throw new IllegalArgumentException("Patrón no soportado: " + rule.pattern().getClass().getSimpleName());
         };
     }
     

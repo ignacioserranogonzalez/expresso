@@ -256,4 +256,17 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         testExpressoProgram(input, "ConstructorInvocation");
     }
+
+    @Test
+    public void testMatchWith() {
+        System.out.println("====== Test MatchWith.expresso ======");
+        System.out.println("Tarea 18 - match ... with");
+
+        String input = """
+            fun sum(x:nat, y:nat):nat = match x with
+                                        _ -> y
+        """;
+
+        testExpressoProgram(input, "MatchWith");
+    }
 }
