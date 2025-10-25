@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
  * Curso: [EIF400-II-2025] Paradigmas de Programacion
@@ -197,7 +195,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         List<DataDecl.Constructor> constructors = ctx.constructorList() != null
             ? ctx.constructorList().constructor().stream()
                 .map(constructorCtx -> {
-                    String constructorId = constructorCtx.ID().getText();
+                    String constructorId = constructorCtx.CONSTRUCTOR_ID().getText();
                     
                     List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
                         ? constructorCtx.arguments().argument().stream()
@@ -231,7 +229,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override public Node visitConstructorInvocation(ConstructorInvocationContext ctx) { 
-        String id = ctx.constructorExpr().ID().getText(); List<Node> args = new ArrayList<>(); 
+        String id = ctx.constructorExpr().CONSTRUCTOR_ID().getText(); List<Node> args = new ArrayList<>(); 
         if (ctx.constructorExpr().argList() != null) { 
             args = ctx.constructorExpr().argList().expr().stream() 
                 .map(this::visit) .collect(Collectors.toList()); 
@@ -251,23 +249,54 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitMatchRule(MatchRuleContext ctx) {
         Node pattern = visit(ctx.pattern());
-        Node body = visit(ctx.expr());
-        return new MatchRule(pattern, body);
+        List<ExprContext> exprs = ctx.expr();
+        
+        // el ultimo expr es siempre el body
+        Node body = visit(exprs.get(exprs.size() - 1));
+        
+        // si hay guard es el primer expr
+        Node guard = ctx.expr().size() > 1 ? visit(exprs.get(0)) : null;
+        
+        return new MatchRule(pattern, guard, body);
     }
 
     @Override
-    public Node visitConstructorPattern(ConstructorPatternContext ctx) {
-        String name = ctx.ID().getText();
-        List<String> vars = new ArrayList<>();
-    
-        if (ctx.patternArgsList() != null) {
-            vars = ctx.patternArgsList().ID().stream()
-                .map(ParseTree::getText)
-                .collect(Collectors.toList());
-        }
-    
-        return new ConstructorPattern(name, vars);
-    }    
+    public Node visitDataPattern(DataPatternContext ctx) {
+        String name = ctx.CONSTRUCTOR_ID().getText();
+        List<Pattern> subPatterns = ctx.pattern() != null
+            ? ctx.pattern().stream()
+                .map(this::visit)
+                .map(p -> (Pattern) p)
+                .collect(Collectors.toList())
+            : List.of();
+        return new DataPattern(name, subPatterns);
+    }
+
+    @Override
+    public Node visitIntPattern(IntPatternContext ctx) {
+        int value = Integer.parseInt(ctx.INT().getText());
+        return new IntPattern(value);
+    }
+
+    @Override
+    public Node visitStringPattern(StringPatternContext ctx) {
+        String text = ctx.STRING().getText();
+        String value = text.substring(1, text.length() - 1)
+                        .replace("\\\\", "\\")
+                        .replace("\\\"", "\"");
+        return new StringPattern(value);
+    }
+
+    @Override
+    public Node visitBooleanPattern(BooleanPatternContext ctx) {
+        boolean value = Boolean.parseBoolean(ctx.BOOLEAN().getText());
+        return new BooleanPattern(value);
+    }
+
+    @Override
+    public Node visitNonePattern(NonePatternContext ctx) {
+        return new NonePattern();
+    }
 
     @Override
     public Node visitVariablePattern(VariablePatternContext ctx) {

@@ -263,10 +263,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println("Tarea 18 - match ... with");
 
         String input = """
-            //data nat = { Zero }
-
-            //fun simple(z:zero):nat = match z with
-            //                        Zero -> z
 
             data nat = { 
                 Zero, 
@@ -276,6 +272,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
             fun sum(x:nat, y:nat):nat = match x with 
                                     Zero -> y 
                                     S(z) -> S(sum(z, y))
+                                    _ -> x
         """;
 
         testExpressoProgram(input, "MatchWith");

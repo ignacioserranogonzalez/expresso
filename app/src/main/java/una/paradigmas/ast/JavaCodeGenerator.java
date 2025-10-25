@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import una.paradigmas.node.*;
 
@@ -292,12 +293,14 @@ public class JavaCodeGenerator {
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
                 
-                if (functionNames.contains(id.value())) {
-                    yield id.value() + "(" + params + ")";
-                } else {
-                    // Asumir que es constructor si no es función
-                    yield "new " + capitalizeFirst(id.value()) + "(" + params + ")";
-                }
+                    if (Character.isUpperCase(id.value().charAt(0))) {
+                        yield "new " + capitalizeFirst(id.value()) + "(" + params + ")";
+                    }
+                    else if (functionNames.contains(id.value())) {
+                        yield id.value() + "(" + params + ")";
+                    } else {
+                        yield generateExpression(id) + ".apply(" + params + ")";
+                    }
             }
 
             case ConstructorInvocation(var id, var args) -> {
@@ -327,27 +330,30 @@ public class JavaCodeGenerator {
     }
 
     private String generateMatchRule(MatchRule rule) {
+        String bodyCode = generateExpression(rule.body());
+        String guardCode = rule.guard() != null ? 
+            " && " + generateExpression(rule.guard()) : "";
+        
         return switch (rule.pattern()) {
-            case ConstructorPattern cp -> {
-                String patternName = capitalizeFirst(cp.name());
-                String body = generateExpression(rule.body());
-                
-                if (cp.vars().isEmpty()) {
-                    // Caso 1: Zero -> y → case Zero zero -> y
+            case DataPattern dp -> {
+                String patternName = dp.name();
+                if (dp.subPatterns().isEmpty()) {
                     String varName = patternName.toLowerCase() + "_var";
-                    yield "case " + patternName + " " + varName + " -> " + body + ";";
+                    yield "case " + patternName + " " + varName + guardCode + " -> " + bodyCode + ";";
                 } else {
-                    // Caso 2: S(z) -> ... → case S(var z) -> ...
-                    String vars = "(var " + String.join(", var ", cp.vars()) + ")";
-                    yield "case " + patternName + vars + " -> " + body + ";";
+                    String vars = dp.subPatterns().stream()
+                        .map(p -> p instanceof VariablePattern vp ? "var " + vp.name() : "var _")
+                        .collect(Collectors.joining(", "));
+                    yield "case " + patternName + "(" + vars + ")" + guardCode + " -> " + bodyCode + ";";
                 }
             }
-            case VariablePattern vp -> {
-                yield "case var " + vp.name() + " -> " + generateExpression(rule.body()) + ";";
-            }
-            case WildcardPattern _ -> {
-                yield "default -> " + generateExpression(rule.body()) + ";";
-            }
+
+            case VariablePattern vp -> "case var " + vp.name() + " -> " + generateExpression(rule.body()) + ";";
+            case WildcardPattern _ -> "default -> " + generateExpression(rule.body()) + ";";
+            case IntPattern ip -> "case " + ip.value() + " -> " + generateExpression(rule.body()) + ";";
+            case StringPattern sp -> "case \"" + escapeString(sp.value()) + "\" -> " + generateExpression(rule.body()) + ";";
+            case BooleanPattern bp -> "case " + bp.value() + " -> " + generateExpression(rule.body()) + ";";
+            case NonePattern _ -> "case null -> " + generateExpression(rule.body()) + ";";
             default -> throw new IllegalArgumentException("Patrón no soportado: " + rule.pattern().getClass().getSimpleName());
         };
     }
