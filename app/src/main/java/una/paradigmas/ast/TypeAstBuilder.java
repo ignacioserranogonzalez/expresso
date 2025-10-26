@@ -89,7 +89,6 @@ public class TypeAstBuilder extends ExpressoBaseVisitor<Node> {
             .map(this::visit)
             .map(t -> (TypeNode) t)
             .collect(Collectors.toList());
-            System.out.println(types);
         return new TupleType(types);
     }
 
