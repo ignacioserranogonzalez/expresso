@@ -277,4 +277,31 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         testExpressoProgram(input, "MatchWith");
     }
+
+    // @Test
+    // public void testMatchWithGuard() {
+    //     System.out.println("====== Test MatchWithGuard.expresso ======");
+    //     System.out.println("Tarea 18 - match ... with -> if");
+
+    //     String input = """
+    //         data nat = { 
+    //             Zero, 
+    //             S(nat) 
+    //         } 
+
+    //         fun isEven(x:nat):boolean = match x with
+    //                                     Zero -> true
+    //                                     S(Zero) -> false  
+    //                                     S(S(z)) if z != Zero -> isEven(z)
+    //                                     _ -> false
+
+    //         fun sum(x:nat, y:nat):nat = match x with 
+    //                                     Zero -> y 
+    //                                     S(z) if z != Zero -> S(sum(z, y))
+    //                                     S(z) -> x  // sin guard
+    //                                     _ -> x
+    //     """;
+
+    //     testExpressoProgram(input, "MatchWithGuard");
+    // }
 }

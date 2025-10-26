@@ -332,12 +332,10 @@ public class JavaCodeGenerator {
     private String generateMatchRule(MatchRule rule) {
         String bodyCode = generateExpression(rule.body());
         String guardCode = rule.guard() != null ? 
-            " && " + generateExpression(rule.guard()) : "";
+            " when " + generateExpression(rule.guard()) : "";
         
         return switch (rule.pattern()) {
             case DataPattern dp -> {
-                // System.out.println("DataPattern: " + dp.name() + " with subPatterns: " + dp.subPatterns());
-                // System.out.println("Guard: " + guardCode);
                 String patternName = capitalizeFirst(dp.name());
                 if (dp.subPatterns().isEmpty()) {
                     String varName = patternName.toLowerCase() + "_var";
@@ -349,13 +347,18 @@ public class JavaCodeGenerator {
                     yield "case " + patternName + "(" + vars + ")" + guardCode + " -> " + bodyCode + ";";
                 }
             }
-
-            case VariablePattern vp -> "case var " + vp.name() + " -> " + generateExpression(rule.body()) + ";";
-            case WildcardPattern _ -> "default -> " + generateExpression(rule.body()) + ";";
-            case IntPattern ip -> "case " + ip.value() + " -> " + generateExpression(rule.body()) + ";";
-            case StringPattern sp -> "case \"" + escapeString(sp.value()) + "\" -> " + generateExpression(rule.body()) + ";";
-            case BooleanPattern bp -> "case " + bp.value() + " -> " + generateExpression(rule.body()) + ";";
-            case NonePattern _ -> "case null -> " + generateExpression(rule.body()) + ";";
+            case VariablePattern vp -> 
+                "case var " + vp.name() + guardCode + " -> " + bodyCode + ";";
+            case WildcardPattern _ -> 
+                "default" + guardCode + " -> " + bodyCode + ";";
+            case IntPattern ip -> 
+                "case " + ip.value() + guardCode + " -> " + bodyCode + ";";
+            case StringPattern sp -> 
+                "case \"" + escapeString(sp.value()) + "\"" + guardCode + " -> " + bodyCode + ";";
+            case BooleanPattern bp -> 
+                "case " + bp.value() + guardCode + " -> " + bodyCode + ";";
+            case NonePattern _ -> 
+                "case null" + guardCode + " -> " + bodyCode + ";";
             default -> throw new IllegalArgumentException("Patrón no soportado: " + rule.pattern().getClass().getSimpleName());
         };
     }
