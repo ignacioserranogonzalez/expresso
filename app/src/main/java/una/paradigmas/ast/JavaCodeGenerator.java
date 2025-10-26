@@ -486,18 +486,23 @@ public class JavaCodeGenerator {
         }
         typeParams.add("R");
         
-        String interfaceDef = String.format("""
-            @FunctionalInterface
-            interface %s<%s> {
-                R apply(%s);
-            }
-            """, interfaceName, String.join(", ", typeParams),
-            typeParams.stream()
-                .limit(paramCount)
-                .map(t -> t + " arg" + (typeParams.indexOf(t) + 1))
-                .collect(Collectors.joining(", ")));
+        String applyParams = typeParams.stream()
+            .limit(paramCount)
+            .map(t -> t + " arg" + (typeParams.indexOf(t) + 1))
+            .collect(Collectors.joining(", "));
         
-        methodDefinitions.insert(0, "    " + interfaceDef + "\n");
+        String interfaceDef = """
+        @FunctionalInterface
+        interface %s<%s> {
+            R apply(%s);
+        }
+        """.formatted(interfaceName, String.join(", ", typeParams), applyParams);
+        
+        String indentedDef = interfaceDef.lines()
+            .map(line -> "    " + line)
+            .collect(Collectors.joining("\n"));
+        
+        methodDefinitions.insert(0, indentedDef + "\n");
     }
     
     private String escapeString(String value) {
