@@ -6,7 +6,6 @@ import una.paradigmas.node.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -128,6 +127,14 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitParen(ParenContext ctx) {
         Node expr = visit(ctx.expr());
         return new Paren(expr);
+    }
+
+    @Override
+    public Node visitTupleLiteral(TupleLiteralContext ctx) {
+        List<Node> elements = ctx.expr().stream()
+            .map(this::visit)
+            .collect(Collectors.toList());
+        return new TupleLiteral(elements);
     }
 
     @Override

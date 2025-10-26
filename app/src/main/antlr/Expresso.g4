@@ -36,6 +36,7 @@ expr: <assoc=right> expr POW expr                    # Pow
     | ID '(' argList? ')'                            # Call
     | '^' constructorExpr                            # ConstructorInvocation
     | '(' expr ')'                                   # Paren
+    | '(' expr (',' expr)+ ')'                       # TupleLiteral
     | INT                                            # Int
     | FLOAT                                          # Float
     | BOOLEAN                                        # Boolean
@@ -62,9 +63,10 @@ native_pattern
     | BOOLEAN         # BooleanPattern
 ;
 
-lambdaParams: '(' ')'          
-    | '(' ID (',' ID)? ')'     
-    | ID
+lambdaParams
+    : '(' ID (',' ID)* ')'   
+    | ID                     
+    | '(' ')'                
 ;
 
 constructorExpr: ID ('(' argList ')')?;

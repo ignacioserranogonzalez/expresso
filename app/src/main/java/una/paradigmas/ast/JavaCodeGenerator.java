@@ -204,10 +204,12 @@ public class JavaCodeGenerator {
         return switch (stat) {
             case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
-                String varType = typeNode != null ? 
-                    generateType(typeNode) : inferTypeFromValue(value);
+                String varType = switch (value) {
+                    case Lambda _ -> lambdaType(value, typeNode);
+                    default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
+                };
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
-            }
+            }                                 
 
             case Print(var expr) -> {
                 extraMethods.add("print");
@@ -270,6 +272,18 @@ public class JavaCodeGenerator {
 
             case Paren(var value) ->
                 "(" + generateExpression(value) + ")";
+
+            case TupleLiteral(var elements) -> {
+                String elementsCode = elements.stream()
+                    .map(this::generateExpression)
+                    .collect(Collectors.joining(", "));
+                
+                // tipo de tupla: num de elementos
+                if (elements.size() == 2) {
+                    imports.add("java.util.Map");
+                    yield "Map.entry(" + elementsCode + ")";
+                } else yield "new Object[]{" + elementsCode + "}";
+            }
 
             case TernaryCondition(var condition, var value1, var value2) -> 
                 "(" + generateExpression(condition) + " != 0 ? " 
@@ -374,12 +388,6 @@ public class JavaCodeGenerator {
                 case "void" -> "void";
                 default -> capitalizeFirst(typeName);
             };
-            case ArrowType(var from, var to) -> {
-                String fromType = generateType(from);
-                String toType = generateType(to);
-                yield "java.util.function.Function<" + fromType + ", " + toType + ">";
-            }
-            case TupleType(var _) -> "Object[]";
             default -> "Object";
         };
     }
@@ -390,22 +398,101 @@ public class JavaCodeGenerator {
             case FloatLiteral _ -> "float";
             case BooleanLiteral _ -> "boolean";
             case StringLiteral _ -> "String";
-            case Lambda _ -> lambdaType(value);
+            case Lambda _ -> lambdaType(value, null);
             default -> "Object";
         };
     }
     
-    private String lambdaType(Node expr) {
+    private String lambdaType(Node expr, Node explicitType) {
+        imports.add("java.util.function.*");
+
+        if (explicitType instanceof ArrowType arrowType) 
+            return arrowType(arrowType); // usa el tipo declarado
+        
         return switch (expr) {
             case Lambda l -> {
-                imports.add("java.util.function.*");
-                if (l.args().size() == 0) yield "Supplier<Integer>";
-                else if (l.args().size() == 1) yield "UnaryOperator<Integer>";
-                else yield "BinaryOperator<Integer>";
+                int argCount = l.args().size();
+                yield switch (argCount) {
+                    case 0 -> "Supplier<Object>";
+                    case 1 -> "Function<Object, Object>";
+                    case 2 -> "BiFunction<Object, Object, Object>";
+                    default -> "Function" + argCount + "<Object, Object>"; // o interfaz custom
+                };
             }
-            default -> "int";
+            default -> "Object";
         };
     }
+
+    private String toWrapperType(String primitiveType) {
+        return switch (primitiveType) {
+            case "int" -> "Integer";
+            case "float" -> "Float"; 
+            case "boolean" -> "Boolean";
+            default -> primitiveType; // String, Object, etc
+        };
+    }
+
+    private String arrowType(ArrowType arrow) {
+        
+        return switch (arrow.from()) {
+            case TypeNode fromType -> {
+                String from = toWrapperType(generateType(fromType));
+                String to = toWrapperType(generateType(arrow.to()));
+                
+                if (from.equals("void")) 
+                    yield "Supplier<" + to + ">";
+                else 
+                    yield "Function<" + from + ", " + to + ">";
+            }
+            
+            case TupleType tuple -> {
+                List<String> paramTypes = tuple.types().stream()
+                    .map(this::generateType)
+                    .map(this::toWrapperType)
+                    .collect(Collectors.toList());
+                String returnType = toWrapperType(generateType(arrow.to()));
+                
+                yield switch (paramTypes.size()) {
+                    case 0 -> "Supplier<" + returnType + ">";
+                    case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
+                    case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
+                    default -> {
+                        String customName = "Function" + paramTypes.size();
+                        generateFunctionInterface(paramTypes.size());
+                        yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
+                    }
+                };
+            }
+            
+            default -> "Function<Object, Object>";
+        };
+    }
+
+    private void generateFunctionInterface(int paramCount) {
+        
+        String interfaceName = "Function" + paramCount;
+        if (methodDefinitions.toString().contains(interfaceName)) return;
+        
+        List<String> typeParams = new ArrayList<>();
+        for (int i = 0; i < paramCount; i++) {
+            typeParams.add("T" + (i + 1));
+        }
+        typeParams.add("R");
+        
+        String interfaceDef = String.format("""
+            @FunctionalInterface
+            interface %s<%s> {
+                R apply(%s);
+            }
+            """, interfaceName, String.join(", ", typeParams),
+            typeParams.stream()
+                .limit(paramCount)
+                .map(t -> t + " arg" + t.charAt(1))
+                .collect(Collectors.joining(", ")));
+        
+        methodDefinitions.insert(0, "    " + interfaceDef + "\n");
+    }
+    
     
     private String escapeString(String value) {
         return value.replace("\\", "\\\\")
