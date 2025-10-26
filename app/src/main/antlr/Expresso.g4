@@ -46,12 +46,12 @@ expr: <assoc=right> expr POW expr                    # Pow
 matchRule: pattern ('if' expr)? '->' expr NEWLINE+;
 
 pattern
-    : native_pattern
-    | data_pattern
+    : data_pattern
+    | native_pattern
 ;
 
 data_pattern
-    : ID ('(' pattern (',' pattern)* ')')?  # DataPattern
+    : ID ('(' pattern (',' pattern)* ')')?  # DataOrVariablePattern
 ;
 
 native_pattern
@@ -60,7 +60,6 @@ native_pattern
     | INT             # IntPattern
     | STRING          # StringPattern
     | BOOLEAN         # BooleanPattern
-    | ID              # VariablePattern
 ;
 
 lambdaParams: '(' ')'          

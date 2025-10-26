@@ -4,9 +4,11 @@ import una.paradigmas.ast.ExpressoParser.*;
 import una.paradigmas.node.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     private final TypeAstBuilder typeAstBuilder = new TypeAstBuilder();
+    private final Set<String> dataSymbols = new HashSet<>();
 
     @Override
     public Program visitProgram(ProgramContext ctx) {
@@ -198,6 +201,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
             ? ctx.constructorList().constructor().stream()
                 .map(constructorCtx -> {
                     String constructorId = constructorCtx.ID().getText();
+                    dataSymbols.add(constructorId);
                     
                     List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
                         ? constructorCtx.arguments().argument().stream()
@@ -263,20 +267,20 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitDataPattern(DataPatternContext ctx) {
+    public Node visitDataOrVariablePattern(DataOrVariablePatternContext ctx) {
         String name = ctx.ID().getText();
-    
+        
         List<Node> subPatterns = Optional.ofNullable(ctx.pattern())
-            .filter(list -> !list.isEmpty())
-            .map(list -> list.stream()
-                .map(this::visit)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()))
-            .orElseGet(List::of);
-    
-        System.out.println("DataPattern: " + name + " with subPatterns: " + subPatterns);
-        return new DataPattern(name, subPatterns);
-    }    
+            .orElse(List.of())
+            .stream()
+            .map(this::visit)
+            .map(p -> (Pattern) p)
+            .collect(Collectors.toList());
+        
+        return dataSymbols.contains(name) 
+            ? new DataPattern(name, subPatterns) 
+            : new VariablePattern(name);
+    }
 
     @Override
     public Node visitIntPattern(IntPatternContext ctx) {
@@ -302,11 +306,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitNonePattern(NonePatternContext ctx) {
         return new NonePattern();
-    }
-
-    @Override
-    public Node visitVariablePattern(VariablePatternContext ctx) {
-        return new VariablePattern(ctx.ID().getText());
     }
 
     @Override
