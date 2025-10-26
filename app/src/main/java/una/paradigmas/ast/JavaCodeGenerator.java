@@ -1,6 +1,7 @@
 package una.paradigmas.ast;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -404,20 +405,27 @@ public class JavaCodeGenerator {
     }
     
     private String lambdaType(Node expr, Node explicitType) {
-        imports.add("java.util.function.*");
+    imports.add("java.util.function.*");
 
-        if (explicitType instanceof ArrowType arrowType) 
-            return arrowType(arrowType); // usa el tipo declarado
-        
+    if (explicitType instanceof ArrowType arrowType) 
+        return arrowType(arrowType);
+    
         return switch (expr) {
             case Lambda l -> {
                 int argCount = l.args().size();
-                yield switch (argCount) {
-                    case 0 -> "Supplier<Object>";
-                    case 1 -> "Function<Object, Object>";
-                    case 2 -> "BiFunction<Object, Object, Object>";
-                    default -> "Function" + argCount + "<Object, Object>"; // o interfaz custom
-                };
+                if (argCount <= 2) {
+                    yield switch (argCount) {
+                        case 0 -> "Supplier<Object>";
+                        case 1 -> "Function<Object, Object>";
+                        case 2 -> "BiFunction<Object, Object, Object>";
+                        default -> "Object";
+                    };
+                } else {
+                    generateFunctionInterface(argCount);
+                    String typeParams = Collections.nCopies(argCount + 1, "Object")
+                        .stream().collect(Collectors.joining(", "));
+                    yield "Function" + argCount + "<" + typeParams + ">";
+                }
             }
             default -> "Object";
         };
@@ -469,9 +477,8 @@ public class JavaCodeGenerator {
     }
 
     private void generateFunctionInterface(int paramCount) {
-        
         String interfaceName = "Function" + paramCount;
-        if (methodDefinitions.toString().contains(interfaceName)) return;
+        if (methodDefinitions.toString().contains("interface " + interfaceName)) return;
         
         List<String> typeParams = new ArrayList<>();
         for (int i = 0; i < paramCount; i++) {
@@ -487,12 +494,11 @@ public class JavaCodeGenerator {
             """, interfaceName, String.join(", ", typeParams),
             typeParams.stream()
                 .limit(paramCount)
-                .map(t -> t + " arg" + t.charAt(1))
+                .map(t -> t + " arg" + (typeParams.indexOf(t) + 1))
                 .collect(Collectors.joining(", ")));
         
         methodDefinitions.insert(0, "    " + interfaceDef + "\n");
     }
-    
     
     private String escapeString(String value) {
         return value.replace("\\", "\\\\")

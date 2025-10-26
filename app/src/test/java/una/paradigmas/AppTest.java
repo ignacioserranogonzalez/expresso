@@ -311,9 +311,9 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println("Tarea 18 - Arrow y Tuple");
 
         String input = """
-            let lambdaArrow:((int, float, int) -> float) = (x, y, z) -> x + y + z
-            let lambda:(int -> int) = x -> x + 1
-            let lambdaBinary = (x, y) -> x
+            //let lambdaArrow:((int, float, int) -> float) = (x, y, z) -> x + y + z
+            //let lambda:(int -> int) = x -> x + 1
+            let lambdaCustom = (x, y, z, w) -> x
         """;
 
         testExpressoProgram(input, "ArrowTuple");
