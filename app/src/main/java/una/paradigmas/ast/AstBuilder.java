@@ -176,6 +176,17 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         Node expr = visit(ctx.expr());
         return new Print(expr);
     }
+    
+         @Override
+    public Node visitNone(NoneContext ctx) {
+        return new NoneLiteral();
+    }
+    
+    @Override
+    public Node visitPrintExpr(PrintExprContext ctx) {
+        Node expr = visit(ctx.expr());
+        return new PrintExpr(expr);
+    }
 
     @Override
     public Node visitFunDecl(FunDeclContext ctx) {

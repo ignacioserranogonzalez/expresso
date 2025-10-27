@@ -51,4 +51,6 @@ public interface Visitor<T> {
     T visitStringPattern(StringPattern stringPattern);
     T visitBooleanPattern(BooleanPattern booleanPattern);
     T visitNonePattern(NonePattern nonePattern);
+     T visitNone(NoneLiteral noneLiteral);
+    T visitPrintExpr(PrintExpr printExpr);
 }

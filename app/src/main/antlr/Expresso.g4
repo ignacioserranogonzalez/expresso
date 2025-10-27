@@ -5,11 +5,11 @@ program: stat* EOF;
 
 // statements
 stat: NEWLINE                                                               # blank
-    | expr NEWLINE                                                          # expression
     | LET ID (':' type)? ASSIGN expr NEWLINE                                # letDecl
     | PRINT '(' expr ')' NEWLINE                                            # print
     | FUN ID '(' paramList? ')' ':' type '=' expr NEWLINE                   # funDecl
     | DATA ID ASSIGN '{' NEWLINE* constructorList NEWLINE* '}' NEWLINE      # dataDecl
+    | expr NEWLINE                                                          # expression
 ;
 
 paramList: param (',' param)*;
@@ -35,12 +35,14 @@ expr: <assoc=right> expr POW expr                    # Pow
     | lambdaParams LAMBDA expr                       # Lambda
     | ID '(' argList? ')'                            # Call
     | '^' constructorExpr                            # ConstructorInvocation
+    | PRINT '(' expr ')'                             # PrintExpr
     | '(' expr ')'                                   # Paren
     | '(' expr (',' expr)+ ')'                       # TupleLiteral
     | INT                                            # Int
     | FLOAT                                          # Float
     | BOOLEAN                                        # Boolean
     | STRING                                         # String
+    | NONE                                           # None 
     | ID                                             # Id
 ;
 
@@ -80,6 +82,7 @@ ASSIGN  : '=';
 PRINT   : 'print';
 FUN     : 'fun';
 LAMBDA  : '->';
+NONE    : 'none';
 
 INT     : [0-9]+;
 FLOAT   : [0-9]+ '.' [0-9]* | '.' [0-9]+;
