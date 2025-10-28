@@ -335,4 +335,32 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitBlank(BlankContext ctx) {
         return null;
     }
+
+    @Override
+    public Node visitNotExpr(ExpressoParser.NotExprContext ctx) {
+        Node expr = visit(ctx.expr());
+        return new NotOp(expr);
+    }
+
+    @Override
+    public Node visitRelOp(ExpressoParser.RelOpContext ctx) {
+        Node left = visit(ctx.expr(0));
+        String op = ctx.getChild(1).getText(); // <, <=, ==, etc.
+        Node right = visit(ctx.expr(1));
+        return new RelOp(left, op, right);
+    }
+
+    @Override
+    public Node visitAndOp(ExpressoParser.AndOpContext ctx) {
+        Node left = visit(ctx.expr(0));
+        Node right = visit(ctx.expr(1));
+        return new BoolOp(left, "&&", right);
+    }
+
+    @Override
+    public Node visitOrOp(ExpressoParser.OrOpContext ctx) {
+        Node left = visit(ctx.expr(0));
+        Node right = visit(ctx.expr(1));
+        return new BoolOp(left, "||", right);
+    }
 }
