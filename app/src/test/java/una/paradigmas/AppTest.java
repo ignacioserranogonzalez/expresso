@@ -331,4 +331,50 @@ import org.antlr.v4.runtime.CommonTokenStream;
         """;
         testExpressoProgram(input, "HelloWorld7");
     }
+
+    @Test
+    public void testBooleanLogic() {
+        System.out.println("====== Test BooleanLogic.expresso (Tarea 21) ======");
+
+        String input = """
+            // BooleanLogic.expresso
+            // Prueba de operadores relacionales, booleanos y ternario
+            // Cumple SPEC Final (7/10/2025) - Tarea 21
+            
+            let a = 5
+            let b = 10
+            let t = true
+            let f = false
+            
+            // === Operadores relacionales ===
+            print(a < b)      // true
+            print(a > b)      // false
+            print(a <= 5)     // true
+            print(a >= 5)     // true
+            print(a == 5)     // true
+            print(a != 0)     // true
+            
+            // === Operadores booleanos ===
+            print(t && a < 10)   // true
+            print(f || b > 5)    // true
+            print(!t)            // false
+            print(t || f)        // true
+            print(t && f)        // false
+            
+            // === Ternario con int (como en Mediano) ===
+            print(a != 0 ? "ok" : "error")   // ok
+            print(0 ? 1 : 0)                 // 0
+            
+            // === Ternario con boolean (nuevo en Final) ===
+            print(t ? "yes" : "no")          // yes
+            print(f ? "yes" : "no")          // no
+            
+            // === Combinación compleja ===
+            print(a < b && t || a == 0)      // true
+            print(!f && b >= 10)             // true
+            print(a <= 5 ? b * 2 : b / 2)    // 20
+            """;
+
+        testExpressoProgram(input, "BooleanLogic");
+    }
 }

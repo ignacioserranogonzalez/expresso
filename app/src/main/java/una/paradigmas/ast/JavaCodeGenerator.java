@@ -39,6 +39,8 @@ public class JavaCodeGenerator {
     private final List<DataDecl> dataDeclarations = new ArrayList<>();
     private final Set<String> functionNames = new HashSet<>(); // tabla de simbolos simple ??
 
+    private boolean inLambdaContext = false;
+
      public JavaCodeGenerator(String className) {
         this.className = capitalizeFirst(className);
     }
@@ -196,7 +198,18 @@ public class JavaCodeGenerator {
         codeBuilder.append("        System.out.println(arg);\n");
         codeBuilder.append("        return null;\n");
         codeBuilder.append("    }\n\n");
-    }
+        }
+        // toBoolean convierte Object a boolean de forma segura
+        if (extraMethods.contains("toBoolean")) {
+            codeBuilder.append("    public static boolean toBoolean(Object obj) {\n");
+            codeBuilder.append("        if (obj instanceof Boolean) {\n");
+            codeBuilder.append("            return (Boolean) obj;\n");
+            codeBuilder.append("        } else if (obj instanceof Number) {\n");
+            codeBuilder.append("            return ((Number) obj).intValue() != 0;\n");
+            codeBuilder.append("        }\n");
+            codeBuilder.append("        return obj != null;\n");
+            codeBuilder.append("    }\n\n");
+        }
     }
 
     private void generateMainMethodSection(StringBuilder codeBuilder) {
@@ -213,7 +226,7 @@ public class JavaCodeGenerator {
                 String valueCode = generateExpression(value);
                 String varType = switch (value) {
                     case Lambda _ -> lambdaType(value, typeNode);
-                    default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
+                    default -> typeNode != null ? generateType(typeNode) : inferType(value);
                 };
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }                                 
@@ -284,6 +297,15 @@ public class JavaCodeGenerator {
 
             case Paren(var value) ->
                 "(" + generateExpression(value) + ")";
+            
+            case RelOp(var left, var op, var right) ->
+                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+
+            case BoolOp(var left, var op, var right) ->
+                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+
+            case NotOp(var expr3) ->
+                "!" + generateExpression(expr3);
 
             case TupleLiteral(var elements) -> {
                 String elementsCode = elements.stream()
@@ -297,10 +319,30 @@ public class JavaCodeGenerator {
                 } else yield "new Object[]{" + elementsCode + "}";
             }
 
-            case TernaryCondition(var condition, var value1, var value2) -> 
-                "(" + generateExpression(condition) + " != 0 ? " 
-                    + generateExpression(value1) + " : " 
-                    + generateExpression(value2) + ")";
+            case TernaryCondition(var condition, var value1, var value2) -> {
+                String condCode = generateExpression(condition);
+                String condType = inferType(condition);
+                
+                String conditionExpr;
+                if (inLambdaContext) {
+                    // En contexto de lambda, siempre usar toBoolean para seguridad
+                    conditionExpr = "toBoolean(" + condCode + ")";
+                    extraMethods.add("toBoolean");
+                } else if ("boolean".equals(condType)) {
+                    // Fuera de lambdas, si es boolean usar directamente
+                    conditionExpr = condCode;
+                } else if ("int".equals(condType) || "float".equals(condType)) {
+                    // Fuera de lambdas, si es numérico usar != 0
+                    conditionExpr = condCode + " != 0";
+                } else {
+                    // Para otros casos, usar toBoolean
+                    conditionExpr = "toBoolean(" + condCode + ")";
+                    extraMethods.add("toBoolean");
+                }
+                
+                yield "(" + conditionExpr + " ? " + generateExpression(value1) 
+                    + " : " + generateExpression(value2) + ")";
+            }
 
             case Lambda(var args, var body) -> {
                 imports.add("java.util.function.*");
@@ -310,7 +352,13 @@ public class JavaCodeGenerator {
                     .map(s -> args.size() == 1 ? s : "(" + s + ")")
                     .orElse("()");
                 
-                yield params + " -> " + generateExpression(body);
+                // Establecer contexto de lambda
+                boolean previousContext = inLambdaContext;
+                inLambdaContext = true;
+                String bodyCode = generateExpression(body);
+                inLambdaContext = previousContext;
+                
+                yield params + " -> " + bodyCode;
             }
 
             case Call(var id, var paramList) -> {
@@ -319,14 +367,18 @@ public class JavaCodeGenerator {
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
                 
-                    if (Character.isUpperCase(id.value().charAt(0))) {
-                        yield "new " + capitalizeFirst(id.value()) + "(" + params + ")";
-                    }
-                    else if (functionNames.contains(id.value())) {
-                        yield id.value() + "(" + params + ")";
-                    } else {
-                        yield generateExpression(id) + ".apply(" + params + ")";
-                    }
+                // VERIFICACIÓN CORREGIDA: primero si es función definida
+                if (functionNames.contains(id.value())) {
+                    yield id.value() + "(" + params + ")";
+                }
+                // Luego si es constructor (empieza con mayúscula)
+                else if (Character.isUpperCase(id.value().charAt(0))) {
+                    yield "new " + capitalizeFirst(id.value()) + "(" + params + ")";
+                } 
+                // Finalmente, es una lambda o función no definida
+                else {
+                    yield generateExpression(id) + ".apply(" + params + ")";
+                }
             }
 
             case ConstructorInvocation(var id, var args) -> {
@@ -349,15 +401,15 @@ public class JavaCodeGenerator {
                 sb.append("        }");
                 yield sb.toString();
             }
+
             case NoneLiteral() -> "null"; 
 
-             case PrintExpr(Node innerExpr) -> {
-            extraMethods.add("printAndReturnNull");
-            String exprCode = generateExpression(innerExpr);
-            yield "printAndReturnNull(" + exprCode + ")";
-        }
+            case PrintExpr(Node innerExpr) -> {
+                extraMethods.add("printAndReturnNull");
+                String exprCode = generateExpression(innerExpr);
+                yield "printAndReturnNull(" + exprCode + ")";
+            }
             
-
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
     }
@@ -411,12 +463,21 @@ public class JavaCodeGenerator {
         };
     }
     
-    private String inferTypeFromValue(Node value) {
+    //Se cambio el nombre de la funcion inferTypeFromValue por inferType para reflejar que infiere de cualquier nodo, no solo "valores"
+    private String inferType(Node value) {
         return switch (value) {
             case IntLiteral _ -> "int";
             case FloatLiteral _ -> "float";
             case BooleanLiteral _ -> "boolean";
             case StringLiteral _ -> "String";
+            case RelOp _ -> "boolean";
+            case BoolOp _ -> "boolean";
+            case NotOp _ -> "boolean";
+            case Id _ -> {
+                // Para identificadores, necesitamos saber si son booleanos
+                // Por ahora asumimos Object, pero podríamos mejorar con tabla de símbolos
+                yield "Object";
+            }
             case Lambda _ -> lambdaType(value, null);
             default -> "Object";
         };
