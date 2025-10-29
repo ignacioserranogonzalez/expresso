@@ -113,13 +113,7 @@ public class JavaCodeGenerator {
     }
 
     private void generateMethodDefinitions(Program ast) {
-        List<String> functionStatements = ast.statements().stream()
-            .filter(statement -> statement instanceof Fun)
-            .map(statement -> generateStatement(statement))
-            .filter(line -> !line.isBlank())
-            .toList();
-            
-        functionStatements.forEach(line -> 
+        symbolTable.getFunctionNames().forEach(line -> 
             methodDefinitions.append("    ").append(line).append("\n"));
     }
 
