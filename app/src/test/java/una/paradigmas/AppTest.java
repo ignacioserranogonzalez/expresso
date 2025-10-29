@@ -88,7 +88,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
                       "print(x)\n" +
                       "let y = 3\n" +
                       "print(y)\n" +
-                      "let f = (w, z) -> z ** w + w*z + 1\n" +
+                      "let f:((int, int) -> int) = (w, z) -> z ** w + w*z + 1\n" +
                       "print(f(x, y)) // Expected 748\n";
         
         testExpressoProgram(input, "HelloWorld1");
@@ -105,14 +105,14 @@ import org.antlr.v4.runtime.CommonTokenStream;
                       "  @author hooNous\n" +
                       "  @since Oct 6th, 2025\n" +
                       "*/\n\n" +
-                      "let isZero = x -> x ? 0 : 1\n" +
+                      "let isZero :(int -> int) = x -> x ? 0 : 1\n" +
                       "let TRUE  = 1\n" +
                       "let FALSE = 0\n\n" +
-                      "let isTrue = x -> isZero(x) ? FALSE : TRUE\n\n" +
-                      "let NOT = x -> x ? 0 : 1\n\n" +
-                      "let OR =  (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
-                      "let AND = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
-                      "let XOR = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
+                      "let isTrue :(int -> int) = x -> isZero(x) ? FALSE : TRUE\n\n" +
+                      "let NOT :(int -> int) = x -> x ? 0 : 1\n\n" +
+                      "let OR :((int, int) -> int) = (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
+                      "let AND :((int, int) -> int) = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
+                      "let XOR :((int, int) -> int) = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
                       "print(XOR(TRUE, TRUE))   // Expected 0\n" +
                       "print(XOR(TRUE, FALSE))  // Expected 1\n" +
                       "print(XOR(FALSE, TRUE))  // Expected 1\n" +

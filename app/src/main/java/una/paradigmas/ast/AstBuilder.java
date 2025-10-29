@@ -1,13 +1,12 @@
 package una.paradigmas.ast;
 
 import una.paradigmas.ast.ExpressoParser.*;
+import una.paradigmas.ast.SymbolTable.SymbolType;
 import una.paradigmas.node.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -30,13 +29,14 @@ import java.util.stream.Collectors;
 public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     private final TypeAstBuilder typeAstBuilder = new TypeAstBuilder();
-    private final Set<String> dataSymbols = new HashSet<>();
+    // private final Set<String> dataSymbols = new HashSet<>();
+    private final SymbolTable symbolTable = new SymbolTable();
 
     @Override
     public Program visitProgram(ProgramContext ctx) {
         List<Node> statements = ctx.stat().stream().map(this::visit).filter(expr -> expr != null)
                                     .collect(Collectors.toList());
-        return new Program(statements);
+        return new Program(statements, symbolTable);
     }
 
     @Override
@@ -190,17 +190,21 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitFunDecl(FunDeclContext ctx) {
-        Id name = new Id(ctx.ID().getText());
+        String name = ctx.ID().getText();
+        symbolTable.addSymbol(name, SymbolType.FUNCTION);
         
         // parametros
         List<Fun.Param> params = List.of();
         if (ctx.paramList() != null) {
             params = ctx.paramList().param().stream()
                 .map(paramCtx -> {
-                    Id paramId = new Id(paramCtx.ID().getText());
+                    String paramId = paramCtx.ID().getText();
+                    symbolTable.addSymbol(paramId, SymbolType.PARAMETER);
+                    
                     Node paramType = paramCtx.type() != null ? 
                         typeAstBuilder.visit(paramCtx.type()) : new TypeNode("any");
-                    return new Fun.Param(paramId, paramType);
+
+                    return new Fun.Param(new Id(paramId), paramType);
                 })
                 .collect(Collectors.toList());
         }
@@ -208,18 +212,19 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         Node returnType = typeAstBuilder.visit(ctx.type());
         Node body = visit(ctx.expr());
         
-        return new Fun(name, params, returnType, body);
+        return new Fun(new Id(name), params, returnType, body);
     }
 
     @Override
     public Node visitDataDecl(DataDeclContext ctx) {
         String id = ctx.ID().getText();
+        symbolTable.addSymbol(id, SymbolType.DATA_TYPE);
         
         List<DataDecl.Constructor> constructors = ctx.constructorList() != null
             ? ctx.constructorList().constructor().stream()
                 .map(constructorCtx -> {
                     String constructorId = constructorCtx.ID().getText();
-                    dataSymbols.add(constructorId);
+                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR);
                     
                     List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
                         ? constructorCtx.arguments().argument().stream()
@@ -295,7 +300,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
             .map(p -> (Pattern) p)
             .collect(Collectors.toList());
         
-        return dataSymbols.contains(name) 
+        return symbolTable.isConstructor(name) 
             ? new DataPattern(name, subPatterns) 
             : new VariablePattern(name);
     }

@@ -1,7 +1,9 @@
 package una.paradigmas.node;
 
 import java.util.List;
+import java.util.Set;
 
+import una.paradigmas.ast.SymbolTable;
 import una.paradigmas.ast.Visitor;
 
 /**
@@ -18,9 +20,10 @@ import una.paradigmas.ast.Visitor;
  * Codigo de grupo: 02-1PM
  */
 
-public record Program(List<Node> statements) implements Node {
+public record Program(List<Node> statements, SymbolTable symbolTable) implements Node {
+
     public Program {
-        statements = List.copyOf(statements); // Inmutabilidad
+        statements = List.copyOf(statements);
     }
 
     @Override

@@ -36,8 +36,8 @@ public class JavaCodeGenerator {
     private final Set<String> extraMethods = new HashSet<>();
     private final StringBuilder constructorTypes = new StringBuilder();
     private final StringBuilder mainCodeBuilder = new StringBuilder();
-    private final List<DataDecl> dataDeclarations = new ArrayList<>();
-    private final Set<String> functionNames = new HashSet<>(); // tabla de simbolos simple ??
+    private final List<DataDecl> dataDeclarations = new ArrayList<>(); // revisar
+    private SymbolTable symbolTable = new SymbolTable();
 
      public JavaCodeGenerator(String className) {
         this.className = capitalizeFirst(className);
@@ -45,10 +45,9 @@ public class JavaCodeGenerator {
 
     public String generate(Program ast) {
         resetBuilders();
-        extractDataDeclarations(ast);
+        this.symbolTable = ast.symbolTable();
 
-        collectFunctionNames(ast);
-        
+        extractDataDeclarations(ast);
         dataDeclarations.forEach(dataDecl -> 
             generateDataDecl(dataDecl.id(), dataDecl.constructors()));
 
@@ -65,14 +64,6 @@ public class JavaCodeGenerator {
         mainCodeBuilder.setLength(0);
         extraMethods.clear();
         dataDeclarations.clear();
-    }
-
-    private void collectFunctionNames(Program ast) {
-        functionNames.clear();
-        ast.statements().stream()
-            .filter(statement -> statement instanceof Fun)
-            .map(statement -> (Fun) statement)
-            .forEach(fun -> functionNames.add(fun.name().value()));
     }
 
     private void extractDataDeclarations(Program ast) {
@@ -319,10 +310,10 @@ public class JavaCodeGenerator {
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
                 
-                    if (Character.isUpperCase(id.value().charAt(0))) {
+                    if (symbolTable.isConstructor(id.value())) {
                         yield "new " + capitalizeFirst(id.value()) + "(" + params + ")";
                     }
-                    else if (functionNames.contains(id.value())) {
+                    else if (symbolTable.getFunctionNames().contains(id.value())) {
                         yield id.value() + "(" + params + ")";
                     } else {
                         yield generateExpression(id) + ".apply(" + params + ")";
