@@ -214,20 +214,19 @@ public class JavaCodeGenerator {
                 yield "print(" + generateExpression(expr) + ");";
             }
 
-             case PrintExpr(var expr) -> {
-            extraMethods.add("printAndReturnNull");
-            yield "printAndReturnNull(" + generateExpression(expr) + ");";
-        }
+            case PrintExpr(var expr) -> {
+                extraMethods.add("printAndReturnNull");
+                yield "printAndReturnNull(" + generateExpression(expr) + ");";
+            }
 
             case Fun(var name, var params, var returnType, var body) -> {
                 // parametros con tipos
                 String paramDecls = params.stream()
-                    .map(param -> {
-                        String paramType = generateType(param.type());
-                        return paramType + " " + generateExpression(param.id());
-                    })
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
+                .map(param -> {
+                    String paramType = generateType(param.type());
+                    return paramType + " " + generateExpression(param.id());
+                })
+                .collect(Collectors.joining(", "));
                 
                 String returnTypeJava = generateType(returnType);
                 String bodyCode = generateExpression(body);
