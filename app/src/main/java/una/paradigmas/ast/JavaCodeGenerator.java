@@ -249,7 +249,7 @@ public class JavaCodeGenerator {
     private String generateExpression(Node expr) {
         return switch (expr) {
             case IntLiteral(var value) -> Integer.toString(value);
-            case FloatLiteral(var value) -> value + "f";
+            case FloatLiteral(var value) -> Float.toString(value);
             case BooleanLiteral(var value) -> Boolean.toString(value);
             case StringLiteral(var value) -> "\"" + escapeString(value) + "\"";
 
@@ -261,10 +261,10 @@ public class JavaCodeGenerator {
             }
 
             case MultDiv(var left, var op, var right) ->
-                generateExpression(left) + " " + op + " " + generateExpression(right);
+                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
 
             case AddSub(var left, var op, var right) ->
-                generateExpression(left) + " " + op + " " + generateExpression(right);
+                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
 
             case UnaryOp(var op, var expr2) ->
                 op + "(" + generateExpression(expr2) + ")";
@@ -362,12 +362,17 @@ public class JavaCodeGenerator {
             }
             case NoneLiteral() -> "null"; 
 
-             case PrintExpr(Node innerExpr) -> {
-            extraMethods.add("printAndReturnNull");
-            String exprCode = generateExpression(innerExpr);
-            yield "printAndReturnNull(" + exprCode + ")";
-        }
-            
+            case PrintExpr(Node innerExpr) -> {
+                extraMethods.add("printAndReturnNull");
+                String exprCode = generateExpression(innerExpr);
+                yield "printAndReturnNull(" + exprCode + ")";
+            }
+
+            case Cast(var expr4, var typeNode) -> {
+                String exprCode = generateExpression(expr4);
+                String javaType = generateType(typeNode);
+                yield "( (" + javaType + ") " + exprCode + ")";
+            }
 
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };
