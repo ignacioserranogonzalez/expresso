@@ -183,11 +183,23 @@ public class JavaCodeGenerator {
             codeBuilder.append("    }\n\n");
         }
          if (extraMethods.contains("printAndReturnNull")) {
-        codeBuilder.append("    public static Object printAndReturnNull(Object arg) {\n");
-        codeBuilder.append("        System.out.println(arg);\n");
-        codeBuilder.append("        return null;\n");
-        codeBuilder.append("    }\n\n");
-    }
+            codeBuilder.append("    public static Object printAndReturnNull(Object arg) {\n");
+            codeBuilder.append("        System.out.println(arg);\n");
+            codeBuilder.append("        return null;\n");
+            codeBuilder.append("    }\n\n");
+        }
+        // toBoolean convierte Object a boolean de forma segura
+        if (extraMethods.contains("toBoolean")) {
+            codeBuilder.append("    public static boolean toBoolean(Object obj) {\n");
+            codeBuilder.append("        if (obj instanceof Boolean) {\n");
+            codeBuilder.append("            return (Boolean) obj;\n");
+            codeBuilder.append("        } else if (obj instanceof Number) {\n");
+            codeBuilder.append("            return ((Number) obj).intValue() != 0;\n");
+            codeBuilder.append("        }\n");
+            codeBuilder.append("        return obj != null;\n");
+            codeBuilder.append("    }\n\n");
+        }
+    
     }
 
     private void generateMainMethodSection(StringBuilder codeBuilder) {
@@ -276,6 +288,15 @@ public class JavaCodeGenerator {
             case Paren(var value) ->
                 "(" + generateExpression(value) + ")";
 
+            case RelOp(var left, var op, var right) ->
+                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+
+            case BoolOp(var left, var op, var right) ->
+                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+
+            case NotOp(var expr3) ->
+                "!" + generateExpression(expr3);
+
             case TupleLiteral(var elements) -> {
                 String elementsCode = elements.stream()
                     .map(this::generateExpression)
@@ -288,11 +309,26 @@ public class JavaCodeGenerator {
                 } else yield "new Object[]{" + elementsCode + "}";
             }
 
-            case TernaryCondition(var condition, var value1, var value2) -> 
-                "(" + generateExpression(condition) + " != 0 ? " 
-                    + generateExpression(value1) + " : " 
-                    + generateExpression(value2) + ")";
-
+            case TernaryCondition(var condition, var value1, var value2) -> {
+                String condCode = generateExpression(condition);
+                String condType = inferTypeFromValue(condition);
+                
+                String conditionExpr;
+                if ("boolean".equals(condType)) {
+                    // Tarea 11: Si es boolean, usar directamente (SPEC Final)
+                    conditionExpr = condCode;
+                } else if ("int".equals(condType) || "float".equals(condType)) {
+                    // Tarea 11: Si es numérico, usar != 0 (SPEC Mediano)
+                    conditionExpr = condCode + " != 0";
+                } else {
+                    // Para Object (lambdas) u otros tipos, usar conversión segura
+                    conditionExpr = "toBoolean(" + condCode + ")";
+                    extraMethods.add("toBoolean");
+                }
+                
+                yield "(" + conditionExpr + " ? " + generateExpression(value1) 
+                    + " : " + generateExpression(value2) + ")";
+            }
             case Lambda(var args, var body) -> {
                 imports.add("java.util.function.*");
                 String params = args.stream()
@@ -300,7 +336,7 @@ public class JavaCodeGenerator {
                     .reduce((a, b) -> a + ", " + b)
                     .map(s -> args.size() == 1 ? s : "(" + s + ")")
                     .orElse("()");
-                
+
                 yield params + " -> " + generateExpression(body);
             }
 
@@ -408,7 +444,18 @@ public class JavaCodeGenerator {
             case FloatLiteral _ -> "float";
             case BooleanLiteral _ -> "boolean";
             case StringLiteral _ -> "String";
+            case RelOp _ -> "boolean";
+            case BoolOp _ -> "boolean";
+            case NotOp _ -> "boolean";
             case Lambda _ -> lambdaType(value, null);
+            case Id id -> {
+            // Usar symbolTable para obtener el tipo real del identificador
+            if (symbolTable.contains(id.value())) {
+                    // Podríamos mejorar esto con información de tipos más específica
+                    yield "Object"; // Por ahora asumimos Object para variables
+                }
+                yield "Object";
+            }
             default -> "Object";
         };
     }

@@ -1,0 +1,46 @@
+// BooleanLogic.expresso
+// Prueba completa de Tarea 21: Operadores relacionales y booleanos
+// Cumple SPEC Final (7/10/2025) - Punto 10 y 11
+// Compatible con SPEC Mediano (24/9/2025)
+
+// === Declaración de variables ===
+let a = 5
+let b = 10
+let t = true
+let f = false
+
+// === Operadores relacionales ===
+print(a < b)      // true
+print(a > b)      // false
+print(a <= 5)     // true
+print(a >= 5)     // true
+print(a == 5)     // true
+print(a != 0)     // true
+
+// === Operadores booleanos ===
+print(t && a < 10)   // true
+print(f || b > 5)    // true
+print(!t)            // false
+print(t || f)        // true
+print(t && f)        // false
+
+// === Ternario con int (como en SPEC Mediano) ===
+print(a != 0 ? "ok" : "error")   // ok
+print(0 ? 1 : 0)                 // 0
+
+// === Ternario con boolean (nuevo en SPEC Final) ===
+print(t ? "yes" : "no")          // yes
+print(f ? "yes" : "no")          // no
+
+// === Expresiones complejas con precedencia correcta ===
+print(a < b && t || a == 0)      // true  → ((a < b) && t) || (a == 0)
+print(!f && b >= 10)             // true  → (!f) && (b >= 10)
+print(a <= 5 ? b * 2 : b / 2)    // 20    → (a <= 5) ? (b * 2) : (b / 2)
+
+// === Compatibilidad con Mediano: uso de int en ternario ===
+let isZero = x -> x ? 0 : 1
+print(isZero(0))   // 0
+print(isZero(5))   // 1
+
+// === Fin del archivo ===
+
