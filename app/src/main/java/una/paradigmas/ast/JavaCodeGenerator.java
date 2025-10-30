@@ -182,12 +182,12 @@ public class JavaCodeGenerator {
             codeBuilder.append("        System.out.println(arg);\n");
             codeBuilder.append("    }\n\n");
         }
-         if (extraMethods.contains("printAndReturnNull")) {
-        codeBuilder.append("    public static Object printAndReturnNull(Object arg) {\n");
-        codeBuilder.append("        System.out.println(arg);\n");
-        codeBuilder.append("        return null;\n");
-        codeBuilder.append("    }\n\n");
-    }
+        if (extraMethods.contains("printAndReturnNull")) {
+            codeBuilder.append("    public static Object printAndReturnNull(Object arg) {\n");
+            codeBuilder.append("        System.out.println(arg);\n");
+            codeBuilder.append("        return null;\n");
+            codeBuilder.append("    }\n\n");
+        }
     }
 
     private void generateMainMethodSection(StringBuilder codeBuilder) {
@@ -274,6 +274,15 @@ public class JavaCodeGenerator {
 
             case Paren(var value) ->
                 "(" + generateExpression(value) + ")";
+            
+            case RelOp(var left, var op, var right) ->
+                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+
+            case BoolOp(var left, var op, var right) ->
+                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+
+            case NotOp(var expr3) ->
+                "!" + generateExpression(expr3);
 
             case TupleLiteral(var elements) -> {
                 String elementsCode = elements.stream()
@@ -287,10 +296,22 @@ public class JavaCodeGenerator {
                 } else yield "new Object[]{" + elementsCode + "}";
             }
 
-            case TernaryCondition(var condition, var value1, var value2) -> 
-                "(" + generateExpression(condition) + " != 0 ? " 
-                    + generateExpression(value1) + " : " 
-                    + generateExpression(value2) + ")";
+            case TernaryCondition(var condition, var value1, var value2) -> {
+                String condCode = generateExpression(condition);
+                String condType = inferTypeFromValue(condition);
+                
+                String conditionExpr;
+                if ("boolean".equals(condType)) {
+                    // Si es boolean, usar directamente
+                    conditionExpr = condCode;
+                } else {
+                    // Para cualquier otro tipo (int, float, etc.), usar != 0
+                    conditionExpr = condCode + " != 0";
+                }
+                
+                yield "(" + conditionExpr + " ? " + generateExpression(value1) 
+                    + " : " + generateExpression(value2) + ")";
+            }
 
             case Lambda(var args, var body) -> {
                 imports.add("java.util.function.*");
@@ -407,7 +428,11 @@ public class JavaCodeGenerator {
             case FloatLiteral _ -> "float";
             case BooleanLiteral _ -> "boolean";
             case StringLiteral _ -> "String";
+            case RelOp _ -> "boolean";
+            case BoolOp _ -> "boolean";
+            case NotOp _ -> "boolean";
             case Lambda _ -> lambdaType(value, null);
+
             default -> "Object";
         };
     }
