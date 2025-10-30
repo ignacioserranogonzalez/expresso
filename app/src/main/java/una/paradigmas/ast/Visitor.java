@@ -56,4 +56,5 @@ public interface Visitor<T> {
     T visitBoolOp(BoolOp boolOp);
     T visitRelOp(RelOp relOp);
     T visitNotOp(NotOp notOp);
+    T visitCast(Cast cast);
 }
