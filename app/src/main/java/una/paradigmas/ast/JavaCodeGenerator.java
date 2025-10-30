@@ -249,7 +249,7 @@ public class JavaCodeGenerator {
     private String generateExpression(Node expr) {
         return switch (expr) {
             case IntLiteral(var value) -> Integer.toString(value);
-            case FloatLiteral(var value) -> Float.toString(value);
+            case FloatLiteral(var value) -> value + "f";
             case BooleanLiteral(var value) -> Boolean.toString(value);
             case StringLiteral(var value) -> "\"" + escapeString(value) + "\"";
 
@@ -261,10 +261,9 @@ public class JavaCodeGenerator {
             }
 
             case MultDiv(var left, var op, var right) ->
-                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
-
+                generateExpression(left) + " " + op + " " + generateExpression(right);
             case AddSub(var left, var op, var right) ->
-                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+                generateExpression(left) + " " + op + " " + generateExpression(right);
 
             case UnaryOp(var op, var expr2) ->
                 op + "(" + generateExpression(expr2) + ")";
