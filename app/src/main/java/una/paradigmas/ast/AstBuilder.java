@@ -342,13 +342,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitNotExpr(ExpressoParser.NotExprContext ctx) {
+    public Node visitNotExpr(NotExprContext ctx) {
         Node expr = visit(ctx.expr());
         return new NotOp(expr);
     }
 
     @Override
-    public Node visitRelOp(ExpressoParser.RelOpContext ctx) {
+    public Node visitRelOp(RelOpContext ctx) {
         Node left = visit(ctx.expr(0));
         String op = ctx.getChild(1).getText(); // <, <=, ==, etc.
         Node right = visit(ctx.expr(1));
@@ -356,16 +356,24 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitAndOp(ExpressoParser.AndOpContext ctx) {
+    public Node visitAndOp(AndOpContext ctx) {
         Node left = visit(ctx.expr(0));
         Node right = visit(ctx.expr(1));
         return new BoolOp(left, "&&", right);
     }
 
     @Override
-    public Node visitOrOp(ExpressoParser.OrOpContext ctx) {
+    public Node visitOrOp(OrOpContext ctx) {
         Node left = visit(ctx.expr(0));
         Node right = visit(ctx.expr(1));
         return new BoolOp(left, "||", right);
+    }
+
+    @Override
+    public Node visitCastExpr(CastExprContext ctx) {
+        Node expr = visit(ctx.expr());
+        String typeName = ctx.ID().getText();
+        Node typeNode = new TypeNode(typeName);  // int, float, boolean, etc.
+        return new Cast(expr, typeNode);
     }
 }
