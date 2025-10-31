@@ -359,6 +359,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
+    public Node visitCastExpr(CastExprContext ctx) {  
+        Node expr = visit(ctx.expr());
+        Node targetType = typeAstBuilder.visit(ctx.type());
+        return new Cast(expr, targetType);
+    }
+
+    @Override
     public Node visitBlank(BlankContext ctx) {
         return null;
     }

@@ -360,14 +360,20 @@ public class JavaCodeGenerator {
                 sb.append("        }");
                 yield sb.toString();
             }
-            case NoneLiteral() -> "null"; 
 
-             case PrintExpr(Node innerExpr) -> {
-            extraMethods.add("printAndReturnNull");
-            String exprCode = generateExpression(innerExpr);
-            yield "printAndReturnNull(" + exprCode + ")";
-        }
-            
+            case Cast(var expr4, var typeNode) -> {
+                String exprCode = generateExpression(expr4);
+                String javaType = generateType(typeNode);
+                yield "(" + javaType + ")" + exprCode;
+            }
+
+            case PrintExpr(Node innerExpr) -> {
+                extraMethods.add("printAndReturnNull");
+                String exprCode = generateExpression(innerExpr);
+                yield "printAndReturnNull(" + exprCode + ")";
+            }
+
+            case NoneLiteral() -> "null"; 
 
             default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
         };

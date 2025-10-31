@@ -74,6 +74,11 @@ public class TypeAstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
+    public Node visitAtomicBoolean(AtomicBooleanContext ctx) {
+        return new TypeNode("boolean");
+    }
+
+    @Override
     public Node visitAtomicString(AtomicStringContext ctx) {
         return new TypeNode("string");
     }

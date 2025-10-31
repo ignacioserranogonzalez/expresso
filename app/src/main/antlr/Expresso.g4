@@ -27,6 +27,7 @@ argument: (ID ':')? type;
 // expressions
 expr
     : NOT expr                                      # NotExpr 
+    | expr ':' type                                 # CastExpr 
     | <assoc=right> expr POW expr                   # Pow
     | expr (MULT | DIV) expr                        # MultDiv
     | expr (PLUS | MINUS) expr                      # AddSub

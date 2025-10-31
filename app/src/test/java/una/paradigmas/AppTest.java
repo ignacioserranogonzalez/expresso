@@ -380,4 +380,55 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         testExpressoProgram(input, "BooleanLogic");
     }
+
+    @Test
+    public void testCasting() {
+        System.out.println("====== Test Casting.expresso (Tarea 22) ======");
+        
+        String input = """
+            // Casting examples
+            let x = 2.5
+            let y = true
+            let s = "hola"
+            let z = 3.7
+
+            print(x:int)                    // 2
+            print(s:string)                 // hola
+            print(z:int)                    // 3
+            print(y:boolean)                // true
+            
+            print(3**2*10 + x:int)          // 99
+            print((x + 4):int)              // 3
+            print((z + 0.5):int)            // 4
+
+            """;
+
+        testExpressoProgram(input, "TestCasting");
+    }
+
+    @Test
+    public void testCastingWithType() {
+        System.out.println("====== Test Casting with :: type ======");
+        
+        String input = """
+            // Test con : y tipos
+            let x = 2.5
+            
+            // 1. En asignación
+            let a = x:int
+            print(a)                    // Expected: 2
+            
+            // 2. En expresión simple  
+            x:int
+            
+            // 3. En print
+            print(x:int)               // Expected: 2
+            
+            // 4. En expresión aritmética
+            print(x:int + 1)           // Expected: 3        
+            """;
+        
+        testExpressoProgram(input, "TestCastingWithType");
+    }
+
 }
