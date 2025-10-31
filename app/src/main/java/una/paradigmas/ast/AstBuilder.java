@@ -240,12 +240,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitDataDecl(DataDeclContext ctx) {
         String id = ctx.ID().getText();
+        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, "data");
         
         List<DataDecl.Constructor> constructors = ctx.constructorList() != null
             ? ctx.constructorList().constructor().stream()
                 .map(constructorCtx -> {
                     String constructorId = constructorCtx.ID().getText();
-                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR, "constructor");
+                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR, id);
                     
                     List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
                         ? constructorCtx.arguments().argument().stream()
@@ -265,7 +266,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
                 .collect(Collectors.toList())
             : List.of();
         
-        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, "data");
         return new DataDecl(id, constructors);
     }
 

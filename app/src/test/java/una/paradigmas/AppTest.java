@@ -261,6 +261,27 @@ import org.antlr.v4.runtime.CommonTokenStream;
     }
 
     @Test
+    public void testComplexTypes() {
+        System.out.println("====== Test ComplexTypes.expresso ======");
+        System.out.println("Tarea 17 - Soporte para inferencia de tipos avanzada");
+
+        String input = """
+            data list = { Nil, Cons(car:any, cdr:list) }
+
+            let empty:list = ^Nil 
+            let numbers = ^Cons(1, empty)
+            let first = numbers
+            let another = ^Cons("hello", first)
+
+            print(empty)
+            print(numbers)
+            print(first)
+        """;
+
+        testExpressoProgram(input, "ComplexTypes");
+    }
+
+    @Test
     public void testMatchWith() {
         System.out.println("====== Test MatchWith.expresso ======");
         System.out.println("Tarea 18 - match ... with");
@@ -280,33 +301,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         testExpressoProgram(input, "MatchWith");
     }
-
-    // @Test
-    // public void testMatchWithGuard() {
-    //     System.out.println("====== Test MatchWithGuard.expresso ======");
-    //     System.out.println("Tarea 18 - match ... with -> if");
-
-    //     String input = """
-    //         data nat = { 
-    //             Zero, 
-    //             S(nat) 
-    //         } 
-
-    //         fun isEven(x:nat):boolean = match x with
-    //                                     Zero -> true
-    //                                     S(Zero) -> false  
-    //                                     S(S(z)) if z != Zero -> isEven(z)
-    //                                     _ -> false
-
-    //         fun sum(x:nat, y:nat):nat = match x with 
-    //                                     Zero -> y 
-    //                                     S(z) if z != Zero -> S(sum(z, y))
-    //                                     S(z) -> x  // sin guard
-    //                                     _ -> x
-    //     """;
-
-    //     testExpressoProgram(input, "MatchWithGuard");
-    // }
 
     @Test
     public void testArrowTuple() {
@@ -401,7 +395,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
             print((x + 4):int)              // 3
             print((z + 0.5):int)            // 4
 
-            let w = (x+y):int
+            let w = (x+z):int
+            print(w);
 
             """;
 

@@ -439,6 +439,16 @@ public class JavaCodeGenerator {
             case NotOp _ -> "boolean";
             case Lambda _ -> lambdaType(value, null);
 
+            case ConstructorInvocation(var id, var _) -> {
+                String type = symbolTable.getTypeLiteral(id);
+                yield type != null ? capitalizeFirst(type) : "Object";
+            }
+
+            case Id id -> {
+                String type = symbolTable.getTypeLiteral(id.value());
+                yield type != null && !type.equals("unknown") ? type : "Object";
+            }
+
             default -> "Object";
         };
     }
@@ -517,25 +527,23 @@ public class JavaCodeGenerator {
 
     private void generateFunctionInterface(int paramCount) {
         String interfaceName = "Function" + paramCount;
+        
         if (methodDefinitions.toString().contains("interface " + interfaceName)) return;
         
-        List<String> typeParams = new ArrayList<>();
-        for (int i = 0; i < paramCount; i++) {
-            typeParams.add("T" + (i + 1));
-        }
-        typeParams.add("R");
+        String typeParams = java.util.stream.IntStream.rangeClosed(1, paramCount)
+            .mapToObj(i -> "T" + i)
+            .collect(Collectors.joining(", ", "", ", R"));
         
-        String applyParams = typeParams.stream()
-            .limit(paramCount)
-            .map(t -> t + " arg" + (typeParams.indexOf(t) + 1))
+        String applyParams = java.util.stream.IntStream.rangeClosed(1, paramCount)
+            .mapToObj(i -> "T" + i + " arg" + i)
             .collect(Collectors.joining(", "));
         
         String interfaceDef = """
-        @FunctionalInterface
-        interface %s<%s> {
-            R apply(%s);
-        }
-        """.formatted(interfaceName, String.join(", ", typeParams), applyParams);
+            @FunctionalInterface
+            interface %s<%s> {
+                R apply(%s);
+            }
+            """.formatted(interfaceName, typeParams, applyParams);
         
         String indentedDef = interfaceDef.lines()
             .map(line -> "    " + line)
