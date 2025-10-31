@@ -401,6 +401,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
             print((x + 4):int)              // 3
             print((z + 0.5):int)            // 4
 
+            let w = (x+y):int
+
             """;
 
         testExpressoProgram(input, "TestCasting");

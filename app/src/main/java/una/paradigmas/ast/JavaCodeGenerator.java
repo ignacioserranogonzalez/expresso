@@ -562,7 +562,7 @@ public class JavaCodeGenerator {
     private boolean isBooleanExpression(Node expr) {
         // es booleano si:
         // 1. es un id de tipo boolean
-        // es un Nodo booleano (de tipo relacional RelOp, BoolOp)
+        // 2. es un Nodo realcional/logico (RelOp, LogicalOp)
         return (expr instanceof Id id && "boolean".equals(symbolTable.getTypeLiteral(id.value()))) ||
                "boolean".equals(inferTypeFromValue(expr));
     }
