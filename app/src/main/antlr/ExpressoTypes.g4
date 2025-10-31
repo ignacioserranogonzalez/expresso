@@ -15,7 +15,7 @@ atomic : 'any'           # AtomicAny
       | 'int'            # AtomicInt
       | 'float'          # AtomicFloat
       | 'string'         # AtomicString
-      | 'boolean'       # AtomicBoolean
+      | 'boolean'        # AtomicBoolean
       | ID               # CustomType
 ;
 
