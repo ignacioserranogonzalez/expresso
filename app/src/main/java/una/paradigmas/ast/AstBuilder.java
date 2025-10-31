@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     private final TypeAstBuilder typeAstBuilder = new TypeAstBuilder();
-    // private final Set<String> dataSymbols = new HashSet<>();
     private final SymbolTable symbolTable = new SymbolTable();
 
     @Override
@@ -78,13 +77,21 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitId(IdContext ctx) {
-        return new Id(ctx.ID().getText());
+        String id = ctx.ID().getText();
+        return new Id(id);
+    }
+
+    @Override
+    public Node visitPow(PowContext ctx) {
+        Node left = visit(ctx.expr(0));
+        Node right = visit(ctx.expr(1)); 
+        return new Pow(left, right);
     }
 
     @Override
     public Node visitAddSub(AddSubContext ctx) {
         Node left = visit(ctx.expr(0));
-        Node right = visit(ctx.expr(1)); 
+        Node right = visit(ctx.expr(1));
         String op = ctx.PLUS() != null ? "+" : "-";
         return new AddSub(left, op, right);
     }
@@ -98,10 +105,25 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitPow(PowContext ctx) {
+    public Node visitNotExpr(NotExprContext ctx) {
+        Node expr = visit(ctx.expr());
+        return new NotOp(expr);
+    }
+
+    @Override
+    public Node visitRelOp(RelOpContext ctx) {
         Node left = visit(ctx.expr(0));
-        Node right = visit(ctx.expr(1)); 
-        return new Pow(left, right);
+        String op = ctx.getChild(1).getText(); // <, <=, ==, etc.
+        Node right = visit(ctx.expr(1));
+        return new RelOp(left, op, right);
+    }
+
+    @Override
+    public Node visitLogicalOp(LogicalOpContext ctx) {
+        Node left = visit(ctx.expr(0));
+        Node right = visit(ctx.expr(1));
+        String op = ctx.AND() != null ? "&&" : "||";
+        return new LogicalOp(left, op, right);
     }
 
     @Override
@@ -191,7 +213,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitFunDecl(FunDeclContext ctx) {
         String name = ctx.ID().getText();
-        symbolTable.addSymbol(name, SymbolType.FUNCTION);
+        symbolTable.addSymbol(name, SymbolType.FUNCTION, "lambda");
         
         // parametros
         List<Fun.Param> params = List.of();
@@ -199,11 +221,11 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
             params = ctx.paramList().param().stream()
                 .map(paramCtx -> {
                     String paramId = paramCtx.ID().getText();
-                    symbolTable.addSymbol(paramId, SymbolType.PARAMETER);
                     
                     Node paramType = paramCtx.type() != null ? 
-                        typeAstBuilder.visit(paramCtx.type()) : new TypeNode("any");
-
+                    typeAstBuilder.visit(paramCtx.type()) : new TypeNode("any");
+                    
+                    symbolTable.addSymbol(paramId, SymbolType.PARAMETER, paramCtx.type().getText());
                     return new Fun.Param(new Id(paramId), paramType);
                 })
                 .collect(Collectors.toList());
@@ -218,13 +240,12 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitDataDecl(DataDeclContext ctx) {
         String id = ctx.ID().getText();
-        symbolTable.addSymbol(id, SymbolType.DATA_TYPE);
         
         List<DataDecl.Constructor> constructors = ctx.constructorList() != null
             ? ctx.constructorList().constructor().stream()
                 .map(constructorCtx -> {
                     String constructorId = constructorCtx.ID().getText();
-                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR);
+                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR, "constructor");
                     
                     List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
                         ? constructorCtx.arguments().argument().stream()
@@ -244,6 +265,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
                 .collect(Collectors.toList())
             : List.of();
         
+        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, "data");
         return new DataDecl(id, constructors);
     }
 
@@ -339,33 +361,5 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitBlank(BlankContext ctx) {
         return null;
-    }
-
-    @Override
-    public Node visitNotExpr(ExpressoParser.NotExprContext ctx) {
-        Node expr = visit(ctx.expr());
-        return new NotOp(expr);
-    }
-
-    @Override
-    public Node visitRelOp(ExpressoParser.RelOpContext ctx) {
-        Node left = visit(ctx.expr(0));
-        String op = ctx.getChild(1).getText(); // <, <=, ==, etc.
-        Node right = visit(ctx.expr(1));
-        return new RelOp(left, op, right);
-    }
-
-    @Override
-    public Node visitAndOp(ExpressoParser.AndOpContext ctx) {
-        Node left = visit(ctx.expr(0));
-        Node right = visit(ctx.expr(1));
-        return new BoolOp(left, "&&", right);
-    }
-
-    @Override
-    public Node visitOrOp(ExpressoParser.OrOpContext ctx) {
-        Node left = visit(ctx.expr(0));
-        Node right = visit(ctx.expr(1));
-        return new BoolOp(left, "||", right);
     }
 }

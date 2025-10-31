@@ -61,14 +61,17 @@ import org.antlr.v4.runtime.CommonTokenStream;
     public void testHelloWorld0() {
 
         System.out.println("====== Test HelloWorld0.expresso ======");
-                      
-        String input = "// HelloWorld0.expresso\n" +
-                      "let x = 666\n" +
-                      "print(x) // Expected 666 in console\n" +
-                      "let y = 10\n" +
-                      "print(y) // Expected 10 in console\n" +
-                      "let f = z -> z ** 2 + 2*z + 1\n" +
-                      "print(f(x) + f(y)) // expected 445010\n";
+
+        String input = """
+            // HelloWorld0.expresso
+            let x = 666
+            print(x) // Expected 666 in console
+            let y = 10
+            print(y) // Expected 10 in console
+            let f = z -> z 
+            let f = z -> z ** 2 + 2*z + 1
+            print(f(x) + f(y)) // expected 445010
+        """;
         
         testExpressoProgram(input, "HelloWorld0");
     }
@@ -356,6 +359,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
             // === Operadores booleanos ===
             print(t && a < 10)   // true
             print(f || b > 5)    // true
+            print("-- !t: expected false --");
             print(!t)            // false
             print(t || f)        // true
             print(t && f)        // false

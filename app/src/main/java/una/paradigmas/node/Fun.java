@@ -19,7 +19,7 @@ import java.util.List;
 import una.paradigmas.ast.Visitor;
 
 public record Fun(Id name, List<Param> params, Node returnType, Node body) implements Node {
-    public record Param(Id id, Node type) {}  // ← Param con tipo
+    public record Param(Id id, Node type) {}  // params con tipo. es un TypeNode
     
     @Override
     public <T> T accept(Visitor<T> visitor) {

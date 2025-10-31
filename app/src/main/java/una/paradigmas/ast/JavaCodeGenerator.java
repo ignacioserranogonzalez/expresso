@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import una.paradigmas.ast.SymbolTable.SymbolType;
 import una.paradigmas.node.*;
 
 /**
@@ -206,6 +208,9 @@ public class JavaCodeGenerator {
                     case Lambda _ -> lambdaType(value, typeNode);
                     default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
                 };
+
+                symbolTable.addSymbol(id.value(), SymbolType.VARIABLE, varType);
+
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }                                 
 
@@ -278,7 +283,7 @@ public class JavaCodeGenerator {
             case RelOp(var left, var op, var right) ->
                 "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
 
-            case BoolOp(var left, var op, var right) ->
+            case LogicalOp(var left, var op, var right) ->
                 "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
 
             case NotOp(var expr3) ->
@@ -297,17 +302,10 @@ public class JavaCodeGenerator {
             }
 
             case TernaryCondition(var condition, var value1, var value2) -> {
-                String condCode = generateExpression(condition);
-                String condType = inferTypeFromValue(condition);
-                
-                String conditionExpr;
-                if ("boolean".equals(condType)) {
-                    // Si es boolean, usar directamente
-                    conditionExpr = condCode;
-                } else {
-                    // Para cualquier otro tipo (int, float, etc.), usar != 0
-                    conditionExpr = condCode + " != 0";
-                }
+                String conditionExpr = Optional.of(condition)
+                    .filter(this::isBooleanExpression)
+                    .map(this::generateExpression)
+                    .orElse(generateExpression(condition) + " != 0");
                 
                 yield "(" + conditionExpr + " ? " + generateExpression(value1) 
                     + " : " + generateExpression(value2) + ")";
@@ -429,7 +427,7 @@ public class JavaCodeGenerator {
             case BooleanLiteral _ -> "boolean";
             case StringLiteral _ -> "String";
             case RelOp _ -> "boolean";
-            case BoolOp _ -> "boolean";
+            case LogicalOp _ -> "boolean";
             case NotOp _ -> "boolean";
             case Lambda _ -> lambdaType(value, null);
 
@@ -438,10 +436,10 @@ public class JavaCodeGenerator {
     }
     
     private String lambdaType(Node expr, Node explicitType) {
-    imports.add("java.util.function.*");
+        imports.add("java.util.function.*");
 
-    if (explicitType instanceof ArrowType arrowType) 
-        return arrowType(arrowType);
+        if (explicitType instanceof ArrowType arrowType) 
+            return arrowType(arrowType);
     
         return switch (expr) {
             case Lambda l -> {
@@ -548,8 +546,16 @@ public class JavaCodeGenerator {
                     .replace("\f", "\\f");
     }
     
-     private String capitalizeFirst(String str) {
+    private String capitalizeFirst(String str) {
         return str == null || str.isEmpty() ? str 
             : str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    private boolean isBooleanExpression(Node expr) {
+        // es booleano si:
+        // 1. es un id de tipo boolean
+        // es un Nodo booleano (de tipo relacional RelOp, BoolOp)
+        return (expr instanceof Id id && "boolean".equals(symbolTable.getTypeLiteral(id.value()))) ||
+               "boolean".equals(inferTypeFromValue(expr));
     }
 }

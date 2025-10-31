@@ -16,7 +16,7 @@ import una.paradigmas.ast.Visitor;
  * Codigo de grupo: 02-1PM
  */
 
-public record BoolOp(Node left, String op, Node right) implements Node {
+public record LogicalOp(Node left, String op, Node right) implements BinaryOp {
     @Override
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitBoolOp(this);

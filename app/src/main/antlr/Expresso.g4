@@ -26,30 +26,29 @@ argument: (ID ':')? type;
 
 // expressions
 expr
-    : NOT expr                                      # NotExpr          // !expr
-    | <assoc=right> expr POW expr                   # Pow              // x ** y
-    | expr (MULT | DIV) expr                        # MultDiv          // * /
-    | expr (PLUS | MINUS) expr                      # AddSub           // + -
-    | expr (LT | LE | GT | GE) expr                 # RelOp            // < <= > >=
-    | expr (EQ | NE) expr                           # RelOp            // == !=
-    | expr AND expr                                 # AndOp            // &&
-    | expr OR expr                                  # OrOp              // ||
-    | <assoc=right> expr '?' expr ':' expr          # TernaryCondition // ?:
-    | (PLUS | MINUS) expr                           # UnaryOp          // +expr, -expr
-    | expr (MINUS MINUS | PLUS PLUS)                # PostOp           // x++, x--
-    | 'match' expr 'with' NEWLINE* matchRule+       # Match            // match ...
-    | lambdaParams LAMBDA expr                      # Lambda           // x -> ...
-    | ID '(' argList? ')'                           # Call             // f(1, 2)
-    | '^' constructorExpr                           # ConstructorInvocation // ^Cons(1, ^Nil)
-    | PRINT '(' expr ')'                            # PrintExpr        // print("hi")
-    | '(' expr ')'                                  # Paren             // (expr)
-    | '(' expr (',' expr)+ ')'                      # TupleLiteral     // (1, 2)
-    | INT                                           # Int              // 666
-    | FLOAT                                         # Float            // 3.14
-    | BOOLEAN                                       # Boolean          // true / false
-    | STRING                                        # String           // "hello"
-    | NONE                                          # None             // none
-    | ID                                            # Id               // x
+    : NOT expr                                      # NotExpr 
+    | <assoc=right> expr POW expr                   # Pow
+    | expr (MULT | DIV) expr                        # MultDiv
+    | expr (PLUS | MINUS) expr                      # AddSub
+    | expr (LT | LE | GT | GE) expr                 # RelOp
+    | expr (EQ | NE) expr                           # RelOp
+    | expr (AND | OR) expr                          # LogicalOp
+    | <assoc=right> expr '?' expr ':' expr          # TernaryCondition
+    | (PLUS | MINUS) expr                           # UnaryOp
+    | expr (MINUS MINUS | PLUS PLUS)                # PostOp
+    | 'match' expr 'with' NEWLINE* matchRule+       # Match
+    | lambdaParams LAMBDA expr                      # Lambda
+    | ID '(' argList? ')'                           # Call
+    | '^' constructorExpr                           # ConstructorInvocation
+    | PRINT '(' expr ')'                            # PrintExpr
+    | '(' expr ')'                                  # Paren
+    | '(' expr (',' expr)+ ')'                      # TupleLiteral
+    | INT                                           # Int
+    | FLOAT                                         # Float
+    | BOOLEAN                                       # Boolean
+    | STRING                                        # String
+    | NONE                                          # None
+    | ID                                            # Id
     ;
 
 matchRule: pattern ('if' expr)? '->' expr NEWLINE+;
@@ -107,7 +106,7 @@ DIV     : '/';
 
 ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
-// operadores relacionales y booleanos
+// operadores relacionales y logicos
 LT      : '<';
 LE      : '<=';
 GT      : '>';
