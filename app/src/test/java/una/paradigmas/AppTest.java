@@ -359,7 +359,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
             // === Operadores booleanos ===
             print(t && a < 10)   // true
             print(f || b > 5)    // true
-            print("-- !t: expected false --");
+            print("-- !t: expected false --")
             print(!t)            // false
             print(t || f)        // true
             print(t && f)        // false

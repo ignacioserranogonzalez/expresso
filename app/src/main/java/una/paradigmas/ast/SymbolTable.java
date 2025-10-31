@@ -107,4 +107,15 @@ public class SymbolTable {
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
     }
+
+    @Override
+    public String toString() {
+        return symbols.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .map(e -> String.format("  %s: [%s, %s]", 
+                e.getKey(), e.getValue().symbolType(), e.getValue().typeLiteral()))
+            .collect(Collectors.joining("\n", 
+                symbols.isEmpty() ? "SymbolTable{vacía}" : "SymbolTable {\n", 
+                symbols.isEmpty() ? "" : "\n}"));
+    }
 }
