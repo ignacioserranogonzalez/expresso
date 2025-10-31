@@ -393,7 +393,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
             print((z + 0.5):int)            // 4
 
             let w = (x+z):int
-            print(w);
+            print(w)
 
             """;
 
