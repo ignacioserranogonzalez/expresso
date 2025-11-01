@@ -56,7 +56,7 @@ public class JavaCodeGenerator {
         generateMethodDefinitions(ast);
         generateMainMethod(ast);
 
-        System.out.println(symbolTable.toString());
+        System.out.println("\n"+symbolTable.toString());
         
         return buildFinalCode();
     }
@@ -290,18 +290,6 @@ public class JavaCodeGenerator {
 
             case NotOp(var expr3) ->
                 "!" + generateExpression(expr3);
-
-            case TupleLiteral(var elements) -> {
-                String elementsCode = elements.stream()
-                    .map(this::generateExpression)
-                    .collect(Collectors.joining(", "));
-                
-                // tipo de tupla: num de elementos
-                if (elements.size() == 2) {
-                    imports.add("java.util.Map");
-                    yield "Map.entry(" + elementsCode + ")";
-                } else yield "new Object[]{" + elementsCode + "}";
-            }
 
             case TernaryCondition(var condition, var value1, var value2) -> {
                 String conditionExpr = Optional.of(condition)

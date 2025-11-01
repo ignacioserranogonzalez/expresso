@@ -152,14 +152,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitTupleLiteral(TupleLiteralContext ctx) {
-        List<Node> elements = ctx.expr().stream()
-            .map(this::visit)
-            .collect(Collectors.toList());
-        return new TupleLiteral(elements);
-    }
-
-    @Override
     public Node visitCall(CallContext ctx) {
         String id = ctx.ID().getText();
         List<Node> args = new ArrayList<>();
