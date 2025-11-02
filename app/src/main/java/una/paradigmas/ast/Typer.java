@@ -2,6 +2,7 @@ package una.paradigmas.ast;
 
 import una.paradigmas.node.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Typer implements Visitor<String> {
@@ -10,6 +11,11 @@ public class Typer implements Visitor<String> {
 
     public Typer(SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
+    }
+
+    @Override
+    public String toString(){
+        return context.toString();
     }
 
     public boolean typeCheck(Program program) {
@@ -24,10 +30,48 @@ public class Typer implements Visitor<String> {
         return false;
     }
 
+    private String toWrapperType(String primitiveType) {
+        return switch (primitiveType) {
+            case "int" -> "Integer";
+            case "float" -> "Float"; 
+            case "boolean" -> "Boolean";
+            default -> primitiveType; // String, Object, etc
+        };
+    }
+
+    @Override
+    public String visitInt(IntLiteral intLiteral) {
+        return "int";
+    }
+
+    @Override
+    public String visitFloat(FloatLiteral floatLiteral) {
+        return "float";
+    }
+
+    @Override
+    public String visitBoolean(BooleanLiteral booleanLiteral) {
+        return "boolean";
+    }
+
+    @Override
+    public String visitString(StringLiteral stringLiteral) {
+        return "string";
+    }
+
     @Override
     public String visitProgram(Program program) {
         program.statements().forEach(stat -> stat.accept(this));
-        return "void";
+        return "";
+    }
+
+    @Override
+    public String visitId(Id id) {
+        String type = context.get(id.value());
+        if (type == null) {
+            throw new TypeException("Undefined variable: " + id.value());
+        }
+        return type;
     }
 
     @Override
@@ -60,35 +104,6 @@ public class Typer implements Visitor<String> {
         }
 
         return returnType;
-    }
-
-    @Override
-    public String visitInt(IntLiteral intLiteral) {
-        return "int";
-    }
-
-    @Override
-    public String visitFloat(FloatLiteral floatLiteral) {
-        return "float";
-    }
-
-    @Override
-    public String visitBoolean(BooleanLiteral booleanLiteral) {
-        return "boolean";
-    }
-
-    @Override
-    public String visitString(StringLiteral stringLiteral) {
-        return "string";
-    }
-
-    @Override
-    public String visitId(Id id) {
-        String type = context.get(id.value());
-        if (type == null) {
-            throw new TypeException("Undefined variable: " + id.value());
-        }
-        return type;
     }
 
     @Override
@@ -182,7 +197,20 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitType(TypeNode type) {
-        return type.typeName();
+        return switch (type) {
+            case TypeNode(var typeName) -> switch (typeName) {
+                case "int" -> "int";
+                case "float" -> "float";
+                case "boolean" -> "boolean";
+                case "string" -> "String";
+                case "any" -> "Object";
+                case "void" -> "void";
+                default -> typeName.substring(0, 1)
+                                .toUpperCase() 
+                                + typeName.substring(1);
+            };
+            default -> "Object";
+        };
     }
 
     @Override
@@ -197,7 +225,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitParen(Paren paren) {
-        return "void";
+        return "";
     }
 
     @Override
@@ -207,7 +235,38 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitArrowType(ArrowType arrowType) {
-        return "any";
+        
+        return switch (arrowType.from()) {
+            case TypeNode _ -> {
+                String from = toWrapperType(arrowType.from().accept(this));
+                String to = toWrapperType(arrowType.to().accept(this));
+                
+                if (from.equals("void")) yield "Supplier<" + to + ">";
+                else yield "Function<" + from + ", " + to + ">";
+            }
+            
+            // case TupleType tuple -> {
+            //     List<String> paramTypes = tuple.types().stream()
+            //         .map(this::generateType)
+            //         .map(this::toWrapperType)
+            //         .collect(Collectors.toList());
+            //     String returnType = toWrapperType(generateType(arrowType.to()));
+                
+            //     yield switch (paramTypes.size()) {
+            //         case 0 -> "Supplier<" + returnType + ">";
+            //         case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
+            //         case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
+            //         default -> {
+            //             String customName = "Function" + paramTypes.size();
+            //             generateFunctionInterface(paramTypes.size());
+            //             yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
+            //         }
+            //     };
+            // }
+            
+            default -> "Function<Object, Object>";
+        };
+        
     }
 
     @Override
@@ -282,12 +341,12 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitRelOp(RelOp relOp) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitRelOp'");
+        return "boolean";
     }
 
     @Override
     public String visitNotOp(NotOp notOp) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitNotOp'");
+        return "boolean";
     }
 
     @Override

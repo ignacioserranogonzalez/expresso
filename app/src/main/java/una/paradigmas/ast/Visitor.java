@@ -18,7 +18,7 @@ import una.paradigmas.node.*;
 
 public interface Visitor<T> {
     T visitProgram(Program program);
-    T visitType(TypeNode num);
+    T visitType(TypeNode type);
     T visitInt(IntLiteral num);
     T visitFloat(FloatLiteral num);
     T visitBoolean(BooleanLiteral num);

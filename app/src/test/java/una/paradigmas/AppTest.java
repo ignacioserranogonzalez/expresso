@@ -52,6 +52,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
         Typer typer = new Typer(ast.symbolTable());
         typer.typeCheck(ast);
 
+        System.out.println(typer.toString());
+
         JavaCodeGenerator generator = new JavaCodeGenerator(className);
         String javaCode = generator.generate(ast);
 
