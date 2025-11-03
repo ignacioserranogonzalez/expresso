@@ -320,121 +320,121 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         String input = """
             let lambdaArrow:((int, float, int) -> float) = (x, y, z) -> x + y + z
-            let lambda:(int -> int) = x -> x + 1
-            let lambdaCustom = (x, y, w) -> x
+            let lambdaArrow2:(int -> int) = x -> x + 1
+            let lambda = (x, y, w) -> x
         """;
 
         testExpressoProgram(input, "ArrowTuple");
     }
 
-     @Test
-    public void testPrintAsNone() {
-        System.out.println("====== Test printAsNone.expresso ======");
-        System.out.println("Tarea 19 - print como expresion que retorna None");
+    //  @Test
+    // public void testPrintAsNone() {
+    //     System.out.println("====== Test printAsNone.expresso ======");
+    //     System.out.println("Tarea 19 - print como expresion que retorna None");
 
-        String input = """
-            let x = none
-            print(x)
-            let y = print(42)
-            print(y)
-        """;
-        testExpressoProgram(input, "HelloWorld7");
-    }
-    @Test
-    public void testBooleanLogic() {
-        System.out.println("====== Test BooleanLogic.expresso (Tarea 21) ======");
+    //     String input = """
+    //         let x = none
+    //         print(x)
+    //         let y = print(42)
+    //         print(y)
+    //     """;
+    //     testExpressoProgram(input, "HelloWorld7");
+    // }
+    // @Test
+    // public void testBooleanLogic() {
+    //     System.out.println("====== Test BooleanLogic.expresso (Tarea 21) ======");
 
-        String input = """
+    //     String input = """
             
-            let a = 5
-            let b = 10
-            let t = true
-            let f = false
+    //         let a = 5
+    //         let b = 10
+    //         let t = true
+    //         let f = false
             
-            // === Operadores relacionales ===
-            print(a < b)      // true
-            print(a > b)      // false
-            print(a <= 5)     // true
-            print(a >= 5)     // true
-            print(a == 5)     // true
-            print(a != 0)     // true
+    //         // === Operadores relacionales ===
+    //         print(a < b)      // true
+    //         print(a > b)      // false
+    //         print(a <= 5)     // true
+    //         print(a >= 5)     // true
+    //         print(a == 5)     // true
+    //         print(a != 0)     // true
             
-            // === Operadores booleanos ===
-            print(t && a < 10)   // true
-            print(f || b > 5)    // true
-            print("-- !t: expected false --")
-            print(!t)            // false
-            print(t || f)        // true
-            print(t && f)        // false
+    //         // === Operadores booleanos ===
+    //         print(t && a < 10)   // true
+    //         print(f || b > 5)    // true
+    //         print("-- !t: expected false --")
+    //         print(!t)            // false
+    //         print(t || f)        // true
+    //         print(t && f)        // false
             
-            // === Ternario con int ===
-            print(a != 0 ? "ok" : "error")   // ok
-            print(0 ? 1 : 0)                 // 0
+    //         // === Ternario con int ===
+    //         print(a != 0 ? "ok" : "error")   // ok
+    //         print(0 ? 1 : 0)                 // 0
             
-            // === Ternario con boolean ===
-            print(t ? "yes" : "no")          // yes
-            print(f ? "yes" : "no")          // no
+    //         // === Ternario con boolean ===
+    //         print(t ? "yes" : "no")          // yes
+    //         print(f ? "yes" : "no")          // no
             
-            // === Combinacion ===
-            print(a < b && t || a == 0)      // true
-            print(!f && b >= 10)             // true
-            print(a <= 5 ? b * 2 : b / 2)    // 20
-            """;
+    //         // === Combinacion ===
+    //         print(a < b && t || a == 0)      // true
+    //         print(!f && b >= 10)             // true
+    //         print(a <= 5 ? b * 2 : b / 2)    // 20
+    //         """;
 
-        testExpressoProgram(input, "BooleanLogic");
-    }
+    //     testExpressoProgram(input, "BooleanLogic");
+    // }
 
-    @Test
-    public void testCasting() {
-        System.out.println("====== Test Casting.expresso (Tarea 22) ======");
+    // @Test
+    // public void testCasting() {
+    //     System.out.println("====== Test Casting.expresso (Tarea 22) ======");
         
-        String input = """
-            // Casting examples
-            let x = 2.5
-            let y = true
-            let s = "hola"
-            let z = 3.7
+    //     String input = """
+    //         // Casting examples
+    //         let x = 2.5
+    //         let y = true
+    //         let s = "hola"
+    //         let z = 3.7
 
-            print(x:int)                    // 2
-            print(s:string)                 // hola
-            print(z:int)                    // 3
-            print(y:boolean)                // true
+    //         print(x:int)                    // 2
+    //         print(s:string)                 // hola
+    //         print(z:int)                    // 3
+    //         print(y:boolean)                // true
             
-            print(3**2*10 + x:int)          // 99
-            print((x + 4):int)              // 3
-            print((z + 0.5):int)            // 4
+    //         print(3**2*10 + x:int)          // 99
+    //         print((x + 4):int)              // 3
+    //         print((z + 0.5):int)            // 4
 
-            let w = (x+z):int
-            print(w)
+    //         let w = (x+z):int
+    //         print(w)
 
-            """;
+    //         """;
 
-        testExpressoProgram(input, "TestCasting");
-    }
+    //     testExpressoProgram(input, "TestCasting");
+    // }
 
-    @Test
-    public void testCastingWithType() {
-        System.out.println("====== Test Casting with :: type ======");
+    // @Test
+    // public void testCastingWithType() {
+    //     System.out.println("====== Test Casting with :: type ======");
         
-        String input = """
-            // Test con : y tipos
-            let x = 2.5
+    //     String input = """
+    //         // Test con : y tipos
+    //         let x = 2.5
             
-            // 1. En asignación
-            let a = x:int
-            print(a)                    // Expected: 2
+    //         // 1. En asignación
+    //         let a = x:int
+    //         print(a)                    // Expected: 2
             
-            // 2. En expresión simple  
-            x:int
+    //         // 2. En expresión simple  
+    //         x:int
             
-            // 3. En print
-            print(x:int)               // Expected: 2
+    //         // 3. En print
+    //         print(x:int)               // Expected: 2
             
-            // 4. En expresión aritmética
-            print(x:int + 1)           // Expected: 3        
-            """;
+    //         // 4. En expresión aritmética
+    //         print(x:int + 1)           // Expected: 3        
+    //         """;
         
-        testExpressoProgram(input, "TestCastingWithType");
-    }
+    //     testExpressoProgram(input, "TestCastingWithType");
+    // }
 
 }

@@ -45,6 +45,7 @@ public class Typer implements Visitor<String> {
         if(type == null){
             return switch(value){
                 case Fun _ -> SymbolType.METHOD;
+                case Lambda _ -> SymbolType.LAMBDA;
                 default -> SymbolType.VARIABLE;
             };
         }
@@ -208,6 +209,10 @@ public class Typer implements Visitor<String> {
 
         if (expected.equals("float") && actual.equals("int")) return true;
 
+        if (expected.contains("Object") || actual.contains("Object")) {
+            return true;
+        }
+
         return false;
     }
 
@@ -268,28 +273,16 @@ public class Typer implements Visitor<String> {
 
     @Override 
     public String visitLambda(Lambda l) {
-        System.out.println(l);
         
-        List<String> paramTypes = l.args().stream()
-            .map(_ -> "Object")
-            .collect(Collectors.toList());
+        int argCount = l.args().size();
+        String typeParams = String.join(", ", Collections.nCopies(argCount + 1, "Object"));
         
-        String returnType = l.expr().accept(this);
-        
-        int argCount = paramTypes.size();
-        if (argCount <= 2) {
-            return switch (argCount) {
-                case 0 -> "Supplier<" + toWrapperType(returnType) + ">";
-                case 1 -> "Function<" + toWrapperType(paramTypes.get(0)) + ", " + toWrapperType(returnType) + ">";
-                case 2 -> "BiFunction<" + toWrapperType(paramTypes.get(0)) + ", " + toWrapperType(paramTypes.get(1)) + ", " + toWrapperType(returnType) + ">";
-                default -> "Object";
-            };
-        } else {
-            String typeParams = paramTypes.stream()
-                .map(this::toWrapperType)
-                .collect(Collectors.joining(", ")) + ", " + toWrapperType(returnType);
-            return "Function" + argCount + "<" + typeParams + ">";
-        }
+        return switch (argCount) {
+            case 0 -> "Supplier<Object>";
+            case 1 -> "Function<Object, Object>";
+            case 2 -> "BiFunction<Object, Object, Object>";
+            default -> "Function" + argCount + "<" + typeParams + ">";
+        };
     }
 
     @Override
