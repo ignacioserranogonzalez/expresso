@@ -1,28 +1,29 @@
 package una.paradigmas.ast;
 
 import una.paradigmas.node.*;
-import java.util.HashMap;
+
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
+import una.paradigmas.ast.SymbolTable.SymbolType;
 
 public class Typer implements Visitor<String> {
-    private final Map<String, String> context = new HashMap<>();
-    private final SymbolTable symbolTable;
+    private final SymbolTable symbolTable = new SymbolTable();
 
-    public Typer(SymbolTable symbolTable) {
-        this.symbolTable = symbolTable;
-    }
+    // public Typer(SymbolTable symbolTable) {
+    //     this.symbolTable = symbolTable;
+    // }
 
     @Override
-    public String toString(){
-        return context.toString();
+    public String toString() {
+        return symbolTable.toString();
     }
 
     public boolean typeCheck(Program program) {
         try {
             System.out.println();
             visitProgram(program);
-            System.out.println("Type checking passed!");
+            System.out.println("Type checking passed !");
             return true;
         } catch (TypeException e) {
             System.err.println("[Type error]: " + e.getMessage());
@@ -37,6 +38,36 @@ public class Typer implements Visitor<String> {
             case "boolean" -> "Boolean";
             default -> primitiveType; // String, Object, etc
         };
+    }
+
+    private SymbolType determineSymbolType(Node value, Node type) {
+
+        if(type == null){
+            return switch(value){
+                case Fun _ -> SymbolType.METHOD;
+                default -> SymbolType.VARIABLE;
+            };
+        }
+
+        return switch (type) {
+            case Lambda _ -> SymbolType.LAMBDA;
+            case ArrowType _ -> SymbolType.LAMBDA;
+            default -> SymbolType.VARIABLE;
+        };
+    }
+
+    public boolean isValidOperand(String type){
+        return switch(type){
+            case "int" -> true;
+            case "float" -> true;
+            case "call" -> true;
+            default -> false;
+        };
+    }
+
+    private String capitalizeFirst(String s) {
+        return s == null || s.isEmpty() ? s 
+            : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
     @Override
@@ -67,7 +98,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitId(Id id) {
-        String type = context.get(id.value());
+        String type = symbolTable.getType(id.value());
         if (type == null) {
             throw new TypeException("Undefined variable: " + id.value());
         }
@@ -78,23 +109,28 @@ public class Typer implements Visitor<String> {
     public String visitLet(Let let) {
         String id = let.id().value();
         
-        if (context.containsKey(id)) throw new TypeException("Variable '" + id + "' already declared");
+        if (symbolTable.getAllSymbols().contains(id)) throw new TypeException("Variable '" + id + "' already declared");
         
         String valueType = let.value().accept(this);
         String declaredType = let.type() != null ? let.type().accept(this) : valueType;
         
-        if (!isCompatible(declaredType, valueType)) {
+        if (!isCompatible(declaredType, valueType)) { // verificar inconsistencia entre el valor inferido y declarado con :
             throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
         }
         
-        context.put(id, declaredType);
-        return declaredType;
+        SymbolType symbolType = determineSymbolType(let.value(), let.type());
+        symbolTable.addSymbol(id, symbolType, declaredType);
+        return "";
     }
 
     @Override
     public String visitFun(Fun fun) {
-        fun.params().stream().reduce((a, b) -> { context.put(a.id().value(), a.type().accept(this)); return b; })
-                .ifPresent(p -> context.put(p.id().value(), p.type().accept(this)));
+
+        symbolTable.addSymbol(fun.name().value(), SymbolType.METHOD, fun.returnType().accept(this));
+
+        fun.params().forEach(param -> 
+            symbolTable.addSymbol(param.id().value(), SymbolType.PARAMETER, param.type().accept(this))
+        );
 
         String bodyType = fun.body().accept(this);
         String returnType = fun.returnType().accept(this);
@@ -111,14 +147,14 @@ public class Typer implements Visitor<String> {
         String leftType = addSub.left().accept(this);
         String rightType = addSub.right().accept(this);
 
-        if (!leftType.equals("int") && !leftType.equals("float")) {
+        if (!isValidOperand(leftType)) {
             throw new TypeException("Left operand of " + addSub.op() + " must be numeric, got: " + leftType);
         }
-        if (!rightType.equals("int") && !rightType.equals("float")) {
+        if (!isValidOperand(rightType)) {
             throw new TypeException("Right operand of " + addSub.op() + " must be numeric, got: " + rightType);
         }
 
-        return leftType.equals("float") || rightType.equals("float") ? "float" : "int";
+        return "";
     }
 
     @Override
@@ -126,10 +162,10 @@ public class Typer implements Visitor<String> {
         String leftType = multDiv.left().accept(this);
         String rightType = multDiv.right().accept(this);
 
-        if (!leftType.equals("int") && !leftType.equals("float")) {
+        if (!isValidOperand(leftType)) {
             throw new TypeException("Left operand of " + multDiv.op() + " must be numeric, got: " + leftType);
         }
-        if (!rightType.equals("int") && !rightType.equals("float")) {
+        if (!isValidOperand(rightType)) {
             throw new TypeException("Right operand of " + multDiv.op() + " must be numeric, got: " + rightType);
         }
 
@@ -156,13 +192,14 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitCall(Call call) {
-        if (!symbolTable.isFunction(call.id().value())) {
-            throw new TypeException("Undefined function: " + call.id().value());
+
+        if (!symbolTable.isMethod(call.id().value()) && !symbolTable.isLambda(call.id().value())) {
+            throw new TypeException("Undefined lambda: " + call.id().value());
         }
 
-        call.args().stream().reduce((a, b) -> { a.accept(this); return b; }).ifPresent(n -> n.accept(this));
+        call.args().stream().forEach(a -> a.accept(this));
 
-        return "any";
+        return "call";
     }
 
     private boolean isCompatible(String expected, String actual) {
@@ -191,10 +228,6 @@ public class Typer implements Visitor<String> {
         return "void";
     }
 
-    @Override public String visitLambda(Lambda lambda) {
-        return "any";
-    }
-
     @Override
     public String visitType(TypeNode type) {
         return switch (type) {
@@ -215,12 +248,12 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitUnaryOp(UnaryOp unOp) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitUnaryOp'");
+        return unOp.expr().accept(this);
     }
 
     @Override
     public String visitPostOp(PostOp postOp) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitPostOp'");
+        return postOp.expr().accept(this);
     }
 
     @Override
@@ -229,8 +262,34 @@ public class Typer implements Visitor<String> {
     }
 
     @Override
-    public String visitTupleType(TupleType tupleType) {
+    public String visitTupleType(TupleType tupleType) { // revisar Tuple normal, no el tuple de lambda
         throw new UnsupportedOperationException("Unimplemented method 'visitTupleType'");
+    }
+
+    @Override 
+    public String visitLambda(Lambda l) {
+        System.out.println(l);
+        
+        List<String> paramTypes = l.args().stream()
+            .map(_ -> "Object")
+            .collect(Collectors.toList());
+        
+        String returnType = l.expr().accept(this);
+        
+        int argCount = paramTypes.size();
+        if (argCount <= 2) {
+            return switch (argCount) {
+                case 0 -> "Supplier<" + toWrapperType(returnType) + ">";
+                case 1 -> "Function<" + toWrapperType(paramTypes.get(0)) + ", " + toWrapperType(returnType) + ">";
+                case 2 -> "BiFunction<" + toWrapperType(paramTypes.get(0)) + ", " + toWrapperType(paramTypes.get(1)) + ", " + toWrapperType(returnType) + ">";
+                default -> "Object";
+            };
+        } else {
+            String typeParams = paramTypes.stream()
+                .map(this::toWrapperType)
+                .collect(Collectors.joining(", ")) + ", " + toWrapperType(returnType);
+            return "Function" + argCount + "<" + typeParams + ">";
+        }
     }
 
     @Override
@@ -241,28 +300,30 @@ public class Typer implements Visitor<String> {
                 String from = toWrapperType(arrowType.from().accept(this));
                 String to = toWrapperType(arrowType.to().accept(this));
                 
-                if (from.equals("void")) yield "Supplier<" + to + ">";
+                if (from.equals("void")) {
+                    String type = "Supplier<" + to + ">";
+                    yield type;
+                }
                 else yield "Function<" + from + ", " + to + ">";
             }
             
-            // case TupleType tuple -> {
-            //     List<String> paramTypes = tuple.types().stream()
-            //         .map(this::generateType)
-            //         .map(this::toWrapperType)
-            //         .collect(Collectors.toList());
-            //     String returnType = toWrapperType(generateType(arrowType.to()));
+            case TupleType tuple -> {
+                List<String> paramTypes = tuple.types().stream()
+                    .map(t -> t.accept(this))
+                    .map(this::toWrapperType)
+                    .collect(Collectors.toList());
+                String returnType = toWrapperType(arrowType.to().accept(this));
                 
-            //     yield switch (paramTypes.size()) {
-            //         case 0 -> "Supplier<" + returnType + ">";
-            //         case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
-            //         case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
-            //         default -> {
-            //             String customName = "Function" + paramTypes.size();
-            //             generateFunctionInterface(paramTypes.size());
-            //             yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
-            //         }
-            //     };
-            // }
+                yield switch (paramTypes.size()) {
+                    case 0 -> "Supplier<" + returnType + ">";
+                    case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
+                    case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
+                    default -> {
+                        String customName = "Function" + paramTypes.size();
+                        yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
+                    }
+                };
+            }
             
             default -> "Function<Object, Object>";
         };
@@ -271,72 +332,85 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitDataDecl(DataDecl dataDecl) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitDataDecl'");
+        symbolTable.addSymbol(dataDecl.id(), SymbolType.DATA_TYPE, capitalizeFirst(dataDecl.id()));
+
+        if(dataDecl.constructors() != null) 
+            dataDecl.constructors().stream()
+                .forEach(c -> 
+                    symbolTable.addSymbol(
+                            c.id(), 
+                            SymbolType.CONSTRUCTOR, 
+                            capitalizeFirst(dataDecl.id())
+                    )
+                );
+
+        return "";
     }
 
     @Override
-    public String visitConstructorInvocation(ConstructorInvocation constructorInvocation) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitConstructorInvocation'");
+    public String visitConstructorInvocation(ConstructorInvocation invocation) {
+        String type = symbolTable.getType(invocation.id());
+                return type != null ? type : "Object";
     }
 
     @Override
     public String visitMatch(Match match) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitMatch'");
+        return "";
     }
 
     @Override
     public String visitMatchRule(MatchRule matchRule) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitMatchRule'");
+        return "";
     }
 
     @Override
     public String visitDataPattern(DataPattern constructorPattern) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitDataPattern'");
+        return "";
     }
 
     @Override
     public String visitVariablePattern(VariablePattern variablePattern) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitVariablePattern'");
+        return "";
     }
 
     @Override
     public String visitWildcardPattern(WildcardPattern wildcardPattern) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitWildcardPattern'");
+        return "";
     }
 
     @Override
     public String visitIntPattern(IntPattern intPattern) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitIntPattern'");
+        return "";
     }
 
     @Override
     public String visitFloatPattern(FloatPattern floatPattern) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitFloatPattern'");
+        return "";
     }
 
     @Override
     public String visitStringPattern(StringPattern stringPattern) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitStringPattern'");
+        return "";
     }
 
     @Override
     public String visitBooleanPattern(BooleanPattern booleanPattern) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitBooleanPattern'");
+        return "";
     }
 
     @Override
     public String visitNonePattern(NonePattern nonePattern) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitNonePattern'");
+        return "";
     }
 
     @Override
     public String visitNone(NoneLiteral noneLiteral) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitNone'");
+        return "none";
     }
 
     @Override
-    public String visitBoolOp(LogicalOp boolOp) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitBoolOp'");
+    public String visitLogicalOp(LogicalOp boolOp) {
+        return "boolean";
     }
 
     @Override
@@ -351,6 +425,6 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitCast(Cast cast) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitCast'");
+        return cast.type().accept(this);
     }
 }

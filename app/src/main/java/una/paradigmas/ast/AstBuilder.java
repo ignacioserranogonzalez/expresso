@@ -205,7 +205,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitFunDecl(FunDeclContext ctx) {
         String name = ctx.ID().getText();
-        symbolTable.addSymbol(name, SymbolType.FUNCTION, "lambda");
+        symbolTable.addSymbol(name, SymbolType.METHOD, "method");
         
         // parametros
         List<Fun.Param> params = List.of();

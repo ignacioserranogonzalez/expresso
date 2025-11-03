@@ -56,7 +56,7 @@ public class JavaCodeGenerator {
         generateMethodDefinitions(ast);
         generateMainMethod(ast);
 
-        System.out.println("\n"+symbolTable.toString());
+        System.out.println("\njavacodegenerator symbols\n"+symbolTable.toString());
         
         return buildFinalCode();
     }
@@ -117,13 +117,13 @@ public class JavaCodeGenerator {
     }
 
     private void generateMethodDefinitions(Program ast) {
-        List<String> functionStatements = ast.statements().stream()
+        List<String> methodStatements = ast.statements().stream()
             .filter(statement -> statement instanceof Fun)
             .map(statement -> generateStatement(statement))
             .filter(line -> !line.isBlank())
             .toList();
             
-        functionStatements.forEach(line -> 
+            methodStatements.forEach(line -> 
             methodDefinitions.append("    ").append(line).append("\n"));
     }
 
@@ -321,7 +321,7 @@ public class JavaCodeGenerator {
                     if (symbolTable.isConstructor(id.value())) {
                         yield "new " + capitalizeFirst(id.value()) + "(" + params + ")";
                     }
-                    else if (symbolTable.getFunctionNames().contains(id.value())) {
+                    else if (symbolTable.getMethodNames().contains(id.value())) {
                         yield id.value() + "(" + params + ")";
                     } else {
                         yield generateExpression(id) + ".apply(" + params + ")";
@@ -428,12 +428,12 @@ public class JavaCodeGenerator {
             case Lambda _ -> lambdaType(value, null);
 
             case ConstructorInvocation(var id, var _) -> {
-                String type = symbolTable.getTypeLiteral(id);
+                String type = symbolTable.getType(id);
                 yield type != null ? capitalizeFirst(type) : "Object";
             }
 
             case Id id -> {
-                String type = symbolTable.getTypeLiteral(id.value());
+                String type = symbolTable.getType(id.value());
                 yield type != null && !type.equals("unknown") ? type : "Object";
             }
 
@@ -559,7 +559,7 @@ public class JavaCodeGenerator {
         // es booleano si:
         // 1. es un id de tipo boolean
         // 2. es un Nodo realcional/logico (RelOp, LogicalOp)
-        return (expr instanceof Id id && "boolean".equals(symbolTable.getTypeLiteral(id.value()))) ||
+        return (expr instanceof Id id && "boolean".equals(symbolTable.getType(id.value()))) ||
                "boolean".equals(inferTypeFromValue(expr));
     }
 }

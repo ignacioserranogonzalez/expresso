@@ -28,17 +28,18 @@ public class SymbolTable {
     private final Map<String, SymbolInfo> symbols = new HashMap<>();
     
     public enum SymbolType {
-        FUNCTION,
-        VARIABLE,    
+        METHOD,
+        LAMBDA,
+        VARIABLE,   
         PARAMETER, 
         CONSTRUCTOR,
         DATA_TYPE
     }
     
-    public record SymbolInfo(SymbolType symbolType, String typeLiteral) {}
+    public record SymbolInfo(SymbolType symbolType, String type) {}
     
-    public void addSymbol(String name, SymbolType symbolType, String typeLiteral) {
-        symbols.put(name, new SymbolInfo(symbolType, typeLiteral));
+    public void addSymbol(String name, SymbolType symbolType, String type) {
+        symbols.put(name, new SymbolInfo(symbolType, type));
     }
 
     public boolean isConstructor(String name) {
@@ -46,9 +47,14 @@ public class SymbolTable {
         return info != null && info.symbolType() == SymbolType.CONSTRUCTOR;
     }
     
-    public boolean isFunction(String name) {
+    public boolean isMethod(String name) {
         SymbolInfo info = symbols.get(name);
-        return info != null && info.symbolType() == SymbolType.FUNCTION;
+        return info != null && info.symbolType() == SymbolType.METHOD;
+    }
+
+    public boolean isLambda(String name) {
+        SymbolInfo info = symbols.get(name);
+        return info != null && info.symbolType() == SymbolType.LAMBDA;
     }
 
     public boolean isDataType(String name) {
@@ -61,12 +67,12 @@ public class SymbolTable {
         return info != null ? info.symbolType() : null;
     }
     
-    public String getTypeLiteral(String name) {
+    public String getType(String name) {
         SymbolInfo info = symbols.get(name);
-        return info != null ? info.typeLiteral() : "unknown";
+        return info != null ? info.type() : "unknown";
     }
     
-    public void setTypeLiteral(String name, String type) {
+    public void setType(String name, String type) {
         SymbolInfo oldInfo = symbols.get(name);
         if (oldInfo != null) 
             symbols.put(name, new SymbolInfo(oldInfo.symbolType(), type));
@@ -76,9 +82,9 @@ public class SymbolTable {
         return symbols.containsKey(name);
     }
     
-    public Set<String> getFunctionNames() {
+    public Set<String> getMethodNames() {
         return symbols.entrySet().stream()
-            .filter(entry -> entry.getValue().symbolType() == SymbolType.FUNCTION)
+            .filter(entry -> entry.getValue().symbolType() == SymbolType.METHOD)
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
     }
@@ -113,9 +119,9 @@ public class SymbolTable {
         return symbols.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
             .map(e -> String.format("  %s: [%s, %s]", 
-                e.getKey(), e.getValue().symbolType(), e.getValue().typeLiteral()))
+                e.getKey(), e.getValue().symbolType(), e.getValue().type()))
             .collect(Collectors.joining("\n", 
-                symbols.isEmpty() ? "SymbolTable{vacía}" : "SymbolTable {\n", 
+                symbols.isEmpty() ? "SymbolTable{empty}" : "SymbolTable {\n", 
                 symbols.isEmpty() ? "" : "\n}"));
     }
 }
