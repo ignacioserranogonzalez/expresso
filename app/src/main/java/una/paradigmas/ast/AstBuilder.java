@@ -205,7 +205,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitFunDecl(FunDeclContext ctx) {
         String name = ctx.ID().getText();
-        symbolTable.addSymbol(name, SymbolType.METHOD, "method");
         
         // parametros
         List<Fun.Param> params = List.of();
@@ -216,8 +215,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
                     
                     Node paramType = paramCtx.type() != null ? 
                     typeAstBuilder.visit(paramCtx.type()) : new TypeNode("any");
-                    
-                    symbolTable.addSymbol(paramId, SymbolType.PARAMETER, paramCtx.type().getText());
                     return new Fun.Param(new Id(paramId), paramType);
                 })
                 .collect(Collectors.toList());
