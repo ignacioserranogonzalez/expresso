@@ -8,11 +8,11 @@ import java.util.stream.Collectors;
 import una.paradigmas.ast.SymbolTable.SymbolType;
 
 public class Typer implements Visitor<String> {
-    private final SymbolTable symbolTable = new SymbolTable();
+    private final SymbolTable symbolTable;
 
-    // public Typer(SymbolTable symbolTable) {
-    //     this.symbolTable = symbolTable;
-    // }
+    public Typer(SymbolTable symbolTable) {
+        this.symbolTable = symbolTable;
+    }
 
     @Override
     public String toString() {

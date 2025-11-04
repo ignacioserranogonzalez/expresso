@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import una.paradigmas.ast.SymbolTable.SymbolType;
 import una.paradigmas.node.*;
 
 /**
@@ -55,8 +52,6 @@ public class JavaCodeGenerator {
 
         generateMethodDefinitions(ast);
         generateMainMethod(ast);
-
-        System.out.println("\njavacodegenerator symbols\n"+symbolTable.toString());
         
         return buildFinalCode();
     }
@@ -211,8 +206,6 @@ public class JavaCodeGenerator {
                     default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
                 };
 
-                symbolTable.addSymbol(id.value(), SymbolType.VARIABLE, varType);
-
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }                                 
 
@@ -292,10 +285,18 @@ public class JavaCodeGenerator {
                 "!" + generateExpression(expr3);
 
             case TernaryCondition(var condition, var value1, var value2) -> {
-                String conditionExpr = Optional.of(condition)
-                    .filter(this::isBooleanExpression)
-                    .map(this::generateExpression)
-                    .orElse(generateExpression(condition) + " != 0");
+                String conditionExpr = switch (condition) {
+                    case Id id -> {
+                        String type = symbolTable.getType(id.value());
+                        if ("boolean".equals(type)) {
+                            yield generateExpression(condition);
+                        } else {
+                            yield generateExpression(condition) + " != 0";
+                        }
+                    }
+                    case BooleanLiteral _ -> generateExpression(condition);
+                    default -> generateExpression(condition) + " != 0";
+                };
                 
                 yield "(" + conditionExpr + " ? " + generateExpression(value1) 
                     + " : " + generateExpression(value2) + ")";
@@ -538,14 +539,6 @@ public class JavaCodeGenerator {
             .collect(Collectors.joining("\n"));
         
         methodDefinitions.insert(0, indentedDef + "\n");
-    }
-
-    private boolean isBooleanExpression(Node expr) {
-        // es booleano si:
-        // 1. es un id de tipo boolean
-        // 2. es un Nodo realcional/logico (RelOp, LogicalOp)
-        return (expr instanceof Id id && "boolean".equals(symbolTable.getType(id.value()))) ||
-               "boolean".equals(inferTypeFromValue(expr));
     }
     
     private String escapeString(String value) {

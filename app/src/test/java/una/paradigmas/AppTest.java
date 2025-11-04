@@ -49,7 +49,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
         // AstPrintVisitor printer = new AstPrintVisitor();
         // printer.visitProgram(ast);
 
-        Typer typer = new Typer();
+        Typer typer = new Typer(ast.symbolTable());
         typer.typeCheck(ast);
         System.out.println(typer.toString());
 
@@ -300,6 +300,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
                                     Zero -> y 
                                     S(z) -> S(sum(z, y))
                                     _ -> x
+            
         """;
 
         testExpressoProgram(input, "MatchWith");
