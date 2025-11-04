@@ -62,6 +62,7 @@ public class Typer implements Visitor<String> {
             case "int" -> true;
             case "float" -> true;
             case "call" -> true;
+            case "string" -> true;
             default -> false;
         };
     }
@@ -116,7 +117,7 @@ public class Typer implements Visitor<String> {
         String declaredType = let.type() != null ? let.type().accept(this) : valueType;
         
         if (!isCompatible(declaredType, valueType)) { // verificar inconsistencia entre el valor inferido y declarado con :
-            throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
+            throw new TypeException("Incompatible types in let: " + declaredType + " and " + valueType);
         }
         
         SymbolType symbolType = determineSymbolType(let.value(), let.type());
@@ -148,14 +149,16 @@ public class Typer implements Visitor<String> {
         String leftType = addSub.left().accept(this);
         String rightType = addSub.right().accept(this);
 
-        if (!isValidOperand(leftType)) {
-            throw new TypeException("Left operand of " + addSub.op() + " must be numeric, got: " + leftType);
-        }
-        if (!isValidOperand(rightType)) {
-            throw new TypeException("Right operand of " + addSub.op() + " must be numeric, got: " + rightType);
-        }
-
-        return "";
+        if (!isValidOperand(leftType)) 
+            throw new TypeException("Left operand of " + addSub.op() + " must be numeric or string, got: " + leftType);
+        
+        if (!isValidOperand(rightType)) 
+            throw new TypeException("Right operand of " + addSub.op() + " must be numeric or string, got: " + rightType);
+        
+        if (leftType.equals("string") || rightType.equals("string")) 
+            return "string";
+        
+        return leftType.equals("float") || rightType.equals("float") ? "float" : "int";
     }
 
     @Override
@@ -185,23 +188,29 @@ public class Typer implements Visitor<String> {
         String elseType = ternary.value2().accept(this);
 
         if (!isCompatible(thenType, elseType)) {
-            throw new TypeException("Incompatible types in ternary: " + thenType + " vs " + elseType);
+            throw new TypeException("Incompatible types in ternary: " + thenType + " and " + elseType);
         }
 
         return thenType;
     }
+    
 
     @Override
-    public String visitCall(Call call) {
-
-        if (!symbolTable.isMethod(call.id().value()) && !symbolTable.isLambda(call.id().value())) {
-            throw new TypeException("Undefined lambda: " + call.id().value());
-        }
-
-        call.args().stream().forEach(a -> a.accept(this));
-
-        return "call";
+public String visitCall(Call call) {
+    String id = call.id().value();
+    
+    if (!symbolTable.isMethod(id) && !symbolTable.isLambda(id) && !symbolTable.isConstructor(id)) {
+        throw new TypeException("Undefined function or constructor: " + id);
     }
+
+    call.args().stream().forEach(a -> a.accept(this));
+
+    if (symbolTable.isConstructor(id)) {
+        return symbolTable.getType(id); 
+    }
+    
+    return "call";
+}
 
     private boolean isCompatible(String expected, String actual) {
         if (expected.equals("any") || actual.equals("any")) return true;
@@ -263,7 +272,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitParen(Paren paren) {
-        return "";
+        return paren.expr().accept(this);
     }
 
     @Override
@@ -342,58 +351,76 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitConstructorInvocation(ConstructorInvocation invocation) {
-        String type = symbolTable.getType(invocation.id());
-                return type != null ? type : "Object";
+        String id = invocation.id();
+        
+        if (!symbolTable.isConstructor(id)) {
+            throw new TypeException("Undefined constructor: " + id);
+        }
+        
+        String type = symbolTable.getType(id);
+        return type != null ? type : "Object";
     }
 
     @Override
     public String visitMatch(Match match) {
-        return "";
+        String matchedType = match.expr().accept(this);
+        
+        List<String> ruleTypes = match.rules().stream()
+            .map(rule -> ((MatchRule) rule).accept(this))
+            .collect(Collectors.toList());
+        
+        return ruleTypes.stream()
+            .reduce((t1, t2) -> {
+                if (isCompatible(t1, t2)) return t1;
+                throw new TypeException("Incompatible types: " + t1 + " and " + t2);
+            })
+            .orElse(matchedType);
     }
 
     @Override
     public String visitMatchRule(MatchRule matchRule) {
-        return "";
+        return matchRule.body().accept(this);
     }
 
     @Override
-    public String visitDataPattern(DataPattern constructorPattern) {
-        return "";
+    public String visitDataPattern(DataPattern dataPattern) {
+        String type = symbolTable.getType(dataPattern.name());
+        return type != null ? type : "Object";
     }
 
-    @Override
+    @Override  
     public String visitVariablePattern(VariablePattern variablePattern) {
-        return "";
+        return "any";
     }
 
     @Override
     public String visitWildcardPattern(WildcardPattern wildcardPattern) {
-        return "";
+        return "any";
     }
 
     @Override
     public String visitIntPattern(IntPattern intPattern) {
-        return "";
+        return "int";
     }
 
     @Override
     public String visitFloatPattern(FloatPattern floatPattern) {
-        return "";
+        return "float";
     }
 
     @Override
     public String visitStringPattern(StringPattern stringPattern) {
-        return "";
+        return "string";
     }
 
     @Override
     public String visitBooleanPattern(BooleanPattern booleanPattern) {
-        return "";
+        return "boolean";
     }
 
     @Override
     public String visitNonePattern(NonePattern nonePattern) {
-        return "";
+        return "none";
     }
 
     @Override
