@@ -539,6 +539,14 @@ public class JavaCodeGenerator {
         
         methodDefinitions.insert(0, indentedDef + "\n");
     }
+
+    private boolean isBooleanExpression(Node expr) {
+        // es booleano si:
+        // 1. es un id de tipo boolean
+        // 2. es un Nodo realcional/logico (RelOp, LogicalOp)
+        return (expr instanceof Id id && "boolean".equals(symbolTable.getType(id.value()))) ||
+               "boolean".equals(inferTypeFromValue(expr));
+    }
     
     private String escapeString(String value) {
         return value.replace("\\", "\\\\")
@@ -553,13 +561,5 @@ public class JavaCodeGenerator {
     private String capitalizeFirst(String str) {
         return str == null || str.isEmpty() ? str 
             : str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
-
-    private boolean isBooleanExpression(Node expr) {
-        // es booleano si:
-        // 1. es un id de tipo boolean
-        // 2. es un Nodo realcional/logico (RelOp, LogicalOp)
-        return (expr instanceof Id id && "boolean".equals(symbolTable.getType(id.value()))) ||
-               "boolean".equals(inferTypeFromValue(expr));
     }
 }

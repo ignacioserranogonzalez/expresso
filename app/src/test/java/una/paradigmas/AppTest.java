@@ -58,14 +58,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         System.out.println("\n");
         System.out.println(javaCode);
-
-        // if(typer.typeCheck(ast)){
-        //     JavaCodeGenerator generator = new JavaCodeGenerator(className);
-        //     String javaCode = generator.generate(ast);
-    
-        //     System.out.println("\n");
-        //     System.out.println(javaCode);
-        // }
         
     }
 

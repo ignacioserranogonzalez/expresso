@@ -232,7 +232,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitDataDecl(DataDeclContext ctx) {
         String id = ctx.ID().getText();
-        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, "data");
+        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, id);
         
         List<DataDecl.Constructor> constructors = ctx.constructorList() != null
             ? ctx.constructorList().constructor().stream()
