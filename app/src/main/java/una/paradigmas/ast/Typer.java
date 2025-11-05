@@ -100,7 +100,7 @@ public class Typer implements Visitor<String> {
     @Override
     public String visitId(Id id) {
         String type = symbolTable.getType(id.value());
-        if (type == null) {
+        if (type.equals("unknown")) {
             throw new TypeException("Undefined variable: " + id.value());
         }
         return type;
@@ -129,9 +129,12 @@ public class Typer implements Visitor<String> {
 
         symbolTable.addSymbol(fun.name().value(), SymbolType.METHOD, fun.returnType().accept(this));
 
-        fun.params().forEach(param -> 
-            symbolTable.addSymbol(param.id().value(), SymbolType.PARAMETER, param.type().accept(this))
-        );
+        // fun.params().forEach(param -> 
+        //     symbolTable.addSymbol(param.id().value(), SymbolType.PARAMETER, param.type().accept(this))
+        // ); 
+        // anadir en el contexto
+
+        System.out.println(fun.returnType());
 
         String bodyType = fun.body().accept(this);
         String returnType = fun.returnType().accept(this);
@@ -247,7 +250,7 @@ public class Typer implements Visitor<String> {
                 case "void" -> "void";
                 default -> typeName.substring(0, 1)
                                 .toUpperCase() 
-                                + typeName.substring(1);
+                                + typeName.substring(1); // constructor
             };
             default -> "Object";
         };
@@ -354,60 +357,91 @@ public class Typer implements Visitor<String> {
         return "";
     }
 
+    // @Override
+    // public String visitConstructorInvocation(ConstructorInvocation invocation) {
+    //     String type = symbolTable.getType(invocation.id());
+    //             return type != null ? type : "Object";
+    // }
+
     @Override
     public String visitConstructorInvocation(ConstructorInvocation invocation) {
-        String type = symbolTable.getType(invocation.id());
-                return type != null ? type : "Object";
+        String id = invocation.id();
+        
+        if (!symbolTable.isConstructor(id)) {
+            throw new TypeException("Undefined constructor: " + id);
+        }
+        
+        String type = symbolTable.getType(id);
+        return type != null ? type : "Object";
     }
 
     @Override
     public String visitMatch(Match match) {
-        return "";
+
+        System.out.println(match.expr());
+
+        return symbolTable.getType();
+
+        String matchedType = match.expr().accept(this);
+
+        return matchedType;
+        
+        // List<String> ruleTypes = match.rules().stream()
+        //     .map(rule -> ((MatchRule) rule).accept(this))
+        //     .collect(Collectors.toList());
+        
+        // return ruleTypes.stream()
+        //     .reduce((t1, t2) -> {
+        //         if (isCompatible(t1, t2)) return t1;
+        //         throw new TypeException("Incompatible types: " + t1 + " and " + t2);
+        //     })
+        //     .orElse(matchedType);
     }
 
     @Override
     public String visitMatchRule(MatchRule matchRule) {
-        return "";
+        return matchRule.body().accept(this);
     }
 
     @Override
-    public String visitDataPattern(DataPattern constructorPattern) {
-        return "";
+    public String visitDataPattern(DataPattern dataPattern) {
+        String type = symbolTable.getType(dataPattern.name());
+        return type != null ? type : "Object";
     }
 
-    @Override
+    @Override  
     public String visitVariablePattern(VariablePattern variablePattern) {
-        return "";
+        return "any";
     }
 
     @Override
     public String visitWildcardPattern(WildcardPattern wildcardPattern) {
-        return "";
+        return "any";
     }
 
     @Override
     public String visitIntPattern(IntPattern intPattern) {
-        return "";
+        return "int";
     }
 
     @Override
     public String visitFloatPattern(FloatPattern floatPattern) {
-        return "";
+        return "float";
     }
 
     @Override
     public String visitStringPattern(StringPattern stringPattern) {
-        return "";
+        return "string";
     }
 
     @Override
     public String visitBooleanPattern(BooleanPattern booleanPattern) {
-        return "";
+        return "boolean";
     }
 
     @Override
     public String visitNonePattern(NonePattern nonePattern) {
-        return "";
+        return "none";
     }
 
     @Override

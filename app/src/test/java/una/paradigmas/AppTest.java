@@ -69,21 +69,21 @@ import org.antlr.v4.runtime.CommonTokenStream;
         
     }
 
-    @Test 
-    public void testHelloWorld0() {
+    // @Test 
+    // public void testHelloWorld0() {
 
-        System.out.println("====== Test HelloWorld0.expresso ======");
+    //     System.out.println("====== Test HelloWorld0.expresso ======");
 
-        String input = """
-            // HelloWorld0.expresso
-            let x = 666
-            let y = 10
-            let f = z -> w -> 1
-            print(f(x)(y)) 
-        """;
+    //     String input = """
+    //         // HelloWorld0.expresso
+    //         let x = 666
+    //         let y = 10
+    //         let f = z -> w -> 1
+    //         print(f(x)(y)) 
+    //     """;
         
-        testExpressoProgram(input, "HelloWorld0");
-    }
+    //     testExpressoProgram(input, "HelloWorld0");
+    // }
 
     // @Test 
     // public void testHelloWorld0() {
@@ -233,26 +233,27 @@ import org.antlr.v4.runtime.CommonTokenStream;
     //     testExpressoProgram(input, "ComplexTypes");
     // }
 
-    // @Test
-    // public void testMatchWith() {
-    //     System.out.println("====== Test MatchWith.expresso ======");
-    //     System.out.println("Tarea 18 - match ... with");
+    @Test
+    public void testMatchWith() {
+        System.out.println("====== Test MatchWith.expresso ======");
+        System.out.println("Tarea 18 - match ... with");
 
-    //     String input = """
+        String input = """
 
-    //         data nat = { 
-    //             Zero, 
-    //             S(nat) 
-    //         } 
+            data nat = { 
+                Zero, 
+                S(nat) 
+            } 
 
-    //         fun sum(x:nat, y:nat):nat = match x with 
-    //                                 Zero -> y 
-    //                                 S(z) -> S(sum(z, y))
-    //                                 _ -> x
-    //     """;
+            fun sum(x:nat, y:nat):nat = match x with 
+                                    Zero -> y 
+                                    S(z) -> S(sum(z, y))
+                                    _ -> x
+            
+        """;
 
-    //     testExpressoProgram(input, "MatchWith");
-    // }
+        testExpressoProgram(input, "MatchWith");
+    }
 
     // @Test
     // public void testArrowTuple() {
