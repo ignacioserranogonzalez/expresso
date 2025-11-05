@@ -18,7 +18,7 @@ public class Typer implements Visitor<String> {
     public String toString() {
         return symbolTable.toString();
     }
-
+    
     public boolean typeCheck(Program program) {
         try {
             System.out.println();
@@ -36,12 +36,11 @@ public class Typer implements Visitor<String> {
             case "int" -> "Integer";
             case "float" -> "Float"; 
             case "boolean" -> "Boolean";
-            default -> primitiveType; // String, Object, etc
+            default -> primitiveType; 
         };
     }
 
     private SymbolType determineSymbolType(Node value, Node type) {
-
         if(type == null){
             return switch(value){
                 case Fun _ -> SymbolType.METHOD;
@@ -57,11 +56,12 @@ public class Typer implements Visitor<String> {
         };
     }
 
-    public boolean isValidOperand(String type){
+    // CORREGIDO: Mejorar isValidOperand
+    private boolean isValidOperand(String type){
+        if (type == null) return false;
         return switch(type){
             case "int" -> true;
             case "float" -> true;
-            case "call" -> true;
             default -> false;
         };
     }
@@ -101,32 +101,70 @@ public class Typer implements Visitor<String> {
     public String visitId(Id id) {
         String type = symbolTable.getType(id.value());
         if (type == null) {
-            throw new TypeException("Undefined variable: " + id.value());
+            // CORREGIDO: Si es un parámetro de lambda que no está en la symbol table, retornar "unknown"
+            return "unknown";
         }
         return type;
     }
 
-    @Override
-    public String visitLet(Let let) {
-        String id = let.id().value();
+   @Override
+public String visitLet(Let let) {
+    String id = let.id().value();
+    
+    if (symbolTable.getAllSymbols().contains(id)) {
+        throw new TypeException("Variable '" + id + "' already declared");
+    }
+    
+    String valueType;
+    String declaredType = let.type() != null ? let.type().accept(this) : null;
+    
+    if (declaredType == null && let.type() != null) {
+        declaredType = let.type().accept(this);
+    }
+    
+    if (let.type() instanceof ArrowType && let.value() instanceof Lambda) {
+        ArrowType arrowType = (ArrowType) let.type();
+        Lambda lambda = (Lambda) let.value();
         
-        if (symbolTable.getAllSymbols().contains(id)) throw new TypeException("Variable '" + id + "' already declared");
+
+        if (arrowType.from() instanceof TupleType tupleType) {
         
-        String valueType = let.value().accept(this);
-        String declaredType = let.type() != null ? let.type().accept(this) : valueType;
-        
-        if (!isCompatible(declaredType, valueType)) { // verificar inconsistencia entre el valor inferido y declarado con :
-            throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
+            List<TypeNode> paramTypes = tupleType.types();
+            List<Id> lambdaParams = lambda.args();
+            
+            if (paramTypes.size() == lambdaParams.size()) {
+                // Registrar los tipos de los parámetros en la symbol table temporalmente
+                for (int i = 0; i < paramTypes.size(); i++) {
+                    String paramType = paramTypes.get(i).accept(this);
+                    symbolTable.addSymbol(lambdaParams.get(i).value(), 
+                                        SymbolType.PARAMETER, paramType);
+                }
+            } else {
+                throw new TypeException("Lambda expects " + lambdaParams.size() + 
+                                      " parameters but type declares " + paramTypes.size());
+            }
         }
         
-        SymbolType symbolType = determineSymbolType(let.value(), let.type());
-        symbolTable.addSymbol(id, symbolType, declaredType);
-        return "";
+        valueType = let.value().accept(this);
+    
+        
+    } else {
+        valueType = let.value().accept(this);
+        if (declaredType == null) {
+            declaredType = valueType;
+        }
     }
-
+    
+    if (!isCompatible(declaredType, valueType)) {
+        throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
+    }
+    
+    SymbolType symbolType = determineSymbolType(let.value(), let.type());
+    symbolTable.addSymbol(id, symbolType, declaredType);
+    return "";
+}
     @Override
     public String visitFun(Fun fun) {
-
         symbolTable.addSymbol(fun.name().value(), SymbolType.METHOD, fun.returnType().accept(this));
 
         fun.params().forEach(param -> 
@@ -148,6 +186,11 @@ public class Typer implements Visitor<String> {
         String leftType = addSub.left().accept(this);
         String rightType = addSub.right().accept(this);
 
+        // CORREGIDO: Manejar el caso "unknown"
+        if ("unknown".equals(leftType) || "unknown".equals(rightType)) {
+            return "unknown";
+        }
+
         if (!isValidOperand(leftType)) {
             throw new TypeException("Left operand of " + addSub.op() + " must be numeric, got: " + leftType);
         }
@@ -155,13 +198,22 @@ public class Typer implements Visitor<String> {
             throw new TypeException("Right operand of " + addSub.op() + " must be numeric, got: " + rightType);
         }
 
-        return "";
+        // Determinar el tipo resultante
+        if ("float".equals(leftType) || "float".equals(rightType)) {
+            return "float";
+        }
+        return "int";
     }
 
     @Override
     public String visitMultDiv(MultDiv multDiv) {
         String leftType = multDiv.left().accept(this);
         String rightType = multDiv.right().accept(this);
+
+        // CORREGIDO: Manejar el caso "unknown"
+        if ("unknown".equals(leftType) || "unknown".equals(rightType)) {
+            return "unknown";
+        }
 
         if (!isValidOperand(leftType)) {
             throw new TypeException("Left operand of " + multDiv.op() + " must be numeric, got: " + leftType);
@@ -193,7 +245,6 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitCall(Call call) {
-
         if(call.callee() instanceof Id id){
             if (!symbolTable.isMethod(id.value()) && !symbolTable.isLambda(id.value())) {
                 throw new TypeException("Undefined lambda: " + id.value());
@@ -206,19 +257,17 @@ public class Typer implements Visitor<String> {
     }
 
     private boolean isCompatible(String expected, String actual) {
+        if (expected == null || actual == null) return false;
         if (expected.equals("any") || actual.equals("any")) return true;
         if (expected.equals(actual)) return true;
-
         if (expected.equals("float") && actual.equals("int")) return true;
-
-        if (expected.contains("Object") || actual.contains("Object")) {
-            return true;
-        }
+        if (expected.contains("Object") || actual.contains("Object")) return true;
+        if ("unknown".equals(expected) || "unknown".equals(actual)) return true; // CORREGIDO
 
         return false;
     }
-
-    @Override public String visitPrint(Print print) {
+    @Override 
+    public String visitPrint(Print print) {
         print.expr().accept(this);
         return "void";
     }
@@ -229,7 +278,8 @@ public class Typer implements Visitor<String> {
         return "void";
     }
 
-    @Override public String visitPow(Pow pow) {
+    @Override 
+    public String visitPow(Pow pow) {
         pow.left().accept(this);
         pow.right().accept(this);
         return "void";
@@ -265,77 +315,82 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitParen(Paren paren) {
-        return "";
+        return paren.expr().accept(this); // CORREGIDO: Debe evaluar la expresión interna
     }
 
     @Override
-    public String visitTupleType(TupleType tupleType) { // revisar Tuple normal, no el tuple de lambda
-        throw new UnsupportedOperationException("Unimplemented method 'visitTupleType'");
+    public String visitTupleType(TupleType tupleType) {
+        // CORREGIDO: Implementar este método
+        List<String> typeNames = tupleType.types().stream()
+            .map(t -> t.accept(this))
+            .collect(Collectors.toList());
+        return "Tuple" + typeNames.size() + "<" + String.join(", ", typeNames) + ">";
     }
 
-    @Override 
-    public String visitLambda(Lambda l) {
-        // Primero obtener el tipo del cuerpo
-        String bodyType = l.expr().accept(this);
-        
-        int argCount = l.args().size();
-        
-        // DETECTAR SI EL CUERPO ES OTRA LAMBDA
-        if (l.expr() instanceof Lambda) {
-            // Esto es una lambda que retorna lambda: x -> y -> expr
-            // El tipo debe ser: Function<Object, bodyType>
-            return "Function<Object, " + bodyType + ">";
+   @Override 
+public String visitLambda(Lambda l) {
+    // Primero obtener el tipo del cuerpo
+    String bodyType = l.expr().accept(this);
+    
+    int argCount = l.args().size();
+    
+    // DETECTAR SI EL CUERPO ES OTRA LAMBDA
+    if (l.expr() instanceof Lambda) {
+        return "Function<Object, " + bodyType + ">";
+    }
+    
+    // Lambda normal (no anidada)
+    return switch (argCount) {
+        case 0 -> "Supplier<" + bodyType + ">";
+        case 1 -> "Function<Object, " + bodyType + ">";
+        case 2 -> "BiFunction<Object, Object, " + bodyType + ">";
+        default -> {
+            // Para 3 o más parámetros, usar interfaz personalizada
+            String customName = "Function" + argCount;
+            String typeParams = String.join(", ", 
+                Collections.nCopies(argCount, "Object")) + ", " + bodyType;
+            yield customName + "<" + typeParams + ">";
+        }
+    };
+}
+
+    @Override
+public String visitArrowType(ArrowType arrowType) {
+    return switch (arrowType.from()) {
+        case TypeNode _ -> {
+            String from = toWrapperType(arrowType.from().accept(this));
+            String to = toWrapperType(arrowType.to().accept(this));
+            
+            if (from.equals("void")) {
+                yield "Supplier<" + to + ">";
+            }
+            else yield "Function<" + from + ", " + to + ">";
         }
         
-        // Lambda normal (no anidada)
-        return switch (argCount) {
-            case 0 -> "Supplier<Object>";
-            case 1 -> "Function<Object, Object>";
-            case 2 -> "BiFunction<Object, Object, Object>";
-            default -> {
-                String typeParams = String.join(", ", Collections.nCopies(argCount + 1, "Object"));
-                yield "Function" + argCount + "<" + typeParams + ">";
-            }
-        };
-    }
-
-    @Override
-    public String visitArrowType(ArrowType arrowType) {
-        
-        return switch (arrowType.from()) {
-            case TypeNode _ -> {
-                String from = toWrapperType(arrowType.from().accept(this));
-                String to = toWrapperType(arrowType.to().accept(this));
-                
-                if (from.equals("void")) {
-                    String type = "Supplier<" + to + ">";
-                    yield type;
+        case TupleType tuple -> {
+            List<TypeNode> paramTypeNodes = tuple.types();
+            List<String> paramTypes = paramTypeNodes.stream()
+                .map(t -> t.accept(this))
+                .map(this::toWrapperType)
+                .collect(Collectors.toList());
+            String returnType = toWrapperType(arrowType.to().accept(this));
+            
+            yield switch (paramTypes.size()) {
+                case 0 -> "Supplier<" + returnType + ">";
+                case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
+                case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
+                default -> {
+                    // Para 3 o más parámetros, necesitamos una interfaz personalizada
+                    String customName = "Function" + paramTypes.size();
+                    String allTypes = String.join(", ", paramTypes) + ", " + returnType;
+                    yield customName + "<" + allTypes + ">";
                 }
-                else yield "Function<" + from + ", " + to + ">";
-            }
-            
-            case TupleType tuple -> {
-                List<String> paramTypes = tuple.types().stream()
-                    .map(t -> t.accept(this))
-                    .map(this::toWrapperType)
-                    .collect(Collectors.toList());
-                String returnType = toWrapperType(arrowType.to().accept(this));
-                
-                yield switch (paramTypes.size()) {
-                    case 0 -> "Supplier<" + returnType + ">";
-                    case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
-                    case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
-                    default -> {
-                        String customName = "Function" + paramTypes.size();
-                        yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
-                    }
-                };
-            }
-            
-            default -> "Function<Object, Object>";
-        };
+            };
+        }
         
-    }
+        default -> "Function<Object, Object>";
+    };
+}
 
     @Override
     public String visitDataDecl(DataDecl dataDecl) {
@@ -357,7 +412,7 @@ public class Typer implements Visitor<String> {
     @Override
     public String visitConstructorInvocation(ConstructorInvocation invocation) {
         String type = symbolTable.getType(invocation.id());
-                return type != null ? type : "Object";
+        return type != null ? type : "Object";
     }
 
     @Override

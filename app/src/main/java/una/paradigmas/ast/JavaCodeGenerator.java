@@ -204,17 +204,51 @@ public class JavaCodeGenerator {
 
     private String generateStatement(Node stat) {
         return switch (stat) {
-            case Let(var id, var value, var typeNode) -> {
-                String valueCode = generateExpression(value);
-                String varType = switch (value) {
-                    case Lambda _ -> symbolTable.getType(id.value());
-                    default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
-                };
+                case Let(var id, var value, var typeNode) -> {
+    String valueCode = generateExpression(value);
+    String varType;
+    
+    // Si hay tipo declarado, úsalo directamente
+    if (typeNode != null) {
+        varType = generateType(typeNode);
+        // CORRECCIÓN: Para ArrowType, usar el método arrowType
+        if (typeNode instanceof ArrowType arrowType) {
+            varType = arrowType(arrowType);
+        }
+    } else {
+        // Solo infiere si no hay tipo declarado
+        varType = switch (value) {
+            case Lambda _ -> lambdaType(value, typeNode);
+            default -> inferTypeFromValue(value);
+        };
+    }
 
-                symbolTable.addSymbol(id.value(), SymbolType.VARIABLE, varType);
+    // CORRECCIÓN: Asegurar que se usen wrapper types para tipos primitivos en genéricos
+    if (varType.contains("<") && varType.contains("int>")) {
+        varType = varType.replace("int>", "Integer>");
+    }
+    if (varType.contains("<") && varType.contains("float>")) {
+        varType = varType.replace("float>", "Float>");
+    }
+    if (varType.contains("<") && varType.contains("boolean>")) {
+        varType = varType.replace("boolean>", "Boolean>");
+    }
 
-                yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
-            }                                 
+    yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
+}
+
+            
+            // case Let(var id, var value, var typeNode) -> {
+            //     String valueCode = generateExpression(value);
+            //     String varType = switch (value) {
+            //         case Lambda _ -> symbolTable.getType(id.value());
+            //         default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
+            //     };
+
+            //     symbolTable.addSymbol(id.value(), SymbolType.VARIABLE, varType);
+
+            //     yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
+            // }                                 
 
             case Print(var expr) -> {
                 extraMethods.add("print");
@@ -421,133 +455,150 @@ public class JavaCodeGenerator {
                 case "void" -> "void";
                 default -> capitalizeFirst(typeName);
             };
+        
             default -> "Object";
         };
     }
     
-    private String inferTypeFromValue(Node value) {
-        return switch (value) {
-            case IntLiteral _ -> "int";
-            case FloatLiteral _ -> "float";
-            case BooleanLiteral _ -> "boolean";
-            case StringLiteral _ -> "String";
-            case RelOp _ -> "boolean";
-            case LogicalOp _ -> "boolean";
-            case NotOp _ -> "boolean";
-            case Lambda _ -> lambdaType(value, null);
+   private String inferTypeFromValue(Node value) {
+    return switch (value) {
+        case IntLiteral _ -> "int";
+        case FloatLiteral _ -> "float";
+        case BooleanLiteral _ -> "boolean";
+        case StringLiteral _ -> "String";
+        case RelOp _ -> "boolean";
+        case LogicalOp _ -> "boolean";
+        case NotOp _ -> "boolean";
+        case Lambda l -> {
+           
+            int argCount = l.args().size();
+            String bodyType = inferTypeFromValue(l.expr());
+            String returnType = toWrapperType(bodyType);
+            
+            yield switch (argCount) {
+                case 0 -> "Supplier<" + returnType + ">";
+                case 1 -> "Function<Object, " + returnType + ">";
+                case 2 -> "BiFunction<Object, Object, " + returnType + ">";
+                default -> {
+                    generateFunctionInterface(argCount);
+                    String typeParams = Collections.nCopies(argCount, "Object")
+                        .stream().collect(Collectors.joining(", ")) + ", " + returnType;
+                    yield "Function" + argCount + "<" + typeParams + ">";
+                }
+            };
+        }
 
-            case ConstructorInvocation(var id, var _) -> {
-                String type = symbolTable.getType(id);
-                yield type != null ? capitalizeFirst(type) : "Object";
-            }
+        case ConstructorInvocation(var id, var _) -> {
+            String type = symbolTable.getType(id);
+            yield type != null ? capitalizeFirst(type) : "Object";
+        }
 
-            case Id id -> {
-                String type = symbolTable.getType(id.value());
-                yield type != null && !type.equals("unknown") ? type : "Object";
-            }
+        case Id id -> {
+            String type = symbolTable.getType(id.value());
+            yield type != null && !type.equals("unknown") ? type : "Object";
+        }
 
-            default -> "Object";
-        };
-    }
+        default -> "Object";
+    };
+}
     
     private String lambdaType(Node expr, Node explicitType) {
-        imports.add("java.util.function.*");
+    imports.add("java.util.function.*");
 
-        if (explicitType instanceof ArrowType arrowType) 
-            return arrowType(arrowType);
-    
-        return switch (expr) {
-            case Lambda l -> {
-                int argCount = l.args().size();
-                if (argCount <= 2) {
-                    yield switch (argCount) {
-                        case 0 -> "Supplier<Object>";
-                        case 1 -> "Function<Object, Object>";
-                        case 2 -> "BiFunction<Object, Object, Object>";
-                        default -> "Object";
-                    };
-                } else {
+    if (explicitType instanceof ArrowType arrowType) 
+        return arrowType(arrowType);
+
+    return switch (expr) {
+        case Lambda l -> {
+            int argCount = l.args().size();
+            yield switch (argCount) {
+                case 0 -> "Supplier<Object>";
+                case 1 -> "Function<Object, Object>";
+                case 2 -> "BiFunction<Object, Object, Object>";
+                default -> {
                     generateFunctionInterface(argCount);
                     String typeParams = Collections.nCopies(argCount + 1, "Object")
                         .stream().collect(Collectors.joining(", "));
                     yield "Function" + argCount + "<" + typeParams + ">";
                 }
-            }
-            default -> "Object";
-        };
-    }
+            };
+        }
+        default -> "Object";
+    };
+}
 
     private String toWrapperType(String primitiveType) {
         return switch (primitiveType) {
             case "int" -> "Integer";
             case "float" -> "Float"; 
             case "boolean" -> "Boolean";
-            default -> primitiveType; // String, Object, etc
+            default -> primitiveType; 
         };
     }
 
-    private String arrowType(ArrowType arrow) {
+private String arrowType(ArrowType arrow) {
+    return switch (arrow.from()) {
+        case TypeNode fromType -> {
+            String from = toWrapperType(generateType(fromType));
+            String to = toWrapperType(generateType(arrow.to()));
+            
+            if (from.equals("void")) 
+                yield "Supplier<" + to + ">";
+            else 
+                yield "Function<" + from + ", " + to + ">";
+        }
         
-        return switch (arrow.from()) {
-            case TypeNode fromType -> {
-                String from = toWrapperType(generateType(fromType));
-                String to = toWrapperType(generateType(arrow.to()));
-                
-                if (from.equals("void")) 
-                    yield "Supplier<" + to + ">";
-                else 
-                    yield "Function<" + from + ", " + to + ">";
-            }
+        case TupleType tuple -> {
+            List<String> paramTypes = tuple.types().stream()
+                .map(this::generateType)
+                .map(this::toWrapperType) // CORRECCIÓN: Asegurar que se usen wrapper types
+                .collect(Collectors.toList());
+            String returnType = toWrapperType(generateType(arrow.to()));
             
-            case TupleType tuple -> {
-                List<String> paramTypes = tuple.types().stream()
-                    .map(this::generateType)
-                    .map(this::toWrapperType)
-                    .collect(Collectors.toList());
-                String returnType = toWrapperType(generateType(arrow.to()));
-                
-                yield switch (paramTypes.size()) {
-                    case 0 -> "Supplier<" + returnType + ">";
-                    case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
-                    case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
-                    default -> {
-                        String customName = "Function" + paramTypes.size();
-                        generateFunctionInterface(paramTypes.size());
-                        yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
-                    }
-                };
-            }
-            
-            default -> "Function<Object, Object>";
-        };
-    }
+            yield switch (paramTypes.size()) {
+                case 0 -> "Supplier<" + returnType + ">";
+                case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
+                case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
+                default -> {
+                    String customName = "Function" + paramTypes.size();
+                    generateFunctionInterface(paramTypes.size());
+                    // CORRECCIÓN: Asegurar que todos los tipos usen wrappers
+                    yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
+                }
+            };
+        }
+        
+        default -> "Function<Object, Object>";
+    };
+}
 
     private void generateFunctionInterface(int paramCount) {
-        String interfaceName = "Function" + paramCount;
-        
-        if (methodDefinitions.toString().contains("interface " + interfaceName)) return;
-        
-        String typeParams = java.util.stream.IntStream.rangeClosed(1, paramCount)
-            .mapToObj(i -> "T" + i)
-            .collect(Collectors.joining(", ", "", ", R"));
-        
-        String applyParams = java.util.stream.IntStream.rangeClosed(1, paramCount)
-            .mapToObj(i -> "T" + i + " arg" + i)
-            .collect(Collectors.joining(", "));
-        
-        String interfaceDef = """
-            @FunctionalInterface
-            interface %s<%s> {
-                R apply(%s);
-            }
-            """.formatted(interfaceName, typeParams, applyParams);
-        
-        String indentedDef = interfaceDef.lines()
-            .map(line -> "    " + line)
-            .collect(Collectors.joining("\n"));
-        
-        methodDefinitions.insert(0, indentedDef + "\n");
-    }
+    String interfaceName = "Function" + paramCount;
+    
+    if (methodDefinitions.toString().contains("interface " + interfaceName)) return;
+
+    String typeParams = java.util.stream.IntStream.rangeClosed(1, paramCount)
+        .mapToObj(i -> "T" + i)
+        .collect(Collectors.joining(", ", "", ", R"));
+    
+    String applyParams = java.util.stream.IntStream.rangeClosed(1, paramCount)
+        .mapToObj(i -> "T" + i + " arg" + i)
+        .collect(Collectors.joining(", "));
+    
+    String interfaceDef = String.format("""
+        @FunctionalInterface
+        interface %s<%s> {
+            R apply(%s);
+        }
+        """, interfaceName, typeParams, applyParams);
+    
+    
+    String indentedDef = interfaceDef.lines()
+        .map(line -> "    " + line)
+        .collect(Collectors.joining("\n"));
+    
+    methodDefinitions.insert(0, indentedDef + "\n\n");
+}
     
     private String escapeString(String value) {
         return value.replace("\\", "\\\\")
