@@ -49,7 +49,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
         // AstPrintVisitor printer = new AstPrintVisitor();
         // printer.visitProgram(ast);
 
-        Typer typer = new Typer();
+        Typer typer = new Typer(ast.symbolTable());
         typer.typeCheck(ast);
         System.out.println(typer.toString());
 
@@ -78,7 +78,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
             // HelloWorld0.expresso
             let x = 666
             let y = 10
-            let f = z -> z ** 2 + 2*z + 1
+            let f = z -> w -> 1
             print(f(x)(y)) 
         """;
         

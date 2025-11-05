@@ -8,11 +8,11 @@ import java.util.stream.Collectors;
 import una.paradigmas.ast.SymbolTable.SymbolType;
 
 public class Typer implements Visitor<String> {
-    private final SymbolTable symbolTable = new SymbolTable();
+    private final SymbolTable symbolTable;
 
-    // public Typer(SymbolTable symbolTable) {
-    //     this.symbolTable = symbolTable;
-    // }
+    public Typer(SymbolTable symbolTable) {
+        this.symbolTable = symbolTable;
+    }
 
     @Override
     public String toString() {
@@ -275,15 +275,27 @@ public class Typer implements Visitor<String> {
 
     @Override 
     public String visitLambda(Lambda l) {
+        // Primero obtener el tipo del cuerpo
+        String bodyType = l.expr().accept(this);
         
         int argCount = l.args().size();
-        String typeParams = String.join(", ", Collections.nCopies(argCount + 1, "Object"));
         
+        // DETECTAR SI EL CUERPO ES OTRA LAMBDA
+        if (l.expr() instanceof Lambda) {
+            // Esto es una lambda que retorna lambda: x -> y -> expr
+            // El tipo debe ser: Function<Object, bodyType>
+            return "Function<Object, " + bodyType + ">";
+        }
+        
+        // Lambda normal (no anidada)
         return switch (argCount) {
             case 0 -> "Supplier<Object>";
             case 1 -> "Function<Object, Object>";
             case 2 -> "BiFunction<Object, Object, Object>";
-            default -> "Function" + argCount + "<" + typeParams + ">";
+            default -> {
+                String typeParams = String.join(", ", Collections.nCopies(argCount + 1, "Object"));
+                yield "Function" + argCount + "<" + typeParams + ">";
+            }
         };
     }
 

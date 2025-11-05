@@ -207,7 +207,7 @@ public class JavaCodeGenerator {
             case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
                 String varType = switch (value) {
-                    case Lambda _ -> lambdaType(value, typeNode);
+                    case Lambda _ -> symbolTable.getType(id.value());
                     default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
                 };
 
