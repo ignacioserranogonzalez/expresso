@@ -153,16 +153,30 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitCall(CallContext ctx) {
-        String id = ctx.ID().getText();
-        List<Node> args = new ArrayList<>();
-        if (ctx.argList() != null) {
-            args = ctx.argList().expr().stream()
+        Id id = new Id(ctx.ID().getText());
+        List<Node> args = Optional.ofNullable(ctx.argList())
+            .map(argList -> argList.expr().stream()
                 .map(this::visit)
-                .collect(Collectors.toList());
-        }
-        return new Call(new Id(id), args);
+                .collect(Collectors.toList()))
+            .orElse(List.of());
+
+        return new Call(id, args);
     }
 
+    
+    @Override
+    public Node visitCallChain(CallChainContext ctx) {
+        Node callee = visit(ctx.expr());
+        List<Node> args = Optional.ofNullable(ctx.argList())
+            .map(argList -> argList.expr().stream()
+                .map(this::visit)
+                .collect(Collectors.toList()))
+            .orElse(List.of());
+
+        return new Call(callee, args);
+    }
+
+    
     @Override
     public Node visitLambda(LambdaContext ctx) {
         List<Id> args = new ArrayList<>();

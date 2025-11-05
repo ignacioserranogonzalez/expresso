@@ -39,6 +39,7 @@ expr
     | expr (MINUS MINUS | PLUS PLUS)                # PostOp
     | 'match' expr 'with' NEWLINE* matchRule+       # Match
     | lambdaParams LAMBDA expr                      # Lambda
+    | expr '(' argList? ')'                         # CallChain
     | ID '(' argList? ')'                           # Call
     | '^' constructorExpr                           # ConstructorInvocation
     | PRINT '(' expr ')'                            # PrintExpr

@@ -194,11 +194,13 @@ public class Typer implements Visitor<String> {
     @Override
     public String visitCall(Call call) {
 
-        if (!symbolTable.isMethod(call.id().value()) && !symbolTable.isLambda(call.id().value())) {
-            throw new TypeException("Undefined lambda: " + call.id().value());
+        if(call.callee() instanceof Id id){
+            if (!symbolTable.isMethod(id.value()) && !symbolTable.isLambda(id.value())) {
+                throw new TypeException("Undefined lambda: " + id.value());
+            }
+    
+            call.args().stream().forEach(a -> a.accept(this));
         }
-
-        call.args().stream().forEach(a -> a.accept(this));
 
         return "call";
     }

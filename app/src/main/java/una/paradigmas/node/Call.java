@@ -18,7 +18,7 @@ import java.util.List;
 
 import una.paradigmas.ast.Visitor;
 
-public record Call(Id id, List<Node> args) implements Node {
+public record Call(Node callee, List<Node> args) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitCall(this);

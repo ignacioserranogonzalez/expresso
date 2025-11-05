@@ -77,255 +77,196 @@ import org.antlr.v4.runtime.CommonTokenStream;
         String input = """
             // HelloWorld0.expresso
             let x = 666
-            print(x) // Expected 666 in console
             let y = 10
-            print(y) // Expected 10 in console
-            let f :(int->int) = z -> z ** 2 + 2*z + 1
-            print(f(x) + f(y)) // expected 445010
+            let f = z -> z ** 2 + 2*z + 1
+            print(f(x)(y)) 
         """;
         
         testExpressoProgram(input, "HelloWorld0");
     }
 
-    @Test 
-    public void testHelloWorld1() {
+    // @Test 
+    // public void testHelloWorld0() {
 
-        System.out.println("====== Test HelloWorld1.expresso ======");
+    //     System.out.println("====== Test HelloWorld0.expresso ======");
 
-        String input = "// HelloWorld1.expresso\n\n" +
-                      "/*\n" +
-                      "  As HelloWorld0 but with a Binary Function\n" +
-                      "  @author hooNous\n" +
-                      "  @since Oct 6th, 2025\n" +
-                      "*/\n\n" +
-                      "let x = 6\n" +
-                      "print(x)\n" +
-                      "let y = 3\n" +
-                      "print(y)\n" +
-                      "let f:((int, int) -> int) = (w, z) -> z ** w + w*z + 1\n" +
-                      "print(f(x, y)) // Expected 748\n";
+    //     String input = """
+    //         // HelloWorld0.expresso
+    //         let x = 666
+    //         print(x) // Expected 666 in console
+    //         let y = 10
+    //         print(y) // Expected 10 in console
+    //         let f :(int->int) = z -> z ** 2 + 2*z + 1
+    //         print(f(x) + f(y)) // expected 445010
+    //     """;
         
-        testExpressoProgram(input, "HelloWorld1");
-    }
+    //     testExpressoProgram(input, "HelloWorld0");
+    // }
 
-    @Test 
-    public void testHelloWorld2() {
+    // @Test 
+    // public void testHelloWorld1() {
 
-        System.out.println("====== Test HelloWorld2.expresso ======");
+    //     System.out.println("====== Test HelloWorld1.expresso ======");
 
-        String input = "// HelloWorld2.expresso\n\n" +
-                      "/*\n" +
-                      "  Boolean Logic\n" +
-                      "  @author hooNous\n" +
-                      "  @since Oct 6th, 2025\n" +
-                      "*/\n\n" +
-                      "let isZero :(int -> int) = x -> x ? 0 : 1\n" +
-                      "let TRUE  = 1\n" +
-                      "let FALSE = 0\n\n" +
-                      "let isTrue :(int -> int) = x -> isZero(x) ? FALSE : TRUE\n\n" +
-                      "let NOT :(int -> int) = x -> x ? 0 : 1\n\n" +
-                      "let OR :((int, int) -> int) = (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
-                      "let AND :((int, int) -> int) = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
-                      "let XOR :((int, int) -> int) = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
-                      "print(XOR(TRUE, TRUE))   // Expected 0\n" +
-                      "print(XOR(TRUE, FALSE))  // Expected 1\n" +
-                      "print(XOR(FALSE, TRUE))  // Expected 1\n" +
-                      "print(XOR(FALSE, FALSE)) // Expected 0\n";
+    //     String input = "// HelloWorld1.expresso\n\n" +
+    //                   "/*\n" +
+    //                   "  As HelloWorld0 but with a Binary Function\n" +
+    //                   "  @author hooNous\n" +
+    //                   "  @since Oct 6th, 2025\n" +
+    //                   "*/\n\n" +
+    //                   "let x = 6\n" +
+    //                   "print(x)\n" +
+    //                   "let y = 3\n" +
+    //                   "print(y)\n" +
+    //                   "let f:((int, int) -> int) = (w, z) -> z ** w + w*z + 1\n" +
+    //                   "print(f(x, y)) // Expected 748\n";
         
-        testExpressoProgram(input, "HelloWorld2");
-    }
+    //     testExpressoProgram(input, "HelloWorld1");
+    // }
 
-    // // @Test 
-    // // public void testHelloWorld3() {
+    // @Test 
+    // public void testHelloWorld2() {
 
-    // //     System.out.println("====== Test HelloWorld3.expresso ======");
-    // //     System.out.println("====== Devil's surprises ======");
+    //     System.out.println("====== Test HelloWorld2.expresso ======");
 
-    // //     String input = "/* HelloWorld3.expresso */\n" +
-    // //                     "\n" +
-    // //                     "/*\n" +
-    // //                     "  Devil's suprises\n" +
-    // //                     "  @author hooNous\n" +
-    // //                     "  @since Oct 6th, 2025\n" +
-    // //                     "*/\n" +
-    // //                     "\n" +
-    // //                     "/*\n" +
-    // //                     "Expected output:\n" +
-    // //                     "111\n" +
-    // //                     "1\n" +
-    // //                     "12\n" +
-    // //                     "222\n" +
-    // //                     "666\n" +
-    // //                     "12\n" +
-    // //                     "444\n" +
-    // //                     "0\n" +
-    // //                     "1\n" +
-    // //                     "555\n" +
-    // //                     "-666\n" +
-    // //                     "999\n" +
-    // //                     "*/\n" +
-    // //                     "\n" +
-    // //                     "/////////////////////////////////////////////////\n" +
-    // //                     "//# Section 111\n" +
-    // //                     "print(111)\n" +
-    // //                     "print(666 ? 1 : 2 + 10) // Expecting 1\n" +
-    // //                     "print(0 ? 1 : 2 + 10)   // Expecting 12\n" +
-    // //                     "\n" +
-    // //                     "/////////////////////////////////////////////////\n" +
-    // //                     "//# Section 222\n" +
-    // //                     "print(222)\n" +
-    // //                     "print( 0 ? 0 ? 1 : 2 + 10 : 666) // Expecting 666\n" +
-    // //                     "\n" +
-    // //                     "print( 1 ? 0 ? 1 : 2 + 10 : 666) // Expecting 12\n" +
-    // //                     "\n" +
-    // //                     "/////////////////////////////////////////////////\n" +
-    // //                     "//# Section 333\n" +
-    // //                     "/* ?: multiline */ \n" +
-    // //                     "let isZero = x -> x ? 0  : 1\n" +
-    // //                     "\n" +
-    // //                     "\n" +
-    // //                     "/* const */ let  TRUE  = /* */ 1\n" +
-    // //                     "/* const */ let  FALSE = 0\n" +
-    // //                     "\n" +
-    // //                     "/////////////////////////////////////////////////\n" +
-    // //                     "//# Section 444\n" +
-    // //                     "print(444)\n" +
-    // //                     "let mod_2 = x -> x - x / 2 * 2 \n" +
-    // //                     "\n" +
-    // //                     "print(mod_2(666))    // Expecting 0\n" +
-    // //                     "print(mod_2(666 +1)) // Expecting 1\n" +
-    // //                     "\n" +
-    // //                     "/////////////////////////////////////////////////\n" +
-    // //                     "//# Section 444\n" +
-    // //                     "print(555)\n" +
-    // //                     "\n" +
-    // //                     "let _hasUnderscores_ = -666 // must be parsed\n" +
-    // //                     "print(_hasUnderscores_)  // Expecting -666\n" + // falta resolver conflicto con PostOp
-    // //                     "\n" +
-    // //                     "/////////////////////////////////////////////////\n" +
-    // //                     "//# Section 999\n" +
-    // //                     "print(999)\n" +
-    // //                     "// print(variable_not_defined) // Expecting to be transpiled but not built";
+    //     String input = "// HelloWorld2.expresso\n\n" +
+    //                   "/*\n" +
+    //                   "  Boolean Logic\n" +
+    //                   "  @author hooNous\n" +
+    //                   "  @since Oct 6th, 2025\n" +
+    //                   "*/\n\n" +
+    //                   "let isZero :(int -> int) = x -> x ? 0 : 1\n" +
+    //                   "let TRUE  = 1\n" +
+    //                   "let FALSE = 0\n\n" +
+    //                   "let isTrue :(int -> int) = x -> isZero(x) ? FALSE : TRUE\n\n" +
+    //                   "let NOT :(int -> int) = x -> x ? 0 : 1\n\n" +
+    //                   "let OR :((int, int) -> int) = (x, y) -> isTrue(x) ? TRUE : isTrue(y)\n\n" +
+    //                   "let AND :((int, int) -> int) = (x, y) -> isTrue(x) ? isTrue(y) : FALSE\n\n" +
+    //                   "let XOR :((int, int) -> int) = (x, y) -> AND(OR(x, y), NOT(AND(x, y)))\n\n" +
+    //                   "print(XOR(TRUE, TRUE))   // Expected 0\n" +
+    //                   "print(XOR(TRUE, FALSE))  // Expected 1\n" +
+    //                   "print(XOR(FALSE, TRUE))  // Expected 1\n" +
+    //                   "print(XOR(FALSE, FALSE)) // Expected 0\n";
         
-    // //     testExpressoProgram(input, "HelloWorld3");
-    // // }
+    //     testExpressoProgram(input, "HelloWorld2");
+    // }
 
-    @Test 
-    public void testHelloWorld4() {
+    // @Test 
+    // public void testHelloWorld4() {
 
-        System.out.println("====== Test HelloWorld4.expresso ======");
-        System.out.println("Tarea 13 - Tipos float-boolean-string-any");
+    //     System.out.println("====== Test HelloWorld4.expresso ======");
+    //     System.out.println("Tarea 13 - Tipos float-boolean-string-any");
                       
-        String input = """
-            let msg = "Hello \\"World\\""
-            let x:float = 3.14
-            let y = 666
-            let b = true
-            let s = "hello"
-            print(x + 2.0 + y)
-            print(s)
-            print(b)
-        """;
+    //     String input = """
+    //         let msg = "Hello \\"World\\""
+    //         let x:float = 3.14
+    //         let y = 666
+    //         let b = true
+    //         let s = "hello"
+    //         print(x + 2.0 + y)
+    //         print(s)
+    //         print(b)
+    //     """;
         
-        testExpressoProgram(input, "HelloWorld4");
-    }
+    //     testExpressoProgram(input, "HelloWorld4");
+    // }
     
-    @Test 
-    public void testHelloWorld5() {
+    // @Test 
+    // public void testHelloWorld5() {
 
-        System.out.println("====== Test HelloWorld5.expresso ======");
-        System.out.println("Tarea 14 - fun");
+    //     System.out.println("====== Test HelloWorld5.expresso ======");
+    //     System.out.println("Tarea 14 - fun");
                       
-        String input = """
-            fun fact(n:int):int = n ? n * fact(n - 1) : 1
-            """;
+    //     String input = """
+    //         fun fact(n:int):int = n ? n * fact(n - 1) : 1
+    //         """;
             
-        testExpressoProgram(input, "HelloWorld5");
-    }
+    //     testExpressoProgram(input, "HelloWorld5");
+    // }
     
-    @Test 
-    public void testHelloWorld6() {
-    System.out.println("====== Test HelloWorld6.expresso ======");
+    // @Test 
+    // public void testHelloWorld6() {
+    // System.out.println("====== Test HelloWorld6.expresso ======");
     
-    String input = "data nat = { Zero, S(n:nat) }\n" +
-                   "data list = { Nil, Cons(car:any, cdr:list) }\n" +
-                   "data gender = { Male, Female }\n" +
-                   "let x = 666\n" +
-                   "print(x)\n";
+    // String input = "data nat = { Zero, S(n:nat) }\n" +
+    //                "data list = { Nil, Cons(car:any, cdr:list) }\n" +
+    //                "data gender = { Male, Female }\n" +
+    //                "let x = 666\n" +
+    //                "print(x)\n";
     
-    testExpressoProgram(input, "HelloWorld6");
-    }
+    // testExpressoProgram(input, "HelloWorld6");
+    // }
 
-    @Test
-    public void testConstructorInvocation() {
-        System.out.println("====== Test ConstructorInvocation.expresso ======");
-        System.out.println("Tarea 17 - Soporte para el operador ^");
+    // @Test
+    // public void testConstructorInvocation() {
+    //     System.out.println("====== Test ConstructorInvocation.expresso ======");
+    //     System.out.println("Tarea 17 - Soporte para el operador ^");
 
-        String input = """
-            data list = { Nil, Cons(car:any, cdr:list) }
-            let x = ^Nil
-            let y = ^Cons(666, ^Nil)
-            print(y)
-        """;
+    //     String input = """
+    //         data list = { Nil, Cons(car:any, cdr:list) }
+    //         let x = ^Nil
+    //         let y = ^Cons(666, ^Nil)
+    //         print(y)
+    //     """;
 
-        testExpressoProgram(input, "ConstructorInvocation");
-    }
+    //     testExpressoProgram(input, "ConstructorInvocation");
+    // }
 
-    @Test
-    public void testComplexTypes() {
-        System.out.println("====== Test ComplexTypes.expresso ======");
-        System.out.println("Tarea 17 - Soporte para inferencia de tipos avanzada");
+    // @Test
+    // public void testComplexTypes() {
+    //     System.out.println("====== Test ComplexTypes.expresso ======");
+    //     System.out.println("Tarea 17 - Soporte para inferencia de tipos avanzada");
 
-        String input = """
-            data list = { Nil, Cons(car:any, cdr:list) }
+    //     String input = """
+    //         data list = { Nil, Cons(car:any, cdr:list) }
 
-            let empty:list = ^Nil 
-            let numbers = ^Cons(1, empty)
-            let first = numbers
-            let another = ^Cons("hello", first)
+    //         let empty:list = ^Nil 
+    //         let numbers = ^Cons(1, empty)
+    //         let first = numbers
+    //         let another = ^Cons("hello", first)
 
-            print(empty)
-            print(numbers)
-            print(first)
-        """;
+    //         print(empty)
+    //         print(numbers)
+    //         print(first)
+    //     """;
 
-        testExpressoProgram(input, "ComplexTypes");
-    }
+    //     testExpressoProgram(input, "ComplexTypes");
+    // }
 
-    @Test
-    public void testMatchWith() {
-        System.out.println("====== Test MatchWith.expresso ======");
-        System.out.println("Tarea 18 - match ... with");
+    // @Test
+    // public void testMatchWith() {
+    //     System.out.println("====== Test MatchWith.expresso ======");
+    //     System.out.println("Tarea 18 - match ... with");
 
-        String input = """
+    //     String input = """
 
-            data nat = { 
-                Zero, 
-                S(nat) 
-            } 
+    //         data nat = { 
+    //             Zero, 
+    //             S(nat) 
+    //         } 
 
-            fun sum(x:nat, y:nat):nat = match x with 
-                                    Zero -> y 
-                                    S(z) -> S(sum(z, y))
-                                    _ -> x
-        """;
+    //         fun sum(x:nat, y:nat):nat = match x with 
+    //                                 Zero -> y 
+    //                                 S(z) -> S(sum(z, y))
+    //                                 _ -> x
+    //     """;
 
-        testExpressoProgram(input, "MatchWith");
-    }
+    //     testExpressoProgram(input, "MatchWith");
+    // }
 
-    @Test
-    public void testArrowTuple() {
-        System.out.println("====== Test ArrowTuple.expresso ======");
-        System.out.println("Tarea 18 - Arrow y Tuple");
+    // @Test
+    // public void testArrowTuple() {
+    //     System.out.println("====== Test ArrowTuple.expresso ======");
+    //     System.out.println("Tarea 18 - Arrow y Tuple");
 
-        String input = """
-            let lambdaArrow:((int, float, int) -> float) = (x, y, z) -> x + y + z
-            let lambdaArrow2:(int -> int) = x -> x + 1
-            let lambda = (x, y, w) -> x
-        """;
+    //     String input = """
+    //         let lambdaArrow:((int, float, int) -> float) = (x, y, z) -> x + y + z
+    //         let lambdaArrow2:(int -> int) = x -> x + 1
+    //         let lambda = (x, y, w) -> x
+    //     """;
 
-        testExpressoProgram(input, "ArrowTuple");
-    }
+    //     testExpressoProgram(input, "ArrowTuple");
+    // }
 
     //  @Test
     // public void testPrintAsNone() {

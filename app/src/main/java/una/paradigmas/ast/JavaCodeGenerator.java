@@ -312,21 +312,30 @@ public class JavaCodeGenerator {
                 yield params + " -> " + generateExpression(body);
             }
 
-            case Call(var id, var paramList) -> {
-                String params = paramList.stream()
+            case Call(var callee, var paramList) -> {
+                var params = paramList.stream()
                     .map(this::generateExpression)
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
-                
-                    if (symbolTable.isConstructor(id.value())) {
-                        yield "new " + capitalizeFirst(id.value()) + "(" + params + ")";
+                    .collect(Collectors.joining(", "));
+            
+                yield switch (callee) {
+                    case Id id -> {
+                        yield symbolTable.isConstructor(id.value()) ? 
+                            "new " + capitalizeFirst(id.value()) + "(" + params + ")" 
+                            : symbolTable.getMethodNames().contains(id.value()) ?
+                                id.value() + "(" + params + ")" 
+                                : id.value() + ".apply(" + params + ")";
                     }
-                    else if (symbolTable.getMethodNames().contains(id.value())) {
-                        yield id.value() + "(" + params + ")";
-                    } else {
-                        yield generateExpression(id) + ".apply(" + params + ")";
+            
+                    case Call _ -> {
+                        // generar recursivamente el callee ( .apply().apply() )
+                        var calleeCode = generateExpression(callee);
+                        yield calleeCode + ".apply(" + params + ")";
                     }
+            
+                    default -> generateExpression(callee) + ".apply(" + params + ")";
+                };
             }
+            
 
             case ConstructorInvocation(var id, var args) -> {
                 String capitalizedId = capitalizeFirst(id);
