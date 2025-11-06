@@ -55,8 +55,6 @@ public class JavaCodeGenerator {
 
         generateMethodDefinitions(ast);
         generateMainMethod(ast);
-
-        System.out.println("\njavacodegenerator symbols\n"+symbolTable.toString());
         
         return buildFinalCode();
     }

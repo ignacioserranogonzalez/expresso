@@ -255,19 +255,19 @@ import org.antlr.v4.runtime.CommonTokenStream;
         testExpressoProgram(input, "MatchWith");
     }
 
-    // @Test
-    // public void testArrowTuple() {
-    //     System.out.println("====== Test ArrowTuple.expresso ======");
-    //     System.out.println("Tarea 18 - Arrow y Tuple");
+    @Test
+    public void testArrowTuple() {
+        System.out.println("====== Test ArrowTuple.expresso ======");
+        System.out.println("Tarea 18 - Arrow y Tuple");
 
-    //     String input = """
-    //         let lambdaArrow:((int, float, int) -> float) = (x, y, z) -> x + y + z
-    //         let lambdaArrow2:(int -> int) = x -> x + 1
-    //         let lambda = (x, y, w) -> x
-    //     """;
+        String input = """
+            //let lambdaArrow:((int, float, int) -> float) = (x, y, z) -> x + y + z
+            //let lambdaArrow2:(int -> int) = x -> x + 1
+            //let lambda = (x, y, w) -> x
+        """;
 
-    //     testExpressoProgram(input, "ArrowTuple");
-    // }
+        testExpressoProgram(input, "ArrowTuple");
+    }
 
     //  @Test
     // public void testPrintAsNone() {
