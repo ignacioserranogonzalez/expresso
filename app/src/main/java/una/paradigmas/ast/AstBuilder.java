@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -179,16 +180,19 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     
     @Override
     public Node visitLambda(LambdaContext ctx) {
-        List<Id> args = new ArrayList<>();
-    
+        List<Lambda.Param> params = new ArrayList<>();
+        
         if (ctx.lambdaParams().ID() != null) {
-            args = ctx.lambdaParams().ID().stream()
-                .map(idNode -> new Id(idNode.getText()))
+            params = ctx.lambdaParams().ID().stream()
+                .map(idNode -> new Lambda.Param(
+                    new Id(idNode.getText()), 
+                    new TypeNode("Object") 
+                ))
                 .collect(Collectors.toList());
         }
         
         Node expr = visit(ctx.expr());
-        return new Lambda(args, expr);
+        return new Lambda(params, new TypeNode("Object"), expr);
     }
 
     @Override
@@ -196,8 +200,21 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         String id = ctx.ID().getText();
         Node value = visit(ctx.expr());
         Node type = ctx.type() != null ? typeAstBuilder.visit(ctx.type()) : null;
-        return new Let(new Id(id), value, type);
-    }
+    
+        return switch (value) {
+            case Lambda lambda when type instanceof ArrowType arrow -> {
+                List<Lambda.Param> params = extractParamsFromArrowType(lambda, arrow);
+                Let let = new Let(new Id(id), new Lambda(params, arrow.to(), lambda.body()), null);
+                // System.out.println(let);
+                yield let;
+            }
+            default -> {
+                Let let = new Let(new Id(id), value, type);
+                // System.out.println(let);
+                yield let;
+            }
+        };
+    }    
 
     @Override
     public Node visitPrint(PrintContext ctx) {
@@ -372,4 +389,27 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitBlank(BlankContext ctx) {
         return null;
     }
+
+    //--------------------------------------
+
+    private List<Lambda.Param> extractParamsFromArrowType(Lambda lambda, ArrowType arrowType) {
+        return switch (arrowType.from()) {
+            case TypeNode fromType when lambda.params().size() == 1 ->
+                List.of(new Lambda.Param(lambda.params().get(0).id(), fromType));
+    
+            case TupleType tupleType ->
+                IntStream.range(0, Math.min(lambda.params().size(), tupleType.types().size()))
+                         .mapToObj(i -> new Lambda.Param(
+                             lambda.params().get(i).id(),
+                             tupleType.types().get(i)
+                         ))
+                         .toList();
+    
+            default ->
+                lambda.params().stream()
+                      .map(param -> new Lambda.Param(param.id(), new TypeNode("Object")))
+                      .toList();
+        };
+    }
+    
 }

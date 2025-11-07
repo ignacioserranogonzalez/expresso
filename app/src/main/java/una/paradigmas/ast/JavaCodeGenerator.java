@@ -1,7 +1,6 @@
 package una.paradigmas.ast;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -205,15 +204,22 @@ public class JavaCodeGenerator {
         return switch (stat) {
             case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
-                String varType = switch (value) {
-                    case Lambda _ -> {
-                        yield symbolTable.getType(id.value());
+                String varType = symbolTable.getType(id.value());
+                
+                if (varType == null) {
+                    varType = typeNode != null ? generateType(typeNode) : "Object";
+                }
+                
+                yield switch (value) {
+                    case Lambda lambda -> { // para las lambdas
+                        String functionType = symbolTable.getType(id.value());
+                        int paramCount = lambda.params().size();
+                        if(paramCount > 2) generateFunctionInterface(paramCount);
+                        yield functionType + " " + generateExpression(id) + " = " + valueCode + ";";
                     }
-                    default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
+                    default -> varType + " " + generateExpression(id) + " = " + valueCode + ";";
                 };
-
-                yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
-            }                                 
+            }                            
 
             case Print(var expr) -> {
                 extraMethods.add("print");
@@ -300,15 +306,19 @@ public class JavaCodeGenerator {
                     + " : " + generateExpression(value2) + ")";
             }
 
-            case Lambda(var args, var body) -> {
+            case Lambda(var params, var _, var body) -> {
                 imports.add("java.util.function.*");
-                String params = args.stream()
-                    .map(Id::value)
-                    .reduce((a, b) -> a + ", " + b)
-                    .map(s -> args.size() == 1 ? s : "(" + s + ")")
-                    .orElse("()");
                 
-                yield params + " -> " + generateExpression(body);
+                String args = params.stream()
+                    .map(param -> {
+                        String paramName = generateExpression(param.id());
+                        return paramName;
+                    })
+                    .collect(Collectors.joining(", "));
+                
+                String bodyCode = generateExpression(body);
+                
+                yield (params.size() == 1 ? args : "(" + args + ")") + " -> " + bodyCode;
             }
 
             case Call(var callee, var paramList) -> {
@@ -433,7 +443,7 @@ public class JavaCodeGenerator {
             case RelOp _ -> "boolean";
             case LogicalOp _ -> "boolean";
             case NotOp _ -> "boolean";
-            case Lambda _ -> lambdaType(value, null);
+            case Lambda _ ->/* lambdaType(value, null); */"lambda";
 
             case ConstructorInvocation(var id, var _) -> {
                 String type = symbolTable.getType(id);
@@ -446,78 +456,6 @@ public class JavaCodeGenerator {
             }
 
             default -> "Object";
-        };
-    }
-    
-    private String lambdaType(Node expr, Node explicitType) {
-        imports.add("java.util.function.*");
-
-        if (explicitType instanceof ArrowType arrowType) 
-            return arrowType(arrowType);
-    
-        return switch (expr) {
-            case Lambda l -> {
-                int argCount = l.args().size();
-                if (argCount <= 2) {
-                    yield switch (argCount) {
-                        case 0 -> "Supplier<Object>";
-                        case 1 -> "Function<Object, Object>";
-                        case 2 -> "BiFunction<Object, Object, Object>";
-                        default -> "Object";
-                    };
-                } else {
-                    generateFunctionInterface(argCount);
-                    String typeParams = Collections.nCopies(argCount + 1, "Object")
-                        .stream().collect(Collectors.joining(", "));
-                    yield "Function" + argCount + "<" + typeParams + ">";
-                }
-            }
-            default -> "Object";
-        };
-    }
-
-    private String toWrapperType(String primitiveType) {
-        return switch (primitiveType) {
-            case "int" -> "Integer";
-            case "float" -> "Float"; 
-            case "boolean" -> "Boolean";
-            default -> primitiveType; // String, Object, etc
-        };
-    }
-
-    private String arrowType(ArrowType arrow) {
-        
-        return switch (arrow.from()) {
-            case TypeNode fromType -> {
-                String from = toWrapperType(generateType(fromType));
-                String to = toWrapperType(generateType(arrow.to()));
-                
-                if (from.equals("void")) 
-                    yield "Supplier<" + to + ">";
-                else 
-                    yield "Function<" + from + ", " + to + ">";
-            }
-            
-            case TupleType tuple -> {
-                List<String> paramTypes = tuple.types().stream()
-                    .map(this::generateType)
-                    .map(this::toWrapperType)
-                    .collect(Collectors.toList());
-                String returnType = toWrapperType(generateType(arrow.to()));
-                
-                yield switch (paramTypes.size()) {
-                    case 0 -> "Supplier<" + returnType + ">";
-                    case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
-                    case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
-                    default -> {
-                        String customName = "Function" + paramTypes.size();
-                        generateFunctionInterface(paramTypes.size());
-                        yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
-                    }
-                };
-            }
-            
-            default -> "Function<Object, Object>";
         };
     }
 

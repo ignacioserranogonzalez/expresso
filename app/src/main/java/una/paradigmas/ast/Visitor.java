@@ -36,8 +36,6 @@ public interface Visitor<T> {
     T visitLambda(Lambda lambda);
     T visitCall(Call call);
     T visitTernaryCondition(TernaryCondition ternary);
-    T visitTupleType(TupleType tupleType);
-    T visitArrowType(ArrowType arrowType);
     T visitDataDecl(DataDecl dataDecl);
     T visitConstructorInvocation(ConstructorInvocation constructorInvocation);
     T visitMatch(Match match);

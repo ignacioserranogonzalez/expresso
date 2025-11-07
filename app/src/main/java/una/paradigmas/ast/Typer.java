@@ -3,7 +3,6 @@ package una.paradigmas.ast;
 import una.paradigmas.node.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
@@ -72,7 +71,9 @@ public class Typer implements Visitor<String> {
     public boolean isValidOperand(String type){
         return switch(type){
             case "int" -> true;
+            case "Integer" -> true;
             case "float" -> true;
+            case "Float" -> true;
             case "call" -> true;
             default -> false;
         };
@@ -295,98 +296,70 @@ public class Typer implements Visitor<String> {
         return "";
     }
 
-    @Override
-    public String visitTupleType(TupleType tupleType) { // revisar Tuple normal, no el tuple de lambda
-        throw new UnsupportedOperationException("Unimplemented method 'visitTupleType'");
-    }
-
     @Override 
     public String visitLambda(Lambda lambda) {
-
         SymbolTable lambdaContext = new SymbolTable();
         lambdaContext.setParent(currentContext());
         contextStack.push(lambdaContext);
         contextList.add(lambdaContext);
         
-        try{
+        try {
 
-            lambda.args().forEach(arg -> {
-                String param = arg.value();
+            lambda.params().forEach(param -> {
+                String paramName = param.id().value();
+                String paramType = param.type().accept(this);
                 
+                // verificar shadowing
                 boolean existsInParent = Stream.iterate(
                     currentContext().getParent(),
                     ctx -> ctx != null, 
                     SymbolTable::getParent
                 )
-                .anyMatch(ctx -> !ctx.getType(param).equals("unknown"));
+                .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
+                if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
                 
-                if (existsInParent) throw new TypeException("Variable '" + param + "' is already defined");
-                
-                currentContext().addSymbol(param, SymbolType.PARAMETER, "Object");
+                currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType));
             });
 
-            // lambda.args().forEach(a -> 
-            // currentContext().addSymbol(a.value(), SymbolType.PARAMETER, "Object")
-            // );
+            String bodyType = lambda.body().accept(this);
+            String returnType = lambda.returnType().accept(this);
             
-            String bodyType = lambda.expr().accept(this);
-            int argCount = lambda.args().size();
+            // verificar que el cuerpo coincide con el return type declarado
+            // if (!isCompatible(returnType, bodyType)) {
+            //     throw new TypeException("Lambda return type mismatch: expected " + 
+            //                         returnType + ", got " + bodyType);
+            // }
 
-            // lambda anidada
-            if (lambda.expr() instanceof Lambda) {
-                return "Function<Object, " + bodyType + ">";
-            } else{
-                // lambda no anidada
-                return switch (argCount) {
-                    case 0 -> "Supplier<Object>";
-                    case 1 -> "Function<Object, Object>";
-                    case 2 -> "BiFunction<Object, Object, Object>";
-                    default -> {
-                        String typeParams = String.join(", ", Collections.nCopies(argCount + 1, "Object"));
-                        yield "Function" + argCount + "<" + typeParams + ">";
-                    }
-                };
+            if (lambda.body() instanceof Lambda) {
+                // x -> (y -> 1) debería ser Function<X, Function<Y, Z>>
+                String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
+                return "Function<" + paramType + ", " + bodyType + ">";
             }
-        } finally { contextStack.pop(); }
-    }
 
-    @Override
-    public String visitArrowType(ArrowType arrowType) {
-        
-        return switch (arrowType.from()) {
-            case TypeNode _ -> {
-                String from = toWrapperType(arrowType.from().accept(this));
-                String to = toWrapperType(arrowType.to().accept(this));
-                
-                if (from.equals("void")) {
-                    String type = "Supplier<" + to + ">";
-                    yield type;
+            int argCount = lambda.params().size();
+
+            return switch (argCount) {
+                case 0 -> "Supplier<" + toWrapperType(returnType) + ">";
+                case 1 -> {
+                    String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
+                    yield "Function<" + paramType + ", " + toWrapperType(returnType) + ">";
                 }
-                else yield "Function<" + from + ", " + to + ">";
-            }
+                case 2 -> {
+                    String param1Type = toWrapperType(lambda.params().get(0).type().accept(this));
+                    String param2Type = toWrapperType(lambda.params().get(1).type().accept(this));
+                    yield "BiFunction<" + param1Type + ", " + param2Type + ", " + toWrapperType(returnType) + ">";
+                }
+                default -> {
+                    String paramTypes = lambda.params().stream()
+                        .map(p -> toWrapperType(p.type().accept(this)))
+                        .collect(Collectors.joining(", "));
+                    yield "Function" + argCount + "<" + paramTypes + ", " + toWrapperType(returnType) + ">";
+                }
+            };
             
-            case TupleType tuple -> {
-                List<String> paramTypes = tuple.types().stream()
-                    .map(t -> t.accept(this))
-                    .map(this::toWrapperType)
-                    .collect(Collectors.toList());
-
-                String returnType = toWrapperType(arrowType.to().accept(this));
-                
-                yield switch (paramTypes.size()) {
-                    case 0 -> "Supplier<" + returnType + ">";
-                    case 1 -> "Function<" + paramTypes.get(0) + ", " + returnType + ">";
-                    case 2 -> "BiFunction<" + paramTypes.get(0) + ", " + paramTypes.get(1) + ", " + returnType + ">";
-                    default -> {
-                        String customName = "Function" + paramTypes.size();
-                        yield customName + "<" + String.join(", ", paramTypes) + ", " + returnType + ">";
-                    }
-                };
-            }
-            
-            default -> "Function<Object, Object>";
-        };
-        
+        } finally { 
+            contextStack.pop(); 
+        }
     }
 
     @Override
@@ -405,12 +378,6 @@ public class Typer implements Visitor<String> {
 
         return "";
     }
-
-    // @Override
-    // public String visitConstructorInvocation(ConstructorInvocation invocation) {
-    //     String type = currentContext().getType(invocation.id());
-    //             return type != null ? type : "Object";
-    // }
 
     @Override
     public String visitConstructorInvocation(ConstructorInvocation invocation) {
