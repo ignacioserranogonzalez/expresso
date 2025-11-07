@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import una.paradigmas.ast.SymbolTable.SymbolType;
 import una.paradigmas.node.*;
 
 /**
@@ -55,6 +54,8 @@ public class JavaCodeGenerator {
 
         generateMethodDefinitions(ast);
         generateMainMethod(ast);
+
+        // System.out.println("\n[symbolTable JavaCodeGenerator]\n" + symbolTable);
         
         return buildFinalCode();
     }
@@ -205,11 +206,11 @@ public class JavaCodeGenerator {
             case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
                 String varType = switch (value) {
-                    case Lambda _ -> symbolTable.getType(id.value());
+                    case Lambda _ -> {
+                        yield symbolTable.getType(id.value());
+                    }
                     default -> typeNode != null ? generateType(typeNode) : inferTypeFromValue(value);
                 };
-
-                symbolTable.addSymbol(id.value(), SymbolType.VARIABLE, varType);
 
                 yield varType + " " + generateExpression(id) + " = " + valueCode + ";";
             }                                 

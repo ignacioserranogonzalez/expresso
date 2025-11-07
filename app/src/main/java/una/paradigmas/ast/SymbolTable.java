@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class SymbolTable {
     private final Map<String, SymbolInfo> symbols = new HashMap<>();
-    private SymbolTable parent;
+    private SymbolTable parent = null;
     
     public enum SymbolType {
         METHOD,
