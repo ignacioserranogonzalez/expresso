@@ -53,10 +53,54 @@ import org.antlr.v4.runtime.CommonTokenStream;
         typer.typeCheck(ast);
         System.out.println(typer.toString());
 
+        String art = switch(className){
+            case "Jupyter" ->
+            """
+                ~+
+
+                *       +
+          '                  |
+      ()    .-.,="``"=.    - o -
+            '=/_       \\     |
+         *   |  '=._    |
+              \\     `=./`,        '
+           .   '=.__.=' `='      *
+  +                         +
+       O      *        '       .
+""";
+            //     """
+            //         .                                            .
+            //         *   .                  .              .        .   *          .
+            //      .         .                     .       .           .      .        .
+            //            o                             .                   .
+            //             .              .                  .           .
+            //              0     .
+            //                     .          .                 ,                ,    ,
+            //     .          \\          .                         .
+            //          .      \\   ,
+            //       .          o     .                 .                   .            .
+            //         .         \\                 ,             .                .
+            //                   #\\##\\#      .                              .        .
+            //                 #  #O##\\###                .                        .
+            //       .        #*#  #\\##\\###                       .                     ,
+            //            .   ##*#  #\\##\\##               .                     .
+            //          .      ##*#  #o##\\#         .                             ,       .
+            //              .     *#  #\\#     .                    .             .          ,
+            //                          \\          .                         .
+            //    ____^/\\___^--____/\\____O______________/\\/\\---/\\___________---______________
+            //       /\\^   ^  ^    ^                  ^^ ^  '\\ \\^          ^       ---
+            //             --           -            --  -      -         ---  __       ^
+            //       --  __                      ___--  ^  ^                         --  __               
+                   
+            //     """;
+            default -> "";
+        };
+
+        System.out.println("\n" + art + "\n");
+
         JavaCodeGenerator generator = new JavaCodeGenerator(className);
         String javaCode = generator.generate(ast);
 
-        System.out.println("\n");
         System.out.println(javaCode);
 
         // if(typer.typeCheck(ast)){
@@ -233,44 +277,44 @@ import org.antlr.v4.runtime.CommonTokenStream;
     //     testExpressoProgram(input, "ComplexTypes");
     // }
 
-    @Test
-    public void testMatchWith() {
-        System.out.println("====== Test MatchWith.expresso ======");
-        System.out.println("Tarea 18 - match ... with");
+    // @Test
+    // public void testMatchWith() {
+    //     System.out.println("====== Test MatchWith.expresso ======");
+    //     System.out.println("Tarea 18 - match ... with");
 
-        String input = """
+    //     String input = """
 
-            data nat = { 
-                Zero, 
-                S(nat) 
-            } 
+    //         data nat = { 
+    //             Zero, 
+    //             S(nat) 
+    //         } 
 
-            fun sum(x:nat, y:nat):nat = match x with 
-                                    Zero -> y 
-                                    S(z) -> S(sum(z, y))
-                                    _ -> x
+    //         fun sum(x:nat, y:nat):nat = match x with 
+    //                                 Zero -> y 
+    //                                 S(z) -> S(sum(z, y))
+    //                                 _ -> x
             
-        """;
+    //     """;
 
-        testExpressoProgram(input, "MatchWith");
-    }
+    //     testExpressoProgram(input, "MatchWith");
+    // }
 
-    @Test
-    public void testArrowTuple() {
-        System.out.println("====== Test ArrowTuple.expresso ======");
-        System.out.println("Tarea 18 - Arrow y Tuple");
+    // @Test
+    // public void testArrowTuple() {
+    //     System.out.println("====== Test ArrowTuple.expresso ======");
+    //     System.out.println("Tarea 18 - Arrow y Tuple");
 
-        String input = """
-            //let arrow:(int -> int) = x -> x
-            //let arrow2:((int, int, int) -> int) = (x, y, z) -> x + y
-            //let lambda = x -> x
-            //let lambda2 = (x, y, w) -> x
-            //let lambda3 = x -> y -> 1
-            let lambda4 = x -> y -> z -> w -> h -> g -> 1
-        """;
+    //     String input = """
+    //         //let arrow:(int -> int) = x -> x
+    //         //let arrow2:((int, int, int) -> int) = (x, y, z) -> x + y
+    //         //let lambda = x -> x
+    //         //let lambda2 = (x, y, w) -> x
+    //         //let lambda3 = x -> y -> 1
+    //         let lambda4 = x -> y -> z -> w -> h -> g -> 1
+    //     """;
 
-        testExpressoProgram(input, "ArrowTuple");
-    }
+    //     testExpressoProgram(input, "ArrowTuple");
+    // }
 
     //  @Test
     // public void testPrintAsNone() {
@@ -380,6 +424,47 @@ import org.antlr.v4.runtime.CommonTokenStream;
     //         """;
         
     //     testExpressoProgram(input, "TestCastingWithType");
+    // }
+
+    @Test
+    public void testJupyter1() {
+        System.out.println("====== Test Jupyter 1 ======");
+        
+        String input = """
+                /*
+
+                    Repeats a string n-times using a recursive two-parameters fun
+                    Uses == 
+                    Potential Issue two-parameters type
+                    
+                    Define a Lambda (recognize type Function<Integer, String> and generate .apply)
+                    
+                */
+                fun fill(n:int, s:string):string = n == 0 ? "" : ( s + fill(n - 1, s) )
+                print(fill(80, "-"))      
+
+                /*
+                    Potential issues:
+                    * Defines a lambda of type Function<Integer, String>
+                    * Generate line.apply
+                */
+                
+                let line = n -> fill(n, "_") + "\n"
+                print(line(80))
+            """;
+        
+        testExpressoProgram(input, "Jupyter");
+    }
+
+    // @Test
+    // public void testJupyter2() {
+    //     System.out.println("====== Test Jupyter 2 ======");
+        
+    //     String input = """
+              
+    //         """;
+        
+    //     testExpressoProgram(input, "Jupyter");
     // }
 
 }

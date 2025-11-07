@@ -70,11 +70,7 @@ public class Typer implements Visitor<String> {
 
     public boolean isValidOperand(String type){
         return switch(type){
-            case "int" -> true;
-            case "Integer" -> true;
-            case "float" -> true;
-            case "Float" -> true;
-            case "call" -> true;
+            case "int", "Integer", "float", "Float", "string", "String", "call" -> true;
             default -> false;
         };
     }
@@ -107,7 +103,7 @@ public class Typer implements Visitor<String> {
     @Override
     public String visitProgram(Program program) {
         program.statements().forEach(stat -> stat.accept(this));
-        return "";
+        return "Program";
     }
 
     @Override
@@ -174,13 +170,26 @@ public class Typer implements Visitor<String> {
         String rightType = addSub.right().accept(this);
 
         if (!isValidOperand(leftType)) {
-            throw new TypeException("Left operand of " + addSub.op() + " must be numeric, got: " + leftType);
+            throw new TypeException("Left operand of " + addSub.op() + " must be numeric or string, got: " + leftType);
         }
         if (!isValidOperand(rightType)) {
-            throw new TypeException("Right operand of " + addSub.op() + " must be numeric, got: " + rightType);
+            throw new TypeException("Right operand of " + addSub.op() + " must be numeric or string, got: " + rightType);
         }
 
-        return "";
+        // Reglas de tipo para suma
+        return switch (leftType) {
+            case "string" -> "string";  // string + cualquier cosa = string
+            case "float" -> switch (rightType) {
+                case "string" -> "string";  // float + string = string
+                default -> "float";         // float + numérico = float
+            };
+            case "int" -> switch (rightType) {
+                case "string" -> "string";  // int + string = string
+                case "float" -> "float";    // int + float = float
+                default -> "int";           // int + int = int
+            };
+            default -> "Object";  // fallback
+        };
     }
 
     @Override
@@ -215,22 +224,28 @@ public class Typer implements Visitor<String> {
 
         return thenType;
     }
-
     @Override
     public String visitCall(Call call) {
-
-        if(call.callee() instanceof Id id){
-            if (!currentContext().isMethod(id.value()) && !currentContext().isLambda(id.value())) {
-                throw new TypeException("Undefined lambda: " + id.value());
+        return switch (call.callee()) {
+            case Id id -> {
+                boolean exists = Stream.iterate(currentContext(), ctx -> ctx != null, SymbolTable::getParent)
+                    .anyMatch(ctx -> ctx.isMethod(id.value()) || ctx.isLambda(id.value()));
+                
+                if (!exists) throw new TypeException("Symbol " + id.value() + " is not defined");
+                
+                
+                call.args().forEach(arg -> arg.accept(this));
+                yield "call";
             }
-    
-            call.args().stream().forEach(a -> a.accept(this));
-        }
-
-        return "call";
+            default -> {
+                call.args().forEach(arg -> arg.accept(this));
+                yield "call";
+            }
+        };
     }
 
     private boolean isCompatible(String expected, String actual) {
+
         if (expected.equals(actual)) 
             return true;
 
@@ -238,6 +253,10 @@ public class Typer implements Visitor<String> {
             return true;
 
         if (expected.equals("float") && actual.equals("int")) 
+            return true;
+
+        if ((expected.equals("String") && actual.equals("string")) ||
+            (expected.equals("string") && actual.equals("String")))
             return true;
 
         if (expected.contains("Object") || actual.contains("Object"))
@@ -293,7 +312,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitParen(Paren paren) {
-        return "";
+        return paren.expr().accept(this);
     }
 
     @Override 
@@ -376,7 +395,7 @@ public class Typer implements Visitor<String> {
                     )
                 );
 
-        return "";
+        return dataDecl.id();
     }
 
     @Override
