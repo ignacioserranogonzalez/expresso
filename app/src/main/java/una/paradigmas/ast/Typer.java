@@ -466,4 +466,16 @@ public class Typer implements Visitor<String> {
     public String visitCast(Cast cast) {
         return cast.type().accept(this);
     }
+
+    @Override
+    public String visitTupleType(TupleType tupleType) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitTupleType'");
+    }
+
+    @Override
+    public String visitArrowType(ArrowType arrowType) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitArrowType'");
+    }
 }

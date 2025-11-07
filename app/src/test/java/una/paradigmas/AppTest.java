@@ -261,11 +261,12 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println("Tarea 18 - Arrow y Tuple");
 
         String input = """
-            let arrow:(int -> int) = x -> x
-            let arrow2:((int, int, int) -> int) = (x, y, z) -> x + y
-            let lambda = x -> x
-            let lambda2 = (x, y, w) -> x
-            let lambda3 = x -> y -> 1
+            //let arrow:(int -> int) = x -> x
+            //let arrow2:((int, int, int) -> int) = (x, y, z) -> x + y
+            //let lambda = x -> x
+            //let lambda2 = (x, y, w) -> x
+            //let lambda3 = x -> y -> 1
+            let lambda4 = x -> y -> z -> w -> h -> g -> 1
         """;
 
         testExpressoProgram(input, "ArrowTuple");
