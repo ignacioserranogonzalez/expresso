@@ -222,7 +222,7 @@ public class JavaCodeGenerator {
                 
                 yield switch (value) {
                     case Lambda lambda -> { // para las lambdas
-                        String functionType = symbolTable.getType(id.value());
+                        String functionType = symbolTable.getFunctionType(id.value());
                         int paramCount = lambda.params().size();
                         if(paramCount > 2) generateFunctionInterface(paramCount);
                         yield functionType + " " + generateExpression(id) + " = " + valueCode + ";";
@@ -455,7 +455,7 @@ public class JavaCodeGenerator {
         return switch (callee) {
 
             case Id id when symbolTable.isLambda(id.value()) -> {
-                String lambdaType = symbolTable.getType(id.value());
+                String lambdaType = symbolTable.getFunctionType(id.value());
                 
                 yield switch (lambdaType) {
                     case String lt when lt.startsWith("Supplier") -> 

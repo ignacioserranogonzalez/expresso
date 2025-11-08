@@ -231,11 +231,11 @@ public class Typer implements Visitor<String> {
         String declaredType = let.type() != null ? let.type().accept(this) : valueType;
         
         if (!isCompatible(declaredType, valueType))  // verificar inconsistencia entre el valor inferido y declarado con :
-        throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
+            throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
         
         SymbolType symbolType = determineSymbolType(let.value(), let.type()); // VARIABLE, LAMBDA, METHOD etc
         
-        if (!(let.value() instanceof Lambda)) 
+        if (!(let.value() instanceof Lambda))
             currentContext().addSymbol(id, symbolType, declaredType, null);
 
         return declaredType;
@@ -342,8 +342,7 @@ public class Typer implements Visitor<String> {
                 if (context.isMethod(id.value())) {
                     yield context.getType(id.value()); // return type de fun
                 } else if(context.isLambda(id.value())) {
-                    yield context.getLambdaReturnType(id.value());
-                    // yield "Object";
+                    yield context.getType(id.value()); // return type de lambda
                 } else { yield "Object"; }
             }
             default -> {
@@ -395,8 +394,8 @@ public class Typer implements Visitor<String> {
             currentContext().getParent().addSymbol(
                 lambda.name(), 
                 SymbolType.LAMBDA, 
-                functionalType, 
-                returnType 
+                returnType,
+                functionalType 
             );
 
             return functionalType;

@@ -49,7 +49,7 @@ public class SymbolTable {
         DATA_TYPE
     }
     
-    public record SymbolInfo(SymbolType symbolType, String type, String lambdaReturnType) {}
+    public record SymbolInfo(SymbolType symbolType, String type, String functionType) {}
 
     public void setParent(SymbolTable p){
         this.parent = p;
@@ -67,8 +67,8 @@ public class SymbolTable {
     //     return this.ctxId;
     // }
     
-    public void addSymbol(String name, SymbolType symbolType, String type, String lambdaReturnType) {
-        symbols.put(name, new SymbolInfo(symbolType, type, lambdaReturnType));
+    public void addSymbol(String name, SymbolType symbolType, String type, String functionType) {
+        symbols.put(name, new SymbolInfo(symbolType, type, functionType));
     }
 
     public boolean isConstructor(String name) {
@@ -107,13 +107,13 @@ public class SymbolTable {
             symbols.put(name, new SymbolInfo(oldInfo.symbolType(), type, null));
     }
 
-    public String getLambdaReturnType(String name) {
+    public String getFunctionType(String name) {
         SymbolInfo info = symbols.get(name);
-        String lambdaReturnType = info.lambdaReturnType();
-        return info != null && lambdaReturnType != null ? lambdaReturnType : "unknown";
+        String functionalType = info.functionType();
+        return info != null && functionalType != null ? functionalType : "unknown";
     }
 
-    public void setLambdaReturnType(String name, String type) {
+    public void setFunctionType(String name, String type) {
         SymbolInfo oldInfo = symbols.get(name);
         if (oldInfo != null) 
             symbols.put(name, new SymbolInfo(oldInfo.symbolType(), oldInfo.type(), type));
@@ -167,7 +167,7 @@ public class SymbolTable {
         return symbols.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
             .map(e -> String.format("  %s: [%s, %s, %s]", 
-                e.getKey(), e.getValue().symbolType(), e.getValue().type(), e.getValue().lambdaReturnType()))
+                e.getKey(), e.getValue().symbolType(), e.getValue().type(), e.getValue().functionType()))
             .collect(Collectors.joining("\n", 
                 symbols.isEmpty() ? " {empty}" : " {\n", 
                 symbols.isEmpty() ? "" : "\n}"));
