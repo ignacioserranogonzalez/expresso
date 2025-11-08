@@ -430,23 +430,20 @@ import org.antlr.v4.runtime.CommonTokenStream;
     public void testJupyter1() {
         System.out.println("====== Test Jupyter 1 ======");
         
-        String input = """
+        String input = """                
                 fun fill(n:int, s:string):string = n == 0 ? "" : ( s + fill(n - 1, s) )
-                print(fill(80, "-"))      
                 
-                let line = n -> fill(n, "_")  + "\\n"
-                print(line(80))
-            """;
-        
-        testExpressoProgram(input, "Jupyter");
-    }
+                print(fill(80, "-"))
 
-    @Test
-    public void testJupyter2() {
-        System.out.println("====== Test Jupyter 2 ======");
-        
-        String input = """
-                let lambda = (x:int) -> print(1)
+                let line = n -> fill(n, "_") + "\\n"
+                print(line(80))
+
+                //let print_line = (n:int) -> print(n)
+                
+                // print_line(80) // print_line.accept(80)
+                
+                // print("The only " + true + " answer to the meaning of life is: " + (1 + 666 / 666 + 20 * 2))
+                // print_line(80)
             """;
         
         testExpressoProgram(input, "Jupyter");

@@ -221,7 +221,7 @@ public class Typer implements Visitor<String> {
             throw new TypeException("Right operand of " + addSub.op() + " must be numeric or string, got: " + rightType);
         }
 
-        System.out.println();
+        // System.out.println();
         // System.out.println(leftType);
         // System.out.println(rightType);
 
@@ -375,14 +375,18 @@ public class Typer implements Visitor<String> {
                 
             String bodyType = lambda.body().accept(this);
             String returnDeclared = lambda.returnType().accept(this);
-            System.out.println(returnDeclared);
             String returnType = returnDeclared.equals("Object") ? toWrapperType(bodyType) : returnDeclared;
+
+            System.out.println("OK");
 
             lambda.params().forEach(param -> { // inferir tipos basandose en los calls
                 String paramName = param.id().value();
 
-                if(!callStack.isEmpty()) {
-                    Call call = callStack.pop();
+                Stack<Call> tempCallStack = new Stack<>();
+                tempCallStack.addAll(callStack);
+
+                if(!tempCallStack.isEmpty()) {
+                    Call call = tempCallStack.pop();
 
                     String inferredType = switch (call.callee()) {
                         case Id id -> {
@@ -402,8 +406,7 @@ public class Typer implements Visitor<String> {
             //                         returnType + ", got " + bodyType);
             // }
 
-            if (lambda.body() instanceof Lambda) {
-                // x -> (y -> 1) debería ser Function<X, Function<Y, Z>>
+            if (lambda.body() instanceof Lambda) { // lambda anidada
                 String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
                 return "Function<" + paramType + ", " + bodyType + ">";
             }
