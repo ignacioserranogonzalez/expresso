@@ -431,25 +431,10 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println("====== Test Jupyter 1 ======");
         
         String input = """
-                /*
-
-                    Repeats a string n-times using a recursive two-parameters fun
-                    Uses == 
-                    Potential Issue two-parameters type
-                    
-                    Define a Lambda (recognize type Function<Integer, String> and generate .apply)
-                    
-                */
                 fun fill(n:int, s:string):string = n == 0 ? "" : ( s + fill(n - 1, s) )
                 print(fill(80, "-"))      
-
-                /*
-                    Potential issues:
-                    * Defines a lambda of type Function<Integer, String>
-                    * Generate line.apply
-                */
                 
-                let line = n -> fill(n, "_") + "\n"
+                let line = n -> fill(n, "_")  + "\\n"
                 print(line(80))
             """;
         

@@ -1,6 +1,7 @@
 package una.paradigmas.ast;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +28,17 @@ import java.util.stream.Collectors;
 public class SymbolTable {
     private final Map<String, SymbolInfo> symbols = new HashMap<>();
     private SymbolTable parent = null;
+    private final Map<String, List<String>> methodParamTypes = new HashMap<>();
+
+    public void addMethodParamTypes(String name, List<String> paramTypes) {
+        methodParamTypes.put(name, paramTypes);
+    }
+
+    public List<String> getMethodParamTypes(String name) {
+        return methodParamTypes.get(name);
+    }
+
+    // private String ctxId = "SymbolTable";
     
     public enum SymbolType {
         METHOD,
@@ -46,6 +58,14 @@ public class SymbolTable {
     public SymbolTable getParent(){
         return this.parent;
     }
+
+    // public void setCtxId(String id){
+    //     this.ctxId = id;
+    // }
+
+    // public String getCtxId(){
+    //     return this.ctxId;
+    // }
     
     public void addSymbol(String name, SymbolType symbolType, String type) {
         symbols.put(name, new SymbolInfo(symbolType, type));
@@ -90,6 +110,13 @@ public class SymbolTable {
     public boolean contains(String name) {
         return symbols.containsKey(name);
     }
+
+    public List<SymbolInfo> getParametersList() {
+        return symbols.entrySet().stream()
+            .filter(entry -> entry.getValue().symbolType() == SymbolType.PARAMETER)
+            .map(Map.Entry::getValue)  // Cambiar de getKey() a getValue() para obtener SymbolInfo
+            .collect(Collectors.toList());
+    }
     
     public Set<String> getMethodNames() {
         return symbols.entrySet().stream()
@@ -130,7 +157,7 @@ public class SymbolTable {
             .map(e -> String.format("  %s: [%s, %s]", 
                 e.getKey(), e.getValue().symbolType(), e.getValue().type()))
             .collect(Collectors.joining("\n", 
-                symbols.isEmpty() ? "SymbolTable{empty}" : "SymbolTable {\n", 
+                symbols.isEmpty() ? " {empty}" : " {\n", 
                 symbols.isEmpty() ? "" : "\n}"));
     }
 }

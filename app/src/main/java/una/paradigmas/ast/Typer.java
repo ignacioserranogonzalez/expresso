@@ -2,23 +2,25 @@ package una.paradigmas.ast;
 
 import una.paradigmas.node.*;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import una.paradigmas.ast.SymbolTable.SymbolInfo;
 import una.paradigmas.ast.SymbolTable.SymbolType;
 
 public class Typer implements Visitor<String> {
     private final Stack<SymbolTable> contextStack = new Stack<>();
-
-    private final List<SymbolTable> contextList = new ArrayList<>(); // solo para debug ?
+    private final Map<String, SymbolTable> contextMap = new HashMap<>();
+    private final Stack<Call> callStack = new Stack<>();
 
     public Typer(SymbolTable context) {
         this.contextStack.push(context);
-        contextList.add(context);
+        contextMap.put("Global", context);
     }
 
     private SymbolTable currentContext() {
@@ -27,7 +29,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String toString() {
-        return contextList.toString();
+        return contextMap.toString();
     }
 
     public boolean typeCheck(Program program) {
@@ -47,6 +49,7 @@ public class Typer implements Visitor<String> {
             case "int" -> "Integer";
             case "float" -> "Float"; 
             case "boolean" -> "Boolean";
+            case "any" -> "Object";
             default -> primitiveType; // String, Object, etc
         };
     }
@@ -75,10 +78,28 @@ public class Typer implements Visitor<String> {
         };
     }
 
+    public String additionType(String left, String right){
+        return switch (left) {
+            case "string", "String" -> "String";  // string + cualquier cosa = string
+            case "float", "Float" -> switch (right) {
+                case "string", "String" -> "String";  // float + string = string
+                default -> "float";         // float + numérico = float
+            };
+            case "int", "Integer" -> switch (right) {
+                case "string", "String" -> "String";  // int + string = string
+                case "float", "Float" -> "float";    // int + float = float
+                default -> "int";           // int + int = int
+            };
+            default -> "Object";  // fallback
+        };
+    }
+
     private String capitalizeFirst(String s) {
         return s == null || s.isEmpty() ? s 
             : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
+
+    //--------------------------------------------
 
     @Override
     public String visitInt(IntLiteral intLiteral) {
@@ -125,9 +146,6 @@ public class Typer implements Visitor<String> {
         String valueType = let.value().accept(this);
         String declaredType = let.type() != null ? let.type().accept(this) : valueType;
 
-        // System.out.println(valueType);
-        // System.out.println(declaredType);
-
         if (!isCompatible(declaredType, valueType))  // verificar inconsistencia entre el valor inferido y declarado con :
             throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
         
@@ -143,14 +161,18 @@ public class Typer implements Visitor<String> {
         SymbolTable funContext = new SymbolTable();
         funContext.setParent(currentContext());
         contextStack.push(funContext);
-        contextList.add(funContext);
+        contextMap.put(fun.name().value(), funContext);
 
         try{
             currentContext().getParent().addSymbol(fun.name().value(), SymbolType.METHOD, fun.returnType().accept(this));
 
-            fun.params().forEach(param -> 
-                currentContext().addSymbol(param.id().value(), SymbolType.PARAMETER, param.type().accept(this))
-            );
+            Map<String, String> paramTypes = new HashMap<>();
+            fun.params().forEach(param -> {
+                String paramName = param.id().value();
+                String paramType = param.type().accept(this);
+                paramTypes.put(paramName, paramType);
+                currentContext().addSymbol(paramName, SymbolType.PARAMETER, paramType);
+            });
     
             String bodyType = fun.body().accept(this);
             String returnType = fun.returnType().accept(this);
@@ -176,20 +198,15 @@ public class Typer implements Visitor<String> {
             throw new TypeException("Right operand of " + addSub.op() + " must be numeric or string, got: " + rightType);
         }
 
-        // Reglas de tipo para suma
-        return switch (leftType) {
-            case "string" -> "string";  // string + cualquier cosa = string
-            case "float" -> switch (rightType) {
-                case "string" -> "string";  // float + string = string
-                default -> "float";         // float + numérico = float
-            };
-            case "int" -> switch (rightType) {
-                case "string" -> "string";  // int + string = string
-                case "float" -> "float";    // int + float = float
-                default -> "int";           // int + int = int
-            };
-            default -> "Object";  // fallback
-        };
+        System.out.println();
+        // System.out.println(leftType);
+        // System.out.println(rightType);
+
+        // reglas de tipo para suma
+        // queda pendiente no permitir si es resta (resta solo numericos)
+        String returnType = additionType(leftType, rightType);
+        // System.out.println(returnType);
+        return returnType;
     }
 
     @Override
@@ -224,22 +241,35 @@ public class Typer implements Visitor<String> {
 
         return thenType;
     }
+
     @Override
     public String visitCall(Call call) {
         return switch (call.callee()) {
             case Id id -> {
-                boolean exists = Stream.iterate(currentContext(), ctx -> ctx != null, SymbolTable::getParent)
-                    .anyMatch(ctx -> ctx.isMethod(id.value()) || ctx.isLambda(id.value()));
-                
-                if (!exists) throw new TypeException("Symbol " + id.value() + " is not defined");
-                
-                
+
+                callStack.push(call);
+
+                SymbolTable context = Stream.iterate( // primero buscar si esta definido en un contexto
+                        currentContext(), 
+                        ctx -> ctx != null, 
+                        SymbolTable::getParent
+                    )
+                    .filter(ctx -> ctx.isMethod(id.value()) || ctx.isLambda(id.value()))
+                    .findFirst()
+                    .orElseThrow(() -> new TypeException("Symbol " + id.value() + " is not defined")); 
+
                 call.args().forEach(arg -> arg.accept(this));
-                yield "call";
+                
+                if (context.isMethod(id.value())) {
+                    yield context.getType(id.value()); // return type de fun
+                } else {
+                    // queda pendiente buscar el return type de las lambdas
+                    yield "Object";
+                }
             }
             default -> {
                 call.args().forEach(arg -> arg.accept(this));
-                yield "call";
+                yield "Object";
             }
         };
     }
@@ -320,7 +350,7 @@ public class Typer implements Visitor<String> {
         SymbolTable lambdaContext = new SymbolTable();
         lambdaContext.setParent(currentContext());
         contextStack.push(lambdaContext);
-        contextList.add(lambdaContext);
+        contextMap.put("Lambda", lambdaContext);
         
         try {
 
@@ -328,26 +358,43 @@ public class Typer implements Visitor<String> {
                 String paramName = param.id().value();
                 String paramType = param.type().accept(this);
                 
-                // verificar shadowing
+                // verificar shadowing - quizas se tenga que renombrar
                 boolean existsInParent = Stream.iterate(
                     currentContext().getParent(),
                     ctx -> ctx != null, 
                     SymbolTable::getParent
-                )
-                .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
-                if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
-                
-                currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType));
+                    )
+                    .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
+                    
+                    if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
+                    
+                    currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType));
             });
-
+                
             String bodyType = lambda.body().accept(this);
-            String returnType = lambda.returnType().accept(this);
+            String returnDeclared = lambda.returnType().accept(this);
+            String returnType = returnDeclared.equals("Object") ? bodyType : returnDeclared;
+
+            lambda.params().forEach(param -> { // inferir tipos basandose en los calls
+                String paramName = param.id().value();
+
+                Call call = callStack.pop();
+                String inferredType = switch (call.callee()) {
+                    case Id id -> {
+                        yield this.contextMap.get(id.value()).getType(paramName);
+                    }
+                
+                    default -> "Object";
+                };
+
+                currentContext().setType(paramName, inferredType);
+            });
             
-            // verificar que el cuerpo coincide con el return type declarado
-            // if (!isCompatible(returnType, bodyType)) {
-            //     throw new TypeException("Lambda return type mismatch: expected " + 
-            //                         returnType + ", got " + bodyType);
-            // }
+            // verificar que el cuerpo coincide con el return type declarado [ !!! puede dar problemas mas adelante]
+            if (!isCompatible(returnType, bodyType)) {
+                throw new TypeException("Lambda return type mismatch: expected " + 
+                                    returnType + ", got " + bodyType);
+            }
 
             if (lambda.body() instanceof Lambda) {
                 // x -> (y -> 1) debería ser Function<X, Function<Y, Z>>
@@ -357,20 +404,22 @@ public class Typer implements Visitor<String> {
 
             int argCount = lambda.params().size();
 
+            List<SymbolInfo> ctxParams = currentContext().getParametersList();
+
             return switch (argCount) {
-                case 0 -> "Supplier<" + toWrapperType(returnType) + ">";
+                case 0 -> "Supplier<" + toWrapperType(bodyType) + ">";
                 case 1 -> {
-                    String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
+                    String paramType = toWrapperType(ctxParams.get(0).type());
                     yield "Function<" + paramType + ", " + toWrapperType(returnType) + ">";
                 }
                 case 2 -> {
-                    String param1Type = toWrapperType(lambda.params().get(0).type().accept(this));
-                    String param2Type = toWrapperType(lambda.params().get(1).type().accept(this));
+                    String param1Type = toWrapperType(ctxParams.get(0).type());
+                    String param2Type = toWrapperType(ctxParams.get(1).type());
                     yield "BiFunction<" + param1Type + ", " + param2Type + ", " + toWrapperType(returnType) + ">";
                 }
                 default -> {
-                    String paramTypes = lambda.params().stream()
-                        .map(p -> toWrapperType(p.type().accept(this)))
+                    String paramTypes = ctxParams.stream()
+                        .map(p -> p.type())
                         .collect(Collectors.joining(", "));
                     yield "Function" + argCount + "<" + paramTypes + ", " + toWrapperType(returnType) + ">";
                 }
@@ -486,15 +535,6 @@ public class Typer implements Visitor<String> {
         return cast.type().accept(this);
     }
 
-    @Override
-    public String visitTupleType(TupleType tupleType) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitTupleType'");
-    }
-
-    @Override
-    public String visitArrowType(ArrowType arrowType) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitArrowType'");
-    }
+    @Override public String visitTupleType(TupleType tupleType) { return ""; }
+    @Override public String visitArrowType(ArrowType arrowType) { return ""; }
 }
