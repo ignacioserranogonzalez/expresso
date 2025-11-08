@@ -438,12 +438,12 @@ import org.antlr.v4.runtime.CommonTokenStream;
                 let line = n -> fill(n, "_") + "\\n"
                 print(line(80))
 
-                //let print_line = (n:int) -> print(n)
+                let print_line = (n:int) -> print(n)
                 
-                // print_line(80) // print_line.accept(80)
+                print_line(80) 
                 
-                // print("The only " + true + " answer to the meaning of life is: " + (1 + 666 / 666 + 20 * 2))
-                // print_line(80)
+                print("The only " + true + " answer to the meaning of life is: " + (1 + 666 / 666 + 20 * 2))
+                print_line(80)
             """;
         
         testExpressoProgram(input, "Jupyter");

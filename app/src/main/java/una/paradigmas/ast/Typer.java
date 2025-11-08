@@ -353,6 +353,10 @@ public class Typer implements Visitor<String> {
         lambdaContext.setParent(currentContext());
         contextStack.push(lambdaContext);
         contextMap.put("Lambda", lambdaContext);
+
+        Stack<Call> previousCallStack = new Stack<>();
+        previousCallStack.addAll(callStack); 
+        callStack.clear(); 
         
         try {
 
@@ -377,16 +381,14 @@ public class Typer implements Visitor<String> {
             String returnDeclared = lambda.returnType().accept(this);
             String returnType = returnDeclared.equals("Object") ? toWrapperType(bodyType) : returnDeclared;
 
-            System.out.println("OK");
-
             lambda.params().forEach(param -> { // inferir tipos basandose en los calls
                 String paramName = param.id().value();
 
-                Stack<Call> tempCallStack = new Stack<>();
-                tempCallStack.addAll(callStack);
+                Stack<Call> currentLambdaCalls = new Stack<>();
+                currentLambdaCalls.addAll(callStack);
 
-                if(!tempCallStack.isEmpty()) {
-                    Call call = tempCallStack.pop();
+                if(!currentLambdaCalls.isEmpty()) {
+                    Call call = currentLambdaCalls.pop();
 
                     String inferredType = switch (call.callee()) {
                         case Id id -> {
@@ -442,6 +444,8 @@ public class Typer implements Visitor<String> {
             
         } finally { 
             contextStack.pop(); 
+            callStack.clear();
+            callStack.addAll(previousCallStack);
         }
     }
 

@@ -226,10 +226,10 @@ public class JavaCodeGenerator {
                 yield "print(" + generateExpression(expr) + ");";
             }
 
-            case PrintExpr(var expr) -> {
-                extraMethods.add("printAndReturnNull");
-                yield "printAndReturnNull(" + generateExpression(expr) + ");";
-            }
+            // case PrintExpr(var expr) -> {
+            //     extraMethods.add("printAndReturnNull");
+            //     yield "printAndReturnNull(" + generateExpression(expr) + ");";
+            // }
 
             case Fun(var name, var params, var returnType, var body) -> {
                 // parametros con tipos
@@ -253,6 +253,14 @@ public class JavaCodeGenerator {
             }
 
             case DataDecl(String _, List<DataDecl.Constructor> _) -> "";
+
+            case Call(var callee, var paramList) -> {
+                var params = paramList.stream()
+                    .map(this::generateExpression)
+                    .collect(Collectors.joining(", "));
+            
+                yield generateCall(callee, params) + ";";
+            }
 
             default -> "";
         };
@@ -298,7 +306,7 @@ public class JavaCodeGenerator {
 
             case TernaryCondition(var condition, var value1, var value2) -> {
                 String conditionExpr = Optional.of(condition)
-                    .filter(this::isBooleanExpression)
+                    // .filter(this::isBooleanExpression)
                     .map(this::generateExpression)
                     .orElse(generateExpression(condition) + " != 0");
                 
@@ -322,27 +330,11 @@ public class JavaCodeGenerator {
             }
 
             case Call(var callee, var paramList) -> {
-                var params = paramList.stream()
+                String params = paramList.stream()
                     .map(this::generateExpression)
                     .collect(Collectors.joining(", "));
             
-                yield switch (callee) {
-                    case Id id -> {
-                        yield symbolTable.isConstructor(id.value()) ? 
-                            "new " + capitalizeFirst(id.value()) + "(" + params + ")" 
-                            : symbolTable.getMethodNames().contains(id.value()) ?
-                                id.value() + "(" + params + ")" 
-                                : id.value() + ".apply(" + params + ")";
-                    }
-            
-                    case Call _ -> {
-                        // generar recursivamente el callee ( .apply().apply() )
-                        var calleeCode = generateExpression(callee);
-                        yield calleeCode + ".apply(" + params + ")";
-                    }
-            
-                    default -> generateExpression(callee) + ".apply(" + params + ")";
-                };
+                yield generateCall(callee, params);
             }
             
 
@@ -484,6 +476,54 @@ public class JavaCodeGenerator {
             .collect(Collectors.joining("\n"));
         
         methodDefinitions.insert(0, indentedDef + "\n");
+    }
+
+    private String generateCall(Node callee, String params){
+        return switch (callee) {
+
+            case Id id when symbolTable.isLambda(id.value()) -> {
+                String lambdaType = symbolTable.getType(id.value());
+                
+                yield switch (lambdaType) {
+                    case String lt when lt.startsWith("Supplier") -> 
+                        id.value() + ".get()";
+                        
+                    case String lt when lt.startsWith("Consumer") -> 
+                        id.value() + ".accept(" + params + ")";
+                        
+                    case String lt when lt.startsWith("Function") -> 
+                        id.value() + ".apply(" + params + ")";
+                        
+                    case String lt when lt.startsWith("BiConsumer") -> 
+                        id.value() + ".accept(" + params + ")";
+                        
+                    case String lt when lt.startsWith("BiFunction") -> 
+                        id.value() + ".apply(" + params + ")";
+                        
+                    case String lt when lt.startsWith("Function") && lt.contains("Function") -> 
+                        id.value() + ".apply(" + params + ")";
+                        
+                    default -> 
+                        id.value() + ".apply(" + params + ")";
+                };
+            }
+
+            case Id id -> {
+                yield symbolTable.isConstructor(id.value()) ? 
+                    "new " + capitalizeFirst(id.value()) + "(" + params + ")" 
+                    : symbolTable.getMethodNames().contains(id.value()) ?
+                        id.value() + "(" + params + ")" 
+                        : id.value() + ".apply(" + params + ")";
+            }
+    
+            case Call _ -> {
+                // generar recursivamente el callee ( .apply().apply() )
+                var calleeCode = generateExpression(callee);
+                yield calleeCode + ".apply(" + params + ")";
+            }
+    
+            default -> generateExpression(callee) + ".apply(" + params + ")";
+        };
     }
     
     private String escapeString(String value) {
