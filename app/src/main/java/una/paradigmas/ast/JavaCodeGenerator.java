@@ -260,7 +260,7 @@ public class JavaCodeGenerator {
     private String generateExpression(Node expr) {
         return switch (expr) {
             case IntLiteral(var value) -> Integer.toString(value);
-            case FloatLiteral(var value) -> value + "f";
+            case DoubleLiteral(var value) -> Double.toString(value);
             case BooleanLiteral(var value) -> Boolean.toString(value);
             case StringLiteral(var value) -> "\"" + escapeString(value) + "\"";
 
@@ -404,7 +404,7 @@ public class JavaCodeGenerator {
         return switch (typeNode) {
             case TypeNode(var typeName) -> switch (typeName) {
                 case "int" -> "int";
-                case "float" -> "float";
+                case "double" -> "double";
                 case "boolean" -> "boolean";
                 case "string" -> "String";
                 case "any" -> "Object";

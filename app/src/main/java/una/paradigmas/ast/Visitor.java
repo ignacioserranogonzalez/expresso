@@ -20,7 +20,7 @@ public interface Visitor<T> {
     T visitProgram(Program program);
     T visitType(TypeNode type);
     T visitInt(IntLiteral num);
-    T visitFloat(FloatLiteral num);
+    T visitDouble(DoubleLiteral num);
     T visitBoolean(BooleanLiteral num);
     T visitString(StringLiteral num);
     T visitId(Id id);

@@ -48,8 +48,8 @@
 //     }
 
 //     @Override
-//     public String visitFloat(FloatLiteral num) {
-//         String result = "Float(" + num.value() + ")";
+//     public String visitDouble(DoubleLiteral num) {
+//         String result = "Double(" + num.value() + ")";
 //         System.out.println(result);
 //         return result;
 //     }

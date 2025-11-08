@@ -20,10 +20,10 @@ public class Typer implements Visitor<String> {
     private final Stack<Call> callStack = new Stack<>();
 
     private static final Map<String, Set<String>> TYPE_COMPATIBILITY = Map.of(
-        "int", Set.of("Integer", "float", "Float", "any", "Object"),
-        "Integer", Set.of("int", "float", "Float", "any", "Object"),
-        "float", Set.of("Float", "int", "Integer", "any", "Object"),
-        "Float", Set.of("float", "int", "Integer", "any", "Object"),
+        "int", Set.of("Integer", "double", "Double", "any", "Object"),
+        "Integer", Set.of("int", "double", "Double", "any", "Object"),
+        "double", Set.of("Double", "int", "Integer", "any", "Object"),
+        "Double", Set.of("double", "int", "Integer", "any", "Object"),
         "string", Set.of("String", "any", "Object"),
         "String", Set.of("string", "any", "Object"),
         "any", Set.of("any", "Object"),
@@ -59,7 +59,7 @@ public class Typer implements Visitor<String> {
     private String toWrapperType(String primitiveType) {
         return switch (primitiveType) {
             case "int" -> "Integer";
-            case "float" -> "Float"; 
+            case "double" -> "Double"; 
             case "boolean" -> "Boolean";
             case "string" -> "String";
             case "any" -> "Object";
@@ -86,7 +86,7 @@ public class Typer implements Visitor<String> {
 
     public boolean isValidOperand(String type){
         return switch(type){
-            case "int", "Integer", "float", "Float", "string", "String", "boolean", "Boolean","call" -> true;
+            case "int", "Integer", "double", "Double", "string", "String", "boolean", "Boolean","call" -> true;
             default -> false;
         };
     }
@@ -94,13 +94,13 @@ public class Typer implements Visitor<String> {
     public String additionType(String left, String right){
         return switch (left) {
             case "string", "String" -> "String";  // string + cualquier cosa = string
-            case "float", "Float" -> switch (right) {
-                case "string", "String" -> "String";  // float + string = string
-                default -> "float";         // float + numérico = float
+            case "double", "Double" -> switch (right) {
+                case "string", "String" -> "String";  // double + string = string
+                default -> "double";         // double + numérico = double
             };
             case "int", "Integer" -> switch (right) {
                 case "string", "String" -> "String";  // int + string = string
-                case "float", "Float" -> "float";    // int + float = float
+                case "double", "Double" -> "double";    // int + double = double
                 default -> "int";           // int + int = int
             };
             default -> "Object";  // fallback
@@ -130,8 +130,8 @@ public class Typer implements Visitor<String> {
     }
 
     @Override
-    public String visitFloat(FloatLiteral floatLiteral) {
-        return "float";
+    public String visitDouble(DoubleLiteral floatLiteral) {
+        return "double";
     }
 
     @Override
@@ -244,7 +244,7 @@ public class Typer implements Visitor<String> {
             throw new TypeException("Right operand of " + multDiv.op() + " must be numeric, got: " + rightType);
         }
 
-        return leftType.equals("float") || rightType.equals("float") ? "float" : "int";
+        return leftType.equals("double") || rightType.equals("double") ? "double" : "int";
     }
 
     @Override
@@ -298,7 +298,6 @@ public class Typer implements Visitor<String> {
     }
 
     @Override public String visitPrint(Print print) {
-        System.out.println(print);
         print.expr().accept(this);
         return "void";
     }
@@ -314,7 +313,7 @@ public class Typer implements Visitor<String> {
         return switch (type) {
             case TypeNode(var typeName) -> switch (typeName) {
                 case "int" -> "int";
-                case "float" -> "float";
+                case "double" -> "double";
                 case "boolean" -> "boolean";
                 case "string" -> "String";
                 case "any" -> "Object";
@@ -515,7 +514,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitFloatPattern(FloatPattern floatPattern) {
-        return "float";
+        return "double";
     }
 
     @Override

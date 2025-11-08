@@ -52,8 +52,8 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitFloat(FloatContext ctx) {
-        float value = Float.parseFloat(ctx.FLOAT().getText());
-        return new FloatLiteral(value);
+        double value = Double.parseDouble(ctx.FLOAT().getText());
+        return new DoubleLiteral(value);
     }
 
     @Override

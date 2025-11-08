@@ -15,6 +15,6 @@ import una.paradigmas.ast.Visitor;
  * Codigo de grupo: 02-1PM
  */
 
-public record FloatPattern(float value) implements Pattern {
+public record FloatPattern(double value) implements Pattern {
     @Override public <T> T accept(Visitor<T> visitor) { return visitor.visitFloatPattern(this); }
 }

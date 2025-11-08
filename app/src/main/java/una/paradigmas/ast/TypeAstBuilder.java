@@ -71,7 +71,7 @@ public class TypeAstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitAtomicFloat(AtomicFloatContext ctx) {
-        return new TypeNode("float");
+        return new TypeNode("double");
     }
 
     @Override

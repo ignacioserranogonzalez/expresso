@@ -454,7 +454,10 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println("====== Test Jupyter 2 ======");
         
         String input = """                
-                print("hello")
+                print("*** Newton-Raphson TC1 **** ")
+
+                let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
+                print("Test abs:" + (abs(-666) == abs(--666)) )
             """;
         
         testExpressoProgram(input, "Jupyter");
