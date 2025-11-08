@@ -425,31 +425,6 @@ public class JavaCodeGenerator {
             default -> "Object";
         };
     }
-    
-    private String inferTypeFromValue(Node value) {
-        return switch (value) {
-            case IntLiteral _ -> "int";
-            case FloatLiteral _ -> "float";
-            case BooleanLiteral _ -> "boolean";
-            case StringLiteral _ -> "String";
-            case RelOp _ -> "boolean";
-            case LogicalOp _ -> "boolean";
-            case NotOp _ -> "boolean";
-            case Lambda _ ->/* lambdaType(value, null); */"lambda";
-
-            case ConstructorInvocation(var id, var _) -> {
-                String type = symbolTable.getType(id);
-                yield type != null ? capitalizeFirst(type) : "Object";
-            }
-
-            case Id id -> {
-                String type = symbolTable.getType(id.value());
-                yield type != null && !type.equals("unknown") ? type : "Object";
-            }
-
-            default -> "Object";
-        };
-    }
 
     private void generateFunctionInterface(int paramCount) {
         String interfaceName = "Function" + paramCount;
@@ -539,13 +514,5 @@ public class JavaCodeGenerator {
     private String capitalizeFirst(String str) {
         return str == null || str.isEmpty() ? str 
             : str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
-
-    private boolean isBooleanExpression(Node expr) {
-        // es booleano si:
-        // 1. es un id de tipo boolean
-        // 2. es un Nodo realcional/logico (RelOp, LogicalOp)
-        return (expr instanceof Id id && "boolean".equals(symbolTable.getType(id.value()))) ||
-               "boolean".equals(inferTypeFromValue(expr));
     }
 }
