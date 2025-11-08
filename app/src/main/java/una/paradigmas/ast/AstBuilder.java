@@ -177,22 +177,24 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return new Call(callee, args);
     }
 
-    
     @Override
     public Node visitLambda(LambdaContext ctx) {
         List<Lambda.Param> params = new ArrayList<>();
-        
-        if (ctx.lambdaParams().ID() != null) {
-            params = ctx.lambdaParams().ID().stream()
-                .map(idNode -> new Lambda.Param(
-                    new Id(idNode.getText()), 
-                    new TypeNode("Object") 
-                ))
-                .collect(Collectors.toList());
+    
+        if (ctx.lambdaParams() != null) {
+            params = switch (ctx.lambdaParams()) {
+                case LambdaParamListContext paramListCtx when paramListCtx.paramList() != null ->
+                    paramListCtx.paramList().param().stream()
+                        .map(this::createParam)
+                        .collect(Collectors.toList());
+                case SingleLambdaParamContext singleParamCtx ->
+                    List.of(createParam(singleParamCtx.param()));
+                default -> List.of();
+            };
         }
         
         Node expr = visit(ctx.expr());
-        return new Lambda(params, new TypeNode("Object"), expr);
+        return new Lambda(params, new TypeNode("any"), expr);
     }
 
     @Override
@@ -392,6 +394,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     //--------------------------------------
 
+    private Lambda.Param createParam(ParamContext paramCtx) {
+        String paramId = paramCtx.ID().getText();
+        Node paramType = paramCtx.type() != null ? 
+            typeAstBuilder.visit(paramCtx.type()) : new TypeNode("any");
+        return new Lambda.Param(new Id(paramId), paramType);
+    }
+
     private List<Lambda.Param> extractParamsFromArrowType(Lambda lambda, ArrowType arrowType) {
         return switch (arrowType.from()) {
             case TypeNode fromType when lambda.params().size() == 1 ->
@@ -407,7 +416,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     
             default ->
                 lambda.params().stream()
-                      .map(param -> new Lambda.Param(param.id(), new TypeNode("Object")))
+                      .map(param -> new Lambda.Param(param.id(), new TypeNode("any")))
                       .toList();
         };
     }

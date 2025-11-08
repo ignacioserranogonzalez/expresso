@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,6 +18,17 @@ public class Typer implements Visitor<String> {
     private final Stack<SymbolTable> contextStack = new Stack<>();
     private final Map<String, SymbolTable> contextMap = new HashMap<>();
     private final Stack<Call> callStack = new Stack<>();
+
+    private static final Map<String, Set<String>> TYPE_COMPATIBILITY = Map.of(
+        "int", Set.of("Integer", "float", "Float", "any", "Object"),
+        "Integer", Set.of("int", "float", "Float", "any", "Object"),
+        "float", Set.of("Float", "int", "Integer", "any", "Object"),
+        "Float", Set.of("float", "int", "Integer", "any", "Object"),
+        "string", Set.of("String", "any", "Object"),
+        "String", Set.of("string", "any", "Object"),
+        "any", Set.of("any", "Object"),
+        "Object", Set.of("Object", "any")
+    );
 
     public Typer(SymbolTable context) {
         this.contextStack.push(context);
@@ -92,6 +104,16 @@ public class Typer implements Visitor<String> {
             };
             default -> "Object";  // fallback
         };
+    }
+
+    private boolean isCompatible(String expected, String actual) {
+        if (expected == null || actual == null) return false;
+
+        if (expected.equalsIgnoreCase(actual))
+            return true;
+
+        Set<String> compatibles = TYPE_COMPATIBILITY.get(expected);
+        return compatibles != null && compatibles.contains(actual);
     }
 
     private String capitalizeFirst(String s) {
@@ -247,8 +269,6 @@ public class Typer implements Visitor<String> {
         return switch (call.callee()) {
             case Id id -> {
 
-                callStack.push(call);
-
                 SymbolTable context = Stream.iterate( // primero buscar si esta definido en un contexto
                         currentContext(), 
                         ctx -> ctx != null, 
@@ -259,6 +279,8 @@ public class Typer implements Visitor<String> {
                     .orElseThrow(() -> new TypeException("Symbol " + id.value() + " is not defined")); 
 
                 call.args().forEach(arg -> arg.accept(this));
+
+                callStack.push(call);
                 
                 if (context.isMethod(id.value())) {
                     yield context.getType(id.value()); // return type de fun
@@ -272,27 +294,6 @@ public class Typer implements Visitor<String> {
                 yield "Object";
             }
         };
-    }
-
-    private boolean isCompatible(String expected, String actual) {
-
-        if (expected.equals(actual)) 
-            return true;
-
-        if (expected.equals("any") || actual.equals("any")) 
-            return true;
-
-        if (expected.equals("float") && actual.equals("int")) 
-            return true;
-
-        if ((expected.equals("String") && actual.equals("string")) ||
-            (expected.equals("string") && actual.equals("String")))
-            return true;
-
-        if (expected.contains("Object") || actual.contains("Object"))
-            return true;
-
-        return false;
     }
 
     @Override public String visitPrint(Print print) {
@@ -378,16 +379,19 @@ public class Typer implements Visitor<String> {
             lambda.params().forEach(param -> { // inferir tipos basandose en los calls
                 String paramName = param.id().value();
 
-                Call call = callStack.pop();
-                String inferredType = switch (call.callee()) {
-                    case Id id -> {
-                        yield this.contextMap.get(id.value()).getType(paramName);
-                    }
-                
-                    default -> "Object";
-                };
+                if(!callStack.isEmpty()) {
+                    Call call = callStack.pop();
 
-                currentContext().setType(paramName, inferredType);
+                    String inferredType = switch (call.callee()) {
+                        case Id id -> {
+                            yield this.contextMap.get(id.value()).getType(paramName);
+                        }
+
+                        default -> "Object";
+                    };
+
+                    currentContext().setType(paramName, inferredType);
+                }
             });
             
             // verificar que el cuerpo coincide con el return type declarado [ !!! puede dar problemas mas adelante]

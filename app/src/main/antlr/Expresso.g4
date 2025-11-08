@@ -12,10 +12,6 @@ stat: NEWLINE                                                               # bl
     | expr NEWLINE                                                          # expression
 ;
 
-paramList: param (',' param)*;
-
-param: ID (':' type)?;
-
 constructorList: constructor (',' NEWLINE* constructor)*;
 
 constructor: ID arguments?;
@@ -73,10 +69,13 @@ native_pattern
 ;
 
 lambdaParams
-    : '(' ID (',' ID)* ')'   
-    | ID                     
-    | '(' ')'                
-;
+    : '(' paramList? ')'   # LambdaParamList
+    | param                # SingleLambdaParam  
+    ;
+
+paramList: param (',' param)*;
+
+param: ID (':' type)?;
 
 constructorExpr: ID ('(' argList ')')?;
 
