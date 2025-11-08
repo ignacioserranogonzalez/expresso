@@ -412,13 +412,14 @@ public class Typer implements Visitor<String> {
             boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
 
             List<SymbolInfo> ctxParams = currentContext().getParametersList();
-
             return switch (argCount) {
-                case 0 -> "Supplier<" + toWrapperType(bodyType) + ">";
+                case 0 -> "Supplier<" + returnType + ">";
                 case 1 -> {
                     String paramType = toWrapperType(ctxParams.get(0).type());
                     if (shouldBeConsumer) {
                         yield "Consumer<" + paramType + ">";  
+                    } else if(returnType.equals(ctxParams.get(0).type())){
+                        yield "UnaryOperator<" + returnType + ">";
                     } else {
                         yield "Function<" + paramType + ", " + returnType + ">";  
                     }
