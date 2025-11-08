@@ -91,6 +91,13 @@ public class Typer implements Visitor<String> {
         };
     }
 
+    public boolean isValidCondition(String type){
+        return switch(type){
+            case "int", "Integer", "double", "Double", "boolean", "Boolean" -> true;
+            default -> false;
+        };
+    }
+
     public String additionType(String left, String right){
         return switch (left) {
             case "string", "String" -> "String";  // string + cualquier cosa = string
@@ -115,6 +122,60 @@ public class Typer implements Visitor<String> {
 
         Set<String> compatibles = TYPE_COMPATIBILITY.get(expected);
         return compatibles != null && compatibles.contains(actual);
+    }
+
+    private boolean isVoidLikeBody(Node body) {
+        return switch (body) {
+            case Print _ -> true;        // print retorna null
+            case NoneLiteral _ -> true;  // none es como void
+            default -> false;            // Otros casos retornan valor
+        };
+    }
+
+    private String calculateFunctionalType(Lambda lambda, String returnType) {
+        if (lambda.body() instanceof Lambda) { // lambda anidada
+            String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
+            return "Function<" + paramType + ", " + returnType + ">";
+        }
+
+        int argCount = lambda.params().size();
+        boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
+
+        List<SymbolInfo> ctxParams = currentContext().getParametersList();
+        
+        return switch (argCount) {
+            case 0 -> "Supplier<" + returnType + ">";
+            case 1 -> {
+                String paramType = toWrapperType(ctxParams.get(0).type());
+                if (shouldBeConsumer) {
+                    yield "Consumer<" + paramType + ">";  
+                } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
+                    yield "Predicate<" + paramType + ">";
+                } else if (returnType.equals(ctxParams.get(0).type())) {
+                    yield "UnaryOperator<" + returnType + ">";
+                } else {
+                    yield "Function<" + paramType + ", " + returnType + ">";
+                }
+            }
+            case 2 -> {
+                String param1Type = toWrapperType(ctxParams.get(0).type());
+                String param2Type = toWrapperType(ctxParams.get(1).type());
+                
+                if (returnType.equals("Boolean") || returnType.equals("boolean")) {
+                    yield "BiPredicate<" + param1Type + ", " + param2Type + ">";
+                } else if (param1Type.equals(param2Type) && param1Type.equals(returnType)) {
+                    yield "BinaryOperator<" + returnType + ">";
+                } else {
+                    yield "BiFunction<" + param1Type + ", " + param2Type + ", " + returnType + ">";
+                }
+            }
+            default -> {
+                String paramTypes = ctxParams.stream()
+                    .map(p -> p.type())
+                    .collect(Collectors.joining(", "));
+                yield "Function" + argCount + "<" + paramTypes + ", " + returnType + ">";
+            }
+        };
     }
 
     private String capitalizeFirst(String s) {
@@ -168,14 +229,16 @@ public class Typer implements Visitor<String> {
         
         String valueType = let.value().accept(this);
         String declaredType = let.type() != null ? let.type().accept(this) : valueType;
-
-        if (!isCompatible(declaredType, valueType))  // verificar inconsistencia entre el valor inferido y declarado con :
-            throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
         
-        SymbolType symbolType = determineSymbolType(let.value(), let.type());
-        currentContext().addSymbol(id, symbolType, declaredType);
+        if (!isCompatible(declaredType, valueType))  // verificar inconsistencia entre el valor inferido y declarado con :
+        throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
+        
+        SymbolType symbolType = determineSymbolType(let.value(), let.type()); // VARIABLE, LAMBDA, METHOD etc
+        
+        if (!(let.value() instanceof Lambda)) 
+            currentContext().addSymbol(id, symbolType, declaredType, null);
 
-        return "";
+        return declaredType;
     }
 
     @Override
@@ -187,14 +250,14 @@ public class Typer implements Visitor<String> {
         contextMap.put(fun.name().value(), funContext);
 
         try{
-            currentContext().getParent().addSymbol(fun.name().value(), SymbolType.METHOD, fun.returnType().accept(this));
+            currentContext().getParent().addSymbol(fun.name().value(), SymbolType.METHOD, fun.returnType().accept(this), null);
 
             Map<String, String> paramTypes = new HashMap<>();
             fun.params().forEach(param -> {
                 String paramName = param.id().value();
                 String paramType = param.type().accept(this);
                 paramTypes.put(paramName, paramType);
-                currentContext().addSymbol(paramName, SymbolType.PARAMETER, paramType);
+                currentContext().addSymbol(paramName, SymbolType.PARAMETER, paramType, null);
             });
     
             String bodyType = fun.body().accept(this);
@@ -221,14 +284,9 @@ public class Typer implements Visitor<String> {
             throw new TypeException("Right operand of " + addSub.op() + " must be numeric or string, got: " + rightType);
         }
 
-        // System.out.println();
-        // System.out.println(leftType);
-        // System.out.println(rightType);
-
+        // queda pendiente NO permitir si es resta (restar solo numericos).
         // reglas de tipo para suma
-        // queda pendiente no permitir si es resta (resta solo numericos)
         String returnType = additionType(leftType, rightType);
-        // System.out.println(returnType);
         return returnType;
     }
 
@@ -237,12 +295,12 @@ public class Typer implements Visitor<String> {
         String leftType = multDiv.left().accept(this);
         String rightType = multDiv.right().accept(this);
 
-        if (!isValidOperand(leftType)) {
+        if (!isValidOperand(leftType)) 
             throw new TypeException("Left operand of " + multDiv.op() + " must be numeric, got: " + leftType);
-        }
-        if (!isValidOperand(rightType)) {
+        
+        if (!isValidOperand(rightType)) 
             throw new TypeException("Right operand of " + multDiv.op() + " must be numeric, got: " + rightType);
-        }
+        
 
         return leftType.equals("double") || rightType.equals("double") ? "double" : "int";
     }
@@ -251,16 +309,14 @@ public class Typer implements Visitor<String> {
     public String visitTernaryCondition(TernaryCondition ternary) {
         String condType = ternary.condition().accept(this);
 
-        if (!condType.equals("boolean") && !condType.equals("int")) {
-            throw new TypeException("Condition must be boolean or int, got: " + condType);
-        }
+        if (!isValidCondition(condType)) 
+            throw new TypeException("Condition must be boolean or numeric, got: " + condType);
 
         String thenType = ternary.value1().accept(this);
         String elseType = ternary.value2().accept(this);
 
-        if (!isCompatible(thenType, elseType)) {
+        if (!isCompatible(thenType, elseType)) 
             throw new TypeException("Incompatible types in ternary: " + thenType + " vs " + elseType);
-        }
 
         return thenType;
     }
@@ -285,10 +341,10 @@ public class Typer implements Visitor<String> {
                 
                 if (context.isMethod(id.value())) {
                     yield context.getType(id.value()); // return type de fun
-                } else {
-                    // queda pendiente buscar el return type de las lambdas
-                    yield "Object";
-                }
+                } else if(context.isLambda(id.value())) {
+                    yield context.getLambdaReturnType(id.value());
+                    // yield "Object";
+                } else { yield "Object"; }
             }
             default -> {
                 call.args().forEach(arg -> arg.accept(this));
@@ -296,6 +352,179 @@ public class Typer implements Visitor<String> {
             }
         };
     }
+
+    
+    @Override 
+    public String visitLambda(Lambda lambda) {
+        SymbolTable lambdaContext = new SymbolTable();
+        lambdaContext.setParent(currentContext());
+        contextStack.push(lambdaContext);
+        contextMap.put(lambda.name(), lambdaContext);
+
+        Stack<Call> previousCallStack = new Stack<>();
+        previousCallStack.addAll(callStack); 
+        callStack.clear(); 
+
+        String declaredReturnType = lambda.returnType().accept(this);
+        
+        try {
+            lambda.params().forEach(param -> {
+                String paramName = param.id().value();
+                String paramType = param.type().accept(this);
+                
+                boolean existsInParent = Stream.iterate(
+                    currentContext().getParent(),
+                    ctx -> ctx != null, 
+                    SymbolTable::getParent
+                    )
+                    .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
+                    
+                if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
+                
+                currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType), null);
+            });
+                
+            String bodyType = lambda.body().accept(this);
+            String returnType = declaredReturnType.equals("Object") ? toWrapperType(bodyType) : declaredReturnType;
+
+            System.out.println(lambda.name() + " bodyType: " + bodyType);
+            System.out.println("returnType: "+ returnType);
+
+            String functionalType = calculateFunctionalType(lambda, returnType);
+            
+            currentContext().getParent().addSymbol(
+                lambda.name(), 
+                SymbolType.LAMBDA, 
+                functionalType, 
+                returnType 
+            );
+
+            return functionalType;
+            
+        } finally { 
+            contextStack.pop(); 
+            callStack.clear();
+            callStack.addAll(previousCallStack);
+        }
+    }
+
+    // @Override 
+    // public String visitLambda(Lambda lambda) {
+    //     SymbolTable lambdaContext = new SymbolTable();
+    //     lambdaContext.setParent(currentContext());
+    //     contextStack.push(lambdaContext);
+    //     contextMap.put(lambda.name(), lambdaContext);
+
+    //     Stack<Call> previousCallStack = new Stack<>();
+    //     previousCallStack.addAll(callStack); 
+    //     callStack.clear(); 
+
+    //     String returnType = lambda.returnType().accept(this);
+        
+    //     try {
+
+    //         lambda.params().forEach(param -> {
+    //             String paramName = param.id().value();
+    //             String paramType = param.type().accept(this);
+                
+    //             // verificar shadowing - quizas se tenga que renombrar
+    //             boolean existsInParent = Stream.iterate(
+    //                 currentContext().getParent(),
+    //                 ctx -> ctx != null, 
+    //                 SymbolTable::getParent
+    //                 )
+    //                 .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
+                    
+    //                 if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
+                    
+    //                 currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType), null);
+    //         });
+                
+    //         String bodyType = lambda.body().accept(this);
+    //         returnType = returnType.equals("Object") ? toWrapperType(bodyType) : returnType;
+
+    //         System.out.println(lambda.name() + " bodyType: " + bodyType);
+    //         System.out.println("returnType: "+returnType);
+
+    //         lambda.params().forEach(param -> { // inferir tipos basandose en los calls
+    //             String paramName = param.id().value();
+
+    //             Stack<Call> currentLambdaCalls = new Stack<>();
+    //             currentLambdaCalls.addAll(callStack);
+
+    //             if(!currentLambdaCalls.isEmpty()) {
+    //                 Call call = currentLambdaCalls.pop();
+
+    //                 String inferredType = switch (call.callee()) {
+    //                     case Id id -> {
+    //                         yield this.contextMap.get(id.value()).getType(paramName);
+    //                     }
+
+    //                     default -> "Object";
+    //                 };
+
+    //                 currentContext().setType(paramName, inferredType);
+    //             }
+    //         });
+            
+    //         // verificar que el cuerpo coincide con el return type declarado [ !!! puede dar problemas mas adelante]
+    //         // if (!isCompatible(returnType, bodyType)) {
+    //         //     throw new TypeException("Lambda return type mismatch: expected " + 
+    //         //                         returnType + ", got " + bodyType);
+    //         // }
+
+    //         if (lambda.body() instanceof Lambda) { // lambda anidada
+    //             String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
+    //             return "Function<" + paramType + ", " + bodyType + ">";
+    //         }
+
+    //         int argCount = lambda.params().size();
+
+    //         boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
+
+    //         List<SymbolInfo> ctxParams = currentContext().getParametersList();
+    //         return switch (argCount) {
+    //             case 0 -> "Supplier<" + returnType + ">";
+    //             case 1 -> {
+    //                 String paramType = toWrapperType(ctxParams.get(0).type());
+    //                 if (shouldBeConsumer) {
+    //                     yield "Consumer<" + paramType + ">";  
+    //                 } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
+    //                     yield "Predicate<" + paramType + ">";
+    //                 } else if (returnType.equals(ctxParams.get(0).type())) {
+    //                     yield "UnaryOperator<" + returnType + ">";
+    //                 } else {
+    //                     yield "Function<" + paramType + ", " + returnType + ">";
+    //                 }
+    //             }
+    //             case 2 -> {
+    //                 String param1Type = toWrapperType(ctxParams.get(0).type());
+    //                 String param2Type = toWrapperType(ctxParams.get(1).type());
+                    
+    //                 if (returnType.equals("Boolean") || returnType.equals("boolean")) {
+    //                     yield "BiPredicate<" + param1Type + ", " + param2Type + ">";
+    //                 } else if (param1Type.equals(param2Type) && param1Type.equals(returnType)) {
+    //                     yield "BinaryOperator<" + returnType + ">";
+    //                 } else {
+    //                     yield "BiFunction<" + param1Type + ", " + param2Type + ", " + returnType + ">";
+    //                 }
+    //             }
+    //             default -> {
+    //                 String paramTypes = ctxParams.stream()
+    //                     .map(p -> p.type())
+    //                     .collect(Collectors.joining(", "));
+    //                 yield "Function" + argCount + "<" + paramTypes + ", " + returnType + ">";
+    //             }
+    //         };
+            
+    //     } finally { 
+    //         // currentContext().getParent().addSymbol(lambda.name(), SymbolType.LAMBDA, returnType, returnType);
+    //         // lambda = new Lambda(lambda.name(), lambda.params(), new TypeNode(returnType), lambda.body());
+    //         contextStack.pop(); 
+    //         callStack.clear();
+    //         callStack.addAll(previousCallStack);
+    //     }
+    // }
 
     @Override public String visitPrint(Print print) {
         print.expr().accept(this);
@@ -341,121 +570,9 @@ public class Typer implements Visitor<String> {
         return paren.expr().accept(this);
     }
 
-    @Override 
-    public String visitLambda(Lambda lambda) {
-        SymbolTable lambdaContext = new SymbolTable();
-        lambdaContext.setParent(currentContext());
-        contextStack.push(lambdaContext);
-        contextMap.put("Lambda", lambdaContext);
-
-        Stack<Call> previousCallStack = new Stack<>();
-        previousCallStack.addAll(callStack); 
-        callStack.clear(); 
-        
-        try {
-
-            lambda.params().forEach(param -> {
-                String paramName = param.id().value();
-                String paramType = param.type().accept(this);
-                
-                // verificar shadowing - quizas se tenga que renombrar
-                boolean existsInParent = Stream.iterate(
-                    currentContext().getParent(),
-                    ctx -> ctx != null, 
-                    SymbolTable::getParent
-                    )
-                    .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
-                    
-                    if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
-                    
-                    currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType));
-            });
-                
-            String bodyType = lambda.body().accept(this);
-            String returnDeclared = lambda.returnType().accept(this);
-            String returnType = returnDeclared.equals("Object") ? toWrapperType(bodyType) : returnDeclared;
-
-            lambda.params().forEach(param -> { // inferir tipos basandose en los calls
-                String paramName = param.id().value();
-
-                Stack<Call> currentLambdaCalls = new Stack<>();
-                currentLambdaCalls.addAll(callStack);
-
-                if(!currentLambdaCalls.isEmpty()) {
-                    Call call = currentLambdaCalls.pop();
-
-                    String inferredType = switch (call.callee()) {
-                        case Id id -> {
-                            yield this.contextMap.get(id.value()).getType(paramName);
-                        }
-
-                        default -> "Object";
-                    };
-
-                    currentContext().setType(paramName, inferredType);
-                }
-            });
-            
-            // verificar que el cuerpo coincide con el return type declarado [ !!! puede dar problemas mas adelante]
-            // if (!isCompatible(returnType, bodyType)) {
-            //     throw new TypeException("Lambda return type mismatch: expected " + 
-            //                         returnType + ", got " + bodyType);
-            // }
-
-            if (lambda.body() instanceof Lambda) { // lambda anidada
-                String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
-                return "Function<" + paramType + ", " + bodyType + ">";
-            }
-
-            int argCount = lambda.params().size();
-
-            boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
-
-            List<SymbolInfo> ctxParams = currentContext().getParametersList();
-            return switch (argCount) {
-                case 0 -> "Supplier<" + returnType + ">";
-                case 1 -> {
-                    String paramType = toWrapperType(ctxParams.get(0).type());
-                    if (shouldBeConsumer) {
-                        yield "Consumer<" + paramType + ">";  
-                    } else if(returnType.equals(ctxParams.get(0).type())){
-                        yield "UnaryOperator<" + returnType + ">";
-                    } else {
-                        yield "Function<" + paramType + ", " + returnType + ">";
-                    }
-                }
-                case 2 -> {
-                    String param1Type = toWrapperType(ctxParams.get(0).type());
-                    String param2Type = toWrapperType(ctxParams.get(1).type());
-                    yield "BiFunction<" + param1Type + ", " + param2Type + ", " + returnType + ">";
-                }
-                default -> {
-                    String paramTypes = ctxParams.stream()
-                        .map(p -> p.type())
-                        .collect(Collectors.joining(", "));
-                    yield "Function" + argCount + "<" + paramTypes + ", " + returnType + ">";
-                }
-            };
-            
-        } finally { 
-            contextStack.pop(); 
-            callStack.clear();
-            callStack.addAll(previousCallStack);
-        }
-    }
-
-    private boolean isVoidLikeBody(Node body) {
-        return switch (body) {
-            case Print _ -> true;        // print retorna null
-            // case PrintExpr _ -> true;    // printExpr retorna null (no útil)
-            case NoneLiteral _ -> true;  // none es como void
-            default -> false;            // Otros casos retornan valor
-        };
-    }
-
     @Override
     public String visitDataDecl(DataDecl dataDecl) {
-        currentContext().addSymbol(dataDecl.id(), SymbolType.DATA_TYPE, capitalizeFirst(dataDecl.id()));
+        currentContext().addSymbol(dataDecl.id(), SymbolType.DATA_TYPE, capitalizeFirst(dataDecl.id()), null);
 
         if(dataDecl.constructors() != null) 
             dataDecl.constructors().stream()
@@ -463,7 +580,8 @@ public class Typer implements Visitor<String> {
                     currentContext().addSymbol(
                             c.id(), 
                             SymbolType.CONSTRUCTOR, 
-                            capitalizeFirst(dataDecl.id())
+                            capitalizeFirst(dataDecl.id()),
+                            null
                     )
                 );
 

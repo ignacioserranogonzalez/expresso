@@ -194,7 +194,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         }
 
         Node expr = visit(ctx.expr());
-        return new Lambda(params, new TypeNode("Object"), expr);
+        return new Lambda("<anonymous>", params, new TypeNode("Object"), expr);
     }
 
     @Override
@@ -206,13 +206,16 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return switch (value) {
             case Lambda lambda when type instanceof ArrowType arrow -> {
                 List<Lambda.Param> params = extractParamsFromArrowType(lambda, arrow);
-                Let let = new Let(new Id(id), new Lambda(params, arrow.to(), lambda.body()), null);
-                // System.out.println(let);
+                Let let = new Let(new Id(id), new Lambda(id, params, arrow.to(), lambda.body()), null);
+                yield let;
+            }
+            case Lambda lambda -> {
+                Lambda renamed = new Lambda(id, lambda.params(), lambda.returnType(), lambda.body());
+                Let let = new Let(new Id(id), renamed, type);
                 yield let;
             }
             default -> {
                 Let let = new Let(new Id(id), value, type);
-                // System.out.println(let);
                 yield let;
             }
         };
@@ -251,13 +254,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitDataDecl(DataDeclContext ctx) {
         String id = ctx.ID().getText();
-        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, id);
+        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, id, null);
         
         List<DataDecl.Constructor> constructors = ctx.constructorList() != null
             ? ctx.constructorList().constructor().stream()
                 .map(constructorCtx -> {
                     String constructorId = constructorCtx.ID().getText();
-                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR, id);
+                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR, id, null);
                     
                     List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
                         ? constructorCtx.arguments().argument().stream()

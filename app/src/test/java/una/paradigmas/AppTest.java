@@ -100,7 +100,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         JavaCodeGenerator generator = new JavaCodeGenerator(className);
         String javaCode = generator.generate(ast);
-
         System.out.println(javaCode);
 
         // if(typer.typeCheck(ast)){
@@ -428,7 +427,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
     @Test
     public void testJupyter1() {
-        System.out.println("====== Test Jupyter 1 ======");
+        System.out.println("\n====== Test Jupyter 1 ======");
         
         String input = """                
                 fun fill(n:int, s:string):string = n == 0 ? "" : ( s + fill(n - 1, s) )
@@ -451,22 +450,22 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
     @Test
     public void testJupyter2() {
-        System.out.println("====== Test Jupyter 2 ======");
+        System.out.println("\n====== Test Jupyter 2 ======");
         
         String input = """                
-                // print("*** Newton-Raphson TC1 **** ")
+                print("*** Newton-Raphson TC1 **** ")
 
-                // let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
-                // print("Test abs:" + (abs(-666.0) == abs(--666.0)) )
+                let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
+                print("Test abs:" + (abs(-666.0) == abs(--666.0)) )
 
-                // let EPSILON =  1e-11 // Fully uppercased id. Issue floating-point using scientific notation
-                // print("EPSILON="  + EPSILON)
+                let EPSILON =  1e-11 // Fully uppercased id. Issue floating-point using scientific notation
+                print("EPSILON="  + EPSILON)
 
-                let EPSILON = 1e-11      
-                let bigNumber = 1.23e+10   
-                let smallNumber = 4.56E-7 
-                let integerScientific = 2e5 
-                let decimalScientific = .789e3
+                let improve = (a:float, x:float) -> 0.5 * (x + a / x) // BinaryOperator<Double> .apply
+
+                let converges = (a:float, x:float) -> abs(x ** 2 - a) < EPSILON
+
+                let next = (a:float, x:float) -> converges(a, x) ? x : improve(a, x)
             """;
         
         testExpressoProgram(input, "Jupyter");

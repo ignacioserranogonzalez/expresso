@@ -174,29 +174,38 @@ public class JavaCodeGenerator {
     }
 
     private void generateExtraMethods(StringBuilder codeBuilder) {
+        String methodTemplate = """
+                public static %s %s(%s) {
+            %s
+                }
+        
+            """;
+        
         if (extraMethods.contains("pow")) {
-            codeBuilder.append("    public static int pow(int x, int e) {\n");
-            codeBuilder.append("        return (int)Math.pow(x, e);\n");
-            codeBuilder.append("    }\n\n");
+            codeBuilder.append(methodTemplate.formatted(
+                "double",             
+                "pow",                
+                "double x, double e",  
+                "        return Math.pow(x, e);" 
+            ));
         }
+    
         if (extraMethods.contains("print")) {
-            codeBuilder.append("    public static Object print(Object arg) {\n");
-            codeBuilder.append("        System.out.println(arg);\n");
-            codeBuilder.append("        return null;\n");
-            codeBuilder.append("    }\n\n");
+            codeBuilder.append(methodTemplate.formatted(
+                "Object",
+                "print",
+                "Object arg",
+                "        System.out.println(arg);\n        return null;"
+            ));
         }
-        // if (extraMethods.contains("printAndReturnNull")) {
-        //     codeBuilder.append("    public static Object printAndReturnNull(Object arg) {\n");
-        //     codeBuilder.append("        System.out.println(arg);\n");
-        //     codeBuilder.append("        return null;\n");
-        //     codeBuilder.append("    }\n\n");
-        // }
     }
-
     private void generateMainMethodSection(StringBuilder codeBuilder) {
-        codeBuilder.append("    public static void main(String... args) {\n");
-        codeBuilder.append(mainCodeBuilder);
-        codeBuilder.append("    }\n");
+        codeBuilder.append("""
+                public static void main(String... args) {
+            %s
+                }
+            
+            """.formatted(mainCodeBuilder.toString()));
     }
 
     //------------------------------------------
@@ -305,7 +314,7 @@ public class JavaCodeGenerator {
                     + " : " + generateExpression(value2) + ")";
             }
 
-            case Lambda(var params, var _, var body) -> {
+            case Lambda(var _, var params, var _, var body) -> {
                 imports.add("java.util.function.*");
                 
                 String args = params.stream()
@@ -463,6 +472,9 @@ public class JavaCodeGenerator {
                         
                     case String lt when lt.startsWith("BiFunction") -> 
                         id.value() + ".apply(" + params + ")";
+
+                    case String lt when lt.startsWith("BiPredicate") -> 
+                        id.value() + ".test(" + params + ")";
                         
                     case String lt when lt.startsWith("Function") && lt.contains("Function") -> 
                         id.value() + ".apply(" + params + ")";

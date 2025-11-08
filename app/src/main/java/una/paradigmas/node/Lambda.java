@@ -18,7 +18,7 @@ import una.paradigmas.ast.Visitor;
  * Codigo de grupo: 02-1PM
  */
 
-public record Lambda(List<Param> params, Node returnType, Node body) implements Node {
+public record Lambda(String name, List<Param> params, Node returnType, Node body) implements Node {
     public record Param(Id id, Node type) {}
 
     @Override
