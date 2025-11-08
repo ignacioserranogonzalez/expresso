@@ -130,7 +130,7 @@ public class Typer implements Visitor<String> {
     }
 
     @Override
-    public String visitDouble(DoubleLiteral floatLiteral) {
+    public String visitDouble(DoubleLiteral doubleLiteral) {
         return "double";
     }
 
@@ -281,7 +281,7 @@ public class Typer implements Visitor<String> {
 
                 call.args().forEach(arg -> arg.accept(this));
 
-                callStack.push(call);
+                callStack.push(call); // callStack es local para cada lambda
                 
                 if (context.isMethod(id.value())) {
                     yield context.getType(id.value()); // return type de fun
@@ -421,7 +421,7 @@ public class Typer implements Visitor<String> {
                     } else if(returnType.equals(ctxParams.get(0).type())){
                         yield "UnaryOperator<" + returnType + ">";
                     } else {
-                        yield "Function<" + paramType + ", " + returnType + ">";  
+                        yield "Function<" + paramType + ", " + returnType + ">";
                     }
                 }
                 case 2 -> {

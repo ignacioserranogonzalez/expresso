@@ -454,10 +454,19 @@ import org.antlr.v4.runtime.CommonTokenStream;
         System.out.println("====== Test Jupyter 2 ======");
         
         String input = """                
-                print("*** Newton-Raphson TC1 **** ")
+                // print("*** Newton-Raphson TC1 **** ")
 
-                let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
-                print("Test abs:" + (abs(-666) == abs(--666)) )
+                // let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
+                // print("Test abs:" + (abs(-666.0) == abs(--666.0)) )
+
+                // let EPSILON =  1e-11 // Fully uppercased id. Issue floating-point using scientific notation
+                // print("EPSILON="  + EPSILON)
+
+                let EPSILON = 1e-11      
+                let bigNumber = 1.23e+10   
+                let smallNumber = 4.56E-7 
+                let integerScientific = 2e5 
+                let decimalScientific = .789e3
             """;
         
         testExpressoProgram(input, "Jupyter");
