@@ -449,4 +449,15 @@ import org.antlr.v4.runtime.CommonTokenStream;
         testExpressoProgram(input, "Jupyter");
     }
 
+    @Test
+    public void testJupyter2() {
+        System.out.println("====== Test Jupyter 2 ======");
+        
+        String input = """                
+                print("hello")
+            """;
+        
+        testExpressoProgram(input, "Jupyter");
+    }
+
 }

@@ -298,12 +298,7 @@ public class Typer implements Visitor<String> {
     }
 
     @Override public String visitPrint(Print print) {
-        print.expr().accept(this);
-        return "void";
-    }
-
-    @Override
-    public String visitPrintExpr(PrintExpr print) {
+        System.out.println(print);
         print.expr().accept(this);
         return "void";
     }
@@ -451,8 +446,8 @@ public class Typer implements Visitor<String> {
 
     private boolean isVoidLikeBody(Node body) {
         return switch (body) {
-            case Print _ -> true;        // print no retorna valor
-            case PrintExpr _ -> true;    // printExpr retorna null (no útil)
+            case Print _ -> true;        // print retorna null
+            // case PrintExpr _ -> true;    // printExpr retorna null (no útil)
             case NoneLiteral _ -> true;  // none es como void
             default -> false;            // Otros casos retornan valor
         };

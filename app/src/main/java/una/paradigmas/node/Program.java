@@ -1,7 +1,6 @@
 package una.paradigmas.node;
 
 import java.util.List;
-import java.util.Set;
 
 import una.paradigmas.ast.SymbolTable;
 import una.paradigmas.ast.Visitor;

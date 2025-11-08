@@ -3,6 +3,7 @@ package una.paradigmas.ast;
 import una.paradigmas.ast.ExpressoParser.*;
 import una.paradigmas.node.ArrowType;
 import una.paradigmas.node.Node;
+import una.paradigmas.node.NoneLiteral;
 import una.paradigmas.node.TupleType;
 import una.paradigmas.node.TypeNode;
 
@@ -81,6 +82,11 @@ public class TypeAstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitAtomicString(AtomicStringContext ctx) {
         return new TypeNode("string");
+    }
+
+    @Override
+    public Node visitNone(NoneContext ctx) {
+        return new NoneLiteral();
     }
 
       @Override

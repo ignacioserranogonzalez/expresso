@@ -180,16 +180,17 @@ public class JavaCodeGenerator {
             codeBuilder.append("    }\n\n");
         }
         if (extraMethods.contains("print")) {
-            codeBuilder.append("    public static void print(Object arg) {\n");
-            codeBuilder.append("        System.out.println(arg);\n");
-            codeBuilder.append("    }\n\n");
-        }
-        if (extraMethods.contains("printAndReturnNull")) {
-            codeBuilder.append("    public static Object printAndReturnNull(Object arg) {\n");
+            codeBuilder.append("    public static Object print(Object arg) {\n");
             codeBuilder.append("        System.out.println(arg);\n");
             codeBuilder.append("        return null;\n");
             codeBuilder.append("    }\n\n");
         }
+        // if (extraMethods.contains("printAndReturnNull")) {
+        //     codeBuilder.append("    public static Object printAndReturnNull(Object arg) {\n");
+        //     codeBuilder.append("        System.out.println(arg);\n");
+        //     codeBuilder.append("        return null;\n");
+        //     codeBuilder.append("    }\n\n");
+        // }
     }
 
     private void generateMainMethodSection(StringBuilder codeBuilder) {
@@ -220,16 +221,6 @@ public class JavaCodeGenerator {
                     default -> varType + " " + generateExpression(id) + " = " + valueCode + ";";
                 };
             }                            
-
-            case Print(var expr) -> {
-                extraMethods.add("print");
-                yield "print(" + generateExpression(expr) + ");";
-            }
-
-            // case PrintExpr(var expr) -> {
-            //     extraMethods.add("printAndReturnNull");
-            //     yield "printAndReturnNull(" + generateExpression(expr) + ");";
-            // }
 
             case Fun(var name, var params, var returnType, var body) -> {
                 // parametros con tipos
@@ -262,7 +253,7 @@ public class JavaCodeGenerator {
                 yield generateCall(callee, params) + ";";
             }
 
-            default -> "";
+            default -> generateExpression(stat);
         };
     }
 
@@ -336,7 +327,11 @@ public class JavaCodeGenerator {
             
                 yield generateCall(callee, params);
             }
-            
+
+            case Print(var printExpr) -> {
+                extraMethods.add("print");
+                yield "print(" + generateExpression(printExpr) + ");";
+            }
 
             case ConstructorInvocation(var id, var args) -> {
                 String capitalizedId = capitalizeFirst(id);
@@ -363,12 +358,6 @@ public class JavaCodeGenerator {
                 String exprCode = generateExpression(expr4);
                 String javaType = generateType(typeNode);
                 yield "(" + javaType + ")" + exprCode;
-            }
-
-            case PrintExpr(Node innerExpr) -> {
-                extraMethods.add("printAndReturnNull");
-                String exprCode = generateExpression(innerExpr);
-                yield "printAndReturnNull(" + exprCode + ")";
             }
 
             case NoneLiteral() -> "null"; 

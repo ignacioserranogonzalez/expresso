@@ -6,7 +6,6 @@ program: stat* EOF;
 // statements
 stat: NEWLINE                                                               # blank
     | LET ID (':' type)? ASSIGN expr NEWLINE                                # letDecl
-    | PRINT '(' expr ')' NEWLINE                                            # print
     | FUN ID '(' paramList? ')' ':' type '=' expr NEWLINE                   # funDecl
     | DATA ID ASSIGN '{' NEWLINE* constructorList NEWLINE* '}' NEWLINE      # dataDecl
     | expr NEWLINE                                                          # expression
@@ -22,7 +21,7 @@ argument: (ID ':')? type;
 
 // expressions
 expr
-    : NOT expr                                      # NotExpr 
+    : NOT expr                                      # NotExpr
     | expr ':' type                                 # CastExpr 
     | <assoc=right> expr POW expr                   # Pow
     | expr (MULT | DIV) expr                        # MultDiv
@@ -37,8 +36,8 @@ expr
     | lambdaParams LAMBDA expr                      # Lambda
     | expr '(' argList? ')'                         # CallChain
     | ID '(' argList? ')'                           # Call
+    | PRINT '(' expr ')'                            # Print
     | '^' constructorExpr                           # ConstructorInvocation
-    | PRINT '(' expr ')'                            # PrintExpr
     | '(' expr ')'                                  # Paren
     | '(' expr (',' expr)+ ')'                      # TupleLiteral
     | INT                                           # Int
