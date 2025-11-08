@@ -86,7 +86,7 @@ public class Typer implements Visitor<String> {
 
     public boolean isValidOperand(String type){
         return switch(type){
-            case "int", "Integer", "float", "Float", "string", "String", "call" -> true;
+            case "int", "Integer", "float", "Float", "string", "String", "boolean", "Boolean","call" -> true;
             default -> false;
         };
     }
