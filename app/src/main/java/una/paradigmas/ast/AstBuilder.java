@@ -192,9 +192,9 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
                 default -> List.of();
             };
         }
-        
+
         Node expr = visit(ctx.expr());
-        return new Lambda(params, new TypeNode("any"), expr);
+        return new Lambda(params, new TypeNode("Object"), expr);
     }
 
     @Override

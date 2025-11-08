@@ -61,6 +61,7 @@ public class Typer implements Visitor<String> {
             case "int" -> "Integer";
             case "float" -> "Float"; 
             case "boolean" -> "Boolean";
+            case "string" -> "String";
             case "any" -> "Object";
             default -> primitiveType; // String, Object, etc
         };
@@ -374,7 +375,8 @@ public class Typer implements Visitor<String> {
                 
             String bodyType = lambda.body().accept(this);
             String returnDeclared = lambda.returnType().accept(this);
-            String returnType = returnDeclared.equals("Object") ? bodyType : returnDeclared;
+            System.out.println(returnDeclared);
+            String returnType = returnDeclared.equals("Object") ? toWrapperType(bodyType) : returnDeclared;
 
             lambda.params().forEach(param -> { // inferir tipos basandose en los calls
                 String paramName = param.id().value();
@@ -395,10 +397,10 @@ public class Typer implements Visitor<String> {
             });
             
             // verificar que el cuerpo coincide con el return type declarado [ !!! puede dar problemas mas adelante]
-            if (!isCompatible(returnType, bodyType)) {
-                throw new TypeException("Lambda return type mismatch: expected " + 
-                                    returnType + ", got " + bodyType);
-            }
+            // if (!isCompatible(returnType, bodyType)) {
+            //     throw new TypeException("Lambda return type mismatch: expected " + 
+            //                         returnType + ", got " + bodyType);
+            // }
 
             if (lambda.body() instanceof Lambda) {
                 // x -> (y -> 1) debería ser Function<X, Function<Y, Z>>
@@ -408,30 +410,45 @@ public class Typer implements Visitor<String> {
 
             int argCount = lambda.params().size();
 
+            boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
+
             List<SymbolInfo> ctxParams = currentContext().getParametersList();
 
             return switch (argCount) {
                 case 0 -> "Supplier<" + toWrapperType(bodyType) + ">";
                 case 1 -> {
                     String paramType = toWrapperType(ctxParams.get(0).type());
-                    yield "Function<" + paramType + ", " + toWrapperType(returnType) + ">";
+                    if (shouldBeConsumer) {
+                        yield "Consumer<" + paramType + ">";  
+                    } else {
+                        yield "Function<" + paramType + ", " + returnType + ">";  
+                    }
                 }
                 case 2 -> {
                     String param1Type = toWrapperType(ctxParams.get(0).type());
                     String param2Type = toWrapperType(ctxParams.get(1).type());
-                    yield "BiFunction<" + param1Type + ", " + param2Type + ", " + toWrapperType(returnType) + ">";
+                    yield "BiFunction<" + param1Type + ", " + param2Type + ", " + returnType + ">";
                 }
                 default -> {
                     String paramTypes = ctxParams.stream()
                         .map(p -> p.type())
                         .collect(Collectors.joining(", "));
-                    yield "Function" + argCount + "<" + paramTypes + ", " + toWrapperType(returnType) + ">";
+                    yield "Function" + argCount + "<" + paramTypes + ", " + returnType + ">";
                 }
             };
             
         } finally { 
             contextStack.pop(); 
         }
+    }
+
+    private boolean isVoidLikeBody(Node body) {
+        return switch (body) {
+            case Print _ -> true;        // print no retorna valor
+            case PrintExpr _ -> true;    // printExpr retorna null (no útil)
+            case NoneLiteral _ -> true;  // none es como void
+            default -> false;            // Otros casos retornan valor
+        };
     }
 
     @Override
