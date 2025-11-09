@@ -133,7 +133,7 @@ expressor run {ruta__al_.expresso}
 
 # Casos de Prueba del Sprint Final (Testcases)
 
-El proyecto incluye los dos archivos de prueba `pluto.expresso` y `jupyter.expresso`.
+El proyecto incluye los tres archivos de prueba `pluto.expresso`, `jupyter.expresso` y `saturn.expresso`.
 
 **Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final obtendrán el mensaje: missing NEWLINE at 'EOF', sin embargo no afecta a la ejecución de los casos de prueba.
 
@@ -167,6 +167,17 @@ expressor build --verbose ..\..\..\..\testcloria\jupyter.expresso
 ```
 ```bash
 expressor run --verbose ..\..\..\..\testcloria\jupyter.expresso
+```
+
+## Test 3: jupyter.expresso
+```bash
+expressor transpile --verbose ..\..\..\..\testcloria\saturn.expresso
+```
+```bash
+expressor build --verbose ..\..\..\..\testcloria\saturn.expresso
+```
+```bash
+expressor run --verbose ..\..\..\..\testcloria\saturn.expresso
 ```
 
 ## Prompts de IA (Íntegros)
@@ -364,3 +375,93 @@ WS : [ \t]+ -> skip ;
 - me esta imprimiendo un ; despues del comentario. cual es el problema en el javacodegenerator
 - ocupo que la salida sea: print(f.apply(x) + f.apply(y)); // expected 445010
 - eso es un error de java ? no se supone que las variables de los lambdas son independientes ?
+- cambie las clases run y buid. pero salta este error: java.lang.NullPointerException: Cannot invoke "java.nio.file.Path.getFileName()" because "input" is null
+        at una.paradigmas.cli.BuildCommand.getBaseName(BuildCommand.java:94)
+        at una.paradigmas.cli.BuildCommand.prepareJavaFile(BuildCommand.java:88)
+        at una.paradigmas.cli.BuildCommand.run(BuildCommand.java:44)
+        at una.paradigmas.cli.RunCommand.run(RunCommand.java:49)
+        at picocli.CommandLine.executeUserObject(CommandLine.java:2030)
+        at picocli.CommandLine.access$1500(CommandLine.java:148)
+        at picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2465)
+        at picocli.CommandLine$RunLast.handle(CommandLine.java:2457)
+        at picocli.CommandLine$RunLast.handle(CommandLine.java:2419)
+        at picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2277)
+        at picocli.CommandLine$RunLast.execute(CommandLine.java:2421)
+        at picocli.CommandLine.execute(CommandLine.java:2174)
+        at una.paradigmas.App.main(App.java:32)
+
+-LA respuesta que me diste no funciono, pero ya lo solucione. No cambie las clases TranspileCommand.java ni CommonOptions.java. lo que hice fue que introducir los medodo protected static Path buildCommon(Path input, Path outputDir) como el del Traspile con la logica de run, pero run llama a este medodo. analiza si esta bien este cambio ó hay una mejor manera.
+
+-olvida las tareas de sprint medio, el profe hizo unos cambios. ya esto está listo. ahora vamos a empezar con el sprint 3. Para eso analizemos el SPEC
+
+-Estas son las nuevas tareas asignada por el coordinador. A mí me corresponde realizar la tarea 14, 17 y 22. analiza si puedo empezar a implementarlas y que debería investigar al respecto.
+
+-tengo un problema a la hora de implemerta este cambio: lambdaParams: '(' ')'                         
+            | '(' ID ':' TYPE (',' ID ':' TYPE)? ')'  // 1-2 args con tipos
+            | ID ':' TYPE                      // 1 arg sin () con tipo
+;
+-hagamos que la gramatica tambien pueda soportar lo anterior: lambdaParams: '(' ')'         
+    | '(' ID (',' ID )? ')'    // 1-2 args con ()
+    | ID                       // 1 arg sin ()
+;
+
+-en el javaCodeGenerator como podríamos modificar call para que acepte a fun
+
+-explicame porque no usar el .apply aquí: "case Call(var id, var paramList) -> {
+                String params = paramList.stream()
+                    .map(this::generateExpression)
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+                yield id.value() + "(" + params + ")";
+            }" si en java cuando se usa alguno de los casos de Lambda 1 del lambdaType este se debe llamar con .apply
+			
+			
+-En que parte de esta gramática debería agregar un operador ^ (es prefijo y no es associativo) que es para instanciar constructores de data types. Se transpila como un new. 
+Gramatica:
+expr: <assoc=right> expr POW expr                    # Pow
+    | <assoc=right> expr '?' expr ':' expr           # TernaryCondition
+    | (PLUS | MINUS) expr                            # UnaryOp
+    | expr (PLUS | MINUS) expr                       # AddSub
+    | expr (MULT | DIV) expr                         # MultDiv
+    | lambdaParams LAMBDA expr                       # Lambda
+    | expr (INC | DEC)                               # PostOp
+    | ID '(' callArgs? ')'                           # Call
+    | '(' expr ')'                                   # Paren
+    | INT                                            # Int
+    | FLOAT                                          # Float
+    | BOOLEAN                                        # Boolean
+    | STRING                                         # String
+    | ID                                             # Id
+;
+
+-por que match en la expresiones quedo tan abajo?
+
+-No sería mejor poner los tipos en otro método, esto no va a interferir con las tareas anteriores. private String inferTypeFromValue(Node value) {
+    return switch (value) {
+        case IntLiteral _ -> "int";
+        case FloatLiteral _ -> "float";
+        case BooleanLiteral _ -> "boolean";
+        case StringLiteral _ -> "String";
+        case RelOp _ -> "boolean"; // NUEVO
+        case BoolOp _ -> "boolean"; // NUEVO
+        case NotOp _ -> "boolean"; // NUEVO
+        case Lambda _ -> lambdaType(value, null);
+        default -> "Object";
+    };
+}
+
+-genera un test para probar los operaciones booleanas y relacionales
+
+-genera el archivo .expresso
+
+-mi código cambio, ya está implementado todo lo necesario para cumplir la tarea 21. Revisa y Explícame el nuevo código (SymbolTable).
+
+-ayudame a analizar la tarea 12 que tiene que ver con esto: 12. Hay una expressión para casting , se usa el operador binario : No es asociativa. Tiene más precedencia que ** .
+expr:
+ ... | expr ':' id
+...
+;
+
+-donde podria poner el expr ':' ID . 
+
+-Cambie el  expr ':' ID por expr ':' type y me funciono mejor, analiza si esta bien este cambio ó hay una mejor manera.
