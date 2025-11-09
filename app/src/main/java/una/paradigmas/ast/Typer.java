@@ -28,10 +28,8 @@ import una.paradigmas.ast.SymbolTable.SymbolType;
  * 
  * Codigo de grupo: 02-1PM
  * 
- * Nota: Este codigo fue desarrollado parcialmente con asistencia de IA,
- * modificado, adaptado y validado por el equipo
- * de desarrollo para cumplir con los requerimientos especificos
- * del proyecto.
+ * Nota: Este codigo tiene adiciones de IA para cumplir 
+ * con los requerimientos especificos del proyecto.
  */
 
 public class Typer implements Visitor<String> {
@@ -194,61 +192,70 @@ public class Typer implements Visitor<String> {
     private String calculateFunctionalType(Lambda lambda, String returnType) {
         if (lambda.body() instanceof Lambda) { // lambda anidada
             String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
-            return "Function<" + paramType + ", " + returnType + ">";
+            return FunctionalTypeMapper.mapFunctionalType(
+                List.of(paramType), returnType, 1, false
+            );
         }
-
+    
         int argCount = lambda.params().size();
         boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
-
-        List<SymbolInfo> ctxParams = currentContext().getParametersList();
+    
+        // Obtener tipos de parámetros del contexto
+        List<String> paramTypes = currentContext().getParametersList().stream()
+            .map(SymbolInfo::type)
+            .map(this::toWrapperType)
+            .collect(Collectors.toList());
         
-        return switch (argCount) {
-            case 0 -> "Supplier<" + returnType + ">";
-            case 1 -> {
-                String paramType = toWrapperType(ctxParams.get(0).type());
-                if (shouldBeConsumer) {
-                    yield "Consumer<" + paramType + ">";  
-                } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
-                    yield "Predicate<" + paramType + ">";
-                } else if (returnType.equals(ctxParams.get(0).type())) {
-                    yield "UnaryOperator<" + returnType + ">";
-                } else {
-                    yield "Function<" + paramType + ", " + returnType + ">";
-                }
-            }
-            case 2 -> {
-                String param1Type = toWrapperType(ctxParams.get(0).type());
-                String param2Type = toWrapperType(ctxParams.get(1).type());
-                
-                if (shouldBeConsumer) {
-                    yield "BiConsumer<" + param1Type + ", " + param2Type + ">";
-                } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
-                    yield "BiPredicate<" + param1Type + ", " + param2Type + ">";
-                } else if (param1Type.equals(param2Type) && param1Type.equals(returnType)) {
-                    yield "BinaryOperator<" + returnType + ">";
-                } else {
-                    yield "BiFunction<" + param1Type + ", " + param2Type + ", " + returnType + ">";
-                }
-            }
-            default -> {
-                String paramTypes = ctxParams.stream()
-                    .map(p -> p.type())
-                    .collect(Collectors.joining(", "));
-                yield "Function" + argCount + "<" + paramTypes + ", " + returnType + ">";
-            }
-        };
+        return FunctionalTypeMapper.mapFunctionalType(paramTypes, returnType, argCount, shouldBeConsumer);
     }
 
-    private boolean isFunctionalType(String type) {
-        return type != null && 
-               (type.startsWith("UnaryOperator") ||
-                type.startsWith("Function") ||
-                type.startsWith("BiFunction") ||
-                type.startsWith("BinaryOperator") ||
-                type.startsWith("Supplier") ||
-                type.startsWith("Consumer") ||
-                type.startsWith("Predicate"));
-    }
+    // private String calculateFunctionalType(Lambda lambda, String returnType) {
+    //     if (lambda.body() instanceof Lambda) { // lambda anidada
+    //         String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
+    //         return "Function<" + paramType + ", " + returnType + ">";
+    //     }
+
+    //     int argCount = lambda.params().size();
+    //     boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
+
+    //     List<SymbolInfo> ctxParams = currentContext().getParametersList();
+        
+    //     return switch (argCount) {
+    //         case 0 -> "Supplier<" + returnType + ">";
+    //         case 1 -> {
+    //             String paramType = toWrapperType(ctxParams.get(0).type());
+    //             if (shouldBeConsumer) {
+    //                 yield "Consumer<" + paramType + ">";  
+    //             } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
+    //                 yield "Predicate<" + paramType + ">";
+    //             } else if (returnType.equals(ctxParams.get(0).type())) {
+    //                 yield "UnaryOperator<" + returnType + ">";
+    //             } else {
+    //                 yield "Function<" + paramType + ", " + returnType + ">";
+    //             }
+    //         }
+    //         case 2 -> {
+    //             String param1Type = toWrapperType(ctxParams.get(0).type());
+    //             String param2Type = toWrapperType(ctxParams.get(1).type());
+                
+    //             if (shouldBeConsumer) {
+    //                 yield "BiConsumer<" + param1Type + ", " + param2Type + ">";
+    //             } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
+    //                 yield "BiPredicate<" + param1Type + ", " + param2Type + ">";
+    //             } else if (param1Type.equals(param2Type) && param1Type.equals(returnType)) {
+    //                 yield "BinaryOperator<" + returnType + ">";
+    //             } else {
+    //                 yield "BiFunction<" + param1Type + ", " + param2Type + ", " + returnType + ">";
+    //             }
+    //         }
+    //         default -> {
+    //             String paramTypes = ctxParams.stream()
+    //                 .map(p -> p.type())
+    //                 .collect(Collectors.joining(", "));
+    //             yield "Function" + argCount + "<" + paramTypes + ", " + returnType + ">";
+    //         }
+    //     };
+    // }
 
     private String capitalizeFirst(String s) {
         return s == null || s.isEmpty() ? s 
@@ -336,7 +343,7 @@ public class Typer implements Visitor<String> {
                 String paramType = param.type().accept(this);
                 paramTypes.put(paramName, paramType);
 
-                SymbolType symbolType = isFunctionalType(paramType) ? 
+                SymbolType symbolType = FunctionalTypeMapper.isFunctionalType(paramType) ? 
                     SymbolType.LAMBDA_PARAMETER : SymbolType.PARAMETER;
 
                 currentContext().addSymbol(paramName, symbolType, paramType);
@@ -622,7 +629,7 @@ public class Typer implements Visitor<String> {
     }
 
     @Override
-    public String visitWildcardPattern(WildcardPattern wildcardPattern) {
+    public String visitUnderscorePattern(UnderscorePattern underscore) {
         return "any";
     }
 
@@ -678,19 +685,33 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitArrowType(ArrowType arrowType) {
-
-        String fromType = arrowType.from().accept(this);
-        String toType = arrowType.to().accept(this);
-        
-        if (fromType.equals("any") && toType.equals("any")) {
-            return "UnaryOperator<Object>";
-        }
-        else if (fromType.equals(toType)) {
-            return "UnaryOperator<" + fromType + ">";
-        }
-        else {
-            return "Function<" + fromType + ", " + toType + ">";
-        }
+        return switch (arrowType.from()) {
+            case TupleType tupleType -> {
+                int paramCount = tupleType.types().size();
+                List<String> paramTypes = tupleType.types().stream()
+                    .map(type -> type.accept(this))
+                    .collect(Collectors.toList());
+                String returnType = arrowType.to().accept(this);
+                
+                yield FunctionalTypeMapper.mapFunctionalType(paramTypes, returnType, paramCount, false);
+            }
+            
+            case TypeNode _ -> {
+                String fromType = arrowType.from().accept(this);
+                String toType = arrowType.to().accept(this);
+                boolean isVoidLike = FunctionalTypeMapper.isVoidLike(toType);
+                
+                yield FunctionalTypeMapper.mapFunctionalType(
+                    List.of(fromType), toType, 1, isVoidLike
+                );
+            }
+            
+            default -> {
+                String fromType = arrowType.from().accept(this);
+                String toType = arrowType.to().accept(this);
+                yield "Function<" + fromType + ", " + toType + ">";
+            }
+        };
     }
 
     @Override 

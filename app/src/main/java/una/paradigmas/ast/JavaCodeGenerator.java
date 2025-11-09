@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import una.paradigmas.ast.SymbolTable.SymbolInfo;
@@ -248,8 +249,22 @@ public class JavaCodeGenerator {
                 }
                 
                 String declaration = switch (value) {
-                    case Lambda lambda -> { // para las lambdas
+                    case Lambda lambda -> {
                         String functionType = globalContext().getFunctionType(id.value());
+                        
+                        // Si no hay tipo funcional, inferirlo usando el mapper
+                        if (functionType == null || functionType.equals("unknown")) {
+                            int paramCount = lambda.params().size();
+                            List<String> paramTypes = lambda.params().stream()
+                                .map(param -> generateType(param.type()))
+                                .collect(Collectors.toList());
+                            String returnType = "Object"; // default
+                            
+                            functionType = FunctionalTypeMapper.mapFunctionalType(
+                                paramTypes, returnType, paramCount, false
+                            );
+                        }
+                        
                         int paramCount = lambda.params().size();
                         if(paramCount > 2) generateFunctionInterface(paramCount);
                         yield functionType + " " + generateExpression(id) + " = " + valueCode + ";";
@@ -453,7 +468,7 @@ public class JavaCodeGenerator {
             }
             case VariablePattern vp -> 
                 "case var " + vp.name() + " -> " + bodyCode + ";";
-            case WildcardPattern _ -> 
+            case UnderscorePattern _ -> 
                 "default -> " + bodyCode + ";";
             case IntPattern ip -> 
                 "case " + ip.value() + " -> " + bodyCode + ";";
@@ -480,18 +495,34 @@ public class JavaCodeGenerator {
             };
             case ArrowType arrowType -> {
                 imports.add("java.util.function.*");
-                String fromType = generateType(arrowType.from());
-                String toType = generateType(arrowType.to());
                 
-                if (fromType.equals("Object") && toType.equals("Object")) {
-                    yield "UnaryOperator<Object>";
-                }
-                else if (fromType.equals(toType)) {
-                    yield "UnaryOperator<" + fromType + ">";
-                }
-                else {
-                    yield "Function<" + fromType + ", " + toType + ">";
-                }
+                yield switch (arrowType.from()) {
+                    case TupleType tupleType -> {
+                        int paramCount = tupleType.types().size();
+                        List<String> paramTypes = tupleType.types().stream()
+                            .map(this::generateType)
+                            .collect(Collectors.toList());
+                        String returnType = generateType(arrowType.to());
+                        
+                        yield FunctionalTypeMapper.mapFunctionalType(paramTypes, returnType, paramCount, false);
+                    }
+                    
+                    case TypeNode _ -> {
+                        String fromType = generateType(arrowType.from());
+                        String toType = generateType(arrowType.to());
+                        boolean isVoidLike = FunctionalTypeMapper.isVoidLike(toType);
+                        
+                        yield FunctionalTypeMapper.mapFunctionalType(
+                            List.of(fromType), toType, 1, isVoidLike
+                        );
+                    }
+                    
+                    default -> {
+                        String fromType = generateType(arrowType.from());
+                        String toType = generateType(arrowType.to());
+                        yield "Function<" + fromType + ", " + toType + ">";
+                    }
+                };
             }
             default -> "Object";
         };
@@ -502,11 +533,11 @@ public class JavaCodeGenerator {
         
         if (methodDefinitions.toString().contains("interface " + interfaceName)) return;
         
-        String typeParams = java.util.stream.IntStream.rangeClosed(1, paramCount)
+        String typeParams = IntStream.rangeClosed(1, paramCount)
             .mapToObj(i -> "T" + i)
             .collect(Collectors.joining(", ", "", ", R"));
         
-        String applyParams = java.util.stream.IntStream.rangeClosed(1, paramCount)
+        String applyParams = IntStream.rangeClosed(1, paramCount)
             .mapToObj(i -> "T" + i + " arg" + i)
             .collect(Collectors.joining(", "));
         
@@ -561,18 +592,8 @@ public class JavaCodeGenerator {
             return name + ".apply(" + params + ")"; 
         }
         
-        return switch (functionalType) {
-            case String ft when ft.startsWith("Supplier") -> name + ".get()";
-            case String ft when ft.startsWith("Consumer") -> name + ".accept(" + params + ")";
-            case String ft when ft.startsWith("BiConsumer") -> name + ".accept(" + params + ")";
-            case String ft when ft.startsWith("Predicate") -> name + ".test(" + params + ")";
-            case String ft when ft.startsWith("BiPredicate") -> name + ".test(" + params + ")";
-            case String ft when ft.startsWith("UnaryOperator") -> name + ".apply(" + params + ")";
-            case String ft when ft.startsWith("BinaryOperator") -> name + ".apply(" + params + ")";
-            case String ft when ft.startsWith("Function") -> name + ".apply(" + params + ")";
-            case String ft when ft.startsWith("BiFunction") -> name + ".apply(" + params + ")";
-            default -> name + ".apply(" + params + ")";
-        };
+        String methodName = FunctionalTypeMapper.getFunctionalMethodName(functionalType);
+        return name + "." + methodName + "(" + params + ")";
     }
 
     private SymbolInfo findSymbolInAllContexts(String symbolName) {

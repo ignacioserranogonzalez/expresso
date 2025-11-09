@@ -122,7 +122,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitRelOp(RelOpContext ctx) {
         Node left = visit(ctx.expr(0));
-        String op = ctx.getChild(1).getText(); // <, <=, ==, etc.
+        String op = ctx.getChild(1).getText();
         Node right = visit(ctx.expr(1));
         return new RelOp(left, op, right);
     }
@@ -313,6 +313,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
             args = ctx.constructorExpr().argList().expr().stream() 
                 .map(this::visit) .collect(Collectors.toList()); 
             } 
+
         return new ConstructorInvocation(id, args); 
     }
     
@@ -322,6 +323,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         List<Node> rules = ctx.matchRule().stream()
             .map(this::visitMatchRule)
             .collect(Collectors.toList());
+
         return new Match(expr, rules);
     }
 
@@ -329,14 +331,9 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitMatchRule(MatchRuleContext ctx) {
         Node pattern = visit(ctx.pattern());
         List<ExprContext> exprs = ctx.expr();
-        
-        // el ultimo expr es siempre el body
         Node body = visit(exprs.get(exprs.size() - 1));
         
-        // si hay guard es el primer expr
-        Node guard = ctx.expr().size() > 1 ? visit(exprs.get(0)) : null;
-        
-        return new MatchRule(pattern, guard, body);
+        return new MatchRule(pattern, body);
     }
 
     @Override
@@ -382,8 +379,8 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitWildcardPattern(WildcardPatternContext ctx) {
-        return new WildcardPattern();
+    public Node visitUnderscorePattern(UnderscorePatternContext ctx) {
+        return new UnderscorePattern();
     }
 
     @Override
@@ -398,12 +395,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
         return null;
     }
 
-    //--------------------------------------
+    //--------------------------------------------------------
 
     private Lambda.Param createParam(ParamContext paramCtx) {
         String paramId = paramCtx.ID().getText();
         Node paramType = paramCtx.type() != null ? 
             typeAstBuilder.visit(paramCtx.type()) : new TypeNode("any");
+            
         return new Lambda.Param(new Id(paramId), paramType);
     }
 

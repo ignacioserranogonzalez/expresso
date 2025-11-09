@@ -16,9 +16,9 @@ import una.paradigmas.ast.Visitor;
  * Codigo de grupo: 02-1PM
  */
 
-public record WildcardPattern() implements Pattern {
+public record UnderscorePattern() implements Pattern {
     @Override
     public <T> T accept(Visitor<T> visitor) {
-        return visitor.visitWildcardPattern(this); 
+        return visitor.visitUnderscorePattern(this); 
     }
 }

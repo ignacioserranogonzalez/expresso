@@ -45,7 +45,7 @@ public interface Visitor<T> {
     T visitMatchRule(MatchRule matchRule);
     T visitDataPattern(DataPattern constructorPattern);
     T visitVariablePattern(VariablePattern variablePattern);
-    T visitWildcardPattern(WildcardPattern wildcardPattern);
+    T visitUnderscorePattern(UnderscorePattern underscorePattern);
     T visitIntPattern(IntPattern intPattern);
     T visitFloatPattern(FloatPattern floatPattern);
     T visitStringPattern(StringPattern stringPattern);

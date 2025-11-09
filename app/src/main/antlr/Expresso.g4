@@ -62,7 +62,7 @@ data_pattern
 ;
 
 native_pattern
-    : '_'             # WildcardPattern
+    : '_'             # UnderscorePattern
     | 'none'          # NonePattern
     | INT             # IntPattern
     | STRING          # StringPattern

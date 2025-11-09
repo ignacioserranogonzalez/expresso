@@ -16,7 +16,7 @@ import una.paradigmas.ast.Visitor;
  * Codigo de grupo: 02-1PM
  */
 
- public record MatchRule(Node pattern, Node guard, Node body) implements Node {
+ public record MatchRule(Node pattern, Node body) implements Node {
     @Override 
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitMatchRule(this);
