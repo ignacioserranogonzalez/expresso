@@ -126,7 +126,7 @@ expressor run {ruta__al_.expresso}
 
 # Casos de Prueba del Sprint Final (Testcases)
 
-El proyecto incluye los dos archivos de prueba `pluto.expresso` y `jupyter.expresso`.
+El proyecto incluye los dos archivos de prueba `pluto.expresso`, `jupyter.expresso` y `saturn.expresso`.
 
 **Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final obtendrán el mensaje: missing NEWLINE at 'EOF', sin embargo no afecta a la ejecución de los casos de prueba.
 
