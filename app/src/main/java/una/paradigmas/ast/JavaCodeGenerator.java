@@ -390,12 +390,11 @@ public class JavaCodeGenerator {
             }
 
             case ConstructorInvocation(var id, var args) -> {
-                String capitalizedId = capitalizeFirst(id);
                 String argCode = args.stream()
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("");
-                yield "new " + capitalizedId + "(" + argCode + ")";
+                yield "new " + capitalizeFirst(id) + "(" + argCode + ")";
             }
 
             case Match(var exprToMatch, var rules) -> 
@@ -494,54 +493,64 @@ public class JavaCodeGenerator {
         methodDefinitions.insert(0, indentedDef + "\n");
     }
 
-    private String generateCall(Node callee, String params){
+    private String generateCall(Node callee, String params) {
+        System.out.println(callee);
         return switch (callee) {
-
-            case Id id when globalContext().isLambda(id.value()) -> {
-                String lambdaType = globalContext().getFunctionType(id.value());
+            case Id id -> {
+                String idValue = id.value();
                 
-                yield switch (lambdaType) {
-                    case String lt when lt.startsWith("Supplier") -> 
-                        id.value() + ".get()";
+                yield switch (idValue) {
+                    case String name when globalContext().isConstructor(name) -> 
+                        "new " + capitalizeFirst(name) + "(" + params + ")";
                         
-                    case String lt when lt.startsWith("Consumer") -> 
-                        id.value() + ".accept(" + params + ")";
+                    case String name when globalContext().isLambda(name) -> {
+                        String lambdaType = globalContext().getFunctionType(name);
                         
-                    case String lt when lt.startsWith("Function") -> 
-                        id.value() + ".apply(" + params + ")";
-                        
-                    case String lt when lt.startsWith("BiConsumer") -> 
-                        id.value() + ".accept(" + params + ")";
-                        
-                    case String lt when lt.startsWith("BiFunction") -> 
-                        id.value() + ".apply(" + params + ")";
-
-                    case String lt when lt.startsWith("BiPredicate") -> 
-                        id.value() + ".test(" + params + ")";
-                        
-                    case String lt when lt.startsWith("Function") && lt.contains("Function") -> 
-                        id.value() + ".apply(" + params + ")";
+                        yield switch (lambdaType) {
+                            case String lt when lt.startsWith("Supplier") -> 
+                                name + ".get()";
+                                
+                            case String lt when lt.startsWith("Consumer") -> 
+                                name + ".accept(" + params + ")";
+                                
+                            case String lt when lt.startsWith("Function") -> 
+                                name + ".apply(" + params + ")";
+                                
+                            case String lt when lt.startsWith("BiConsumer") -> 
+                                name + ".accept(" + params + ")";
+                                
+                            case String lt when lt.startsWith("BiFunction") -> 
+                                name + ".apply(" + params + ")";
+            
+                            case String lt when lt.startsWith("BiPredicate") -> 
+                                name + ".test(" + params + ")";
+                                
+                            case String lt when lt.startsWith("Function") && lt.contains("Function") -> 
+                                name + ".apply(" + params + ")";
+                                
+                            default -> 
+                                name + ".apply(" + params + ")";
+                        };
+                    }
+                    
+                    case String name when globalContext().getMethodNames().contains(name) -> 
+                        name + "(" + params + ")";
                         
                     default -> 
-                        id.value() + ".apply(" + params + ")";
+                        idValue + "(" + params + ")";
                 };
             }
 
-            case Id id -> {
-                yield globalContext().isConstructor(id.value()) ? 
-                    "new " + capitalizeFirst(id.value()) + "(" + params + ")" 
-                    : globalContext().getMethodNames().contains(id.value()) ?
-                        id.value() + "(" + params + ")" 
-                        : id.value() + ".apply(" + params + ")";
-            }
-    
+            case ConstructorInvocation constructor -> 
+                "new " + capitalizeFirst(constructor.id()) + "(" + params + ")";
+            
             case Call _ -> {
-                // generar recursivamente el callee ( .apply().apply() )
                 var calleeCode = generateExpression(callee);
                 yield calleeCode + ".apply(" + params + ")";
             }
-    
-            default -> generateExpression(callee) + ".apply(" + params + ")";
+            
+            default -> 
+                generateExpression(callee) + ".apply(" + params + ")";
         };
     }
     

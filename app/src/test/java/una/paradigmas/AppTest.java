@@ -553,6 +553,49 @@ import org.antlr.v4.runtime.CommonTokenStream;
             let first = a:list -> match a with
                                 Nil -> none 
                                 | Cons(f, _) -> f
+
+            let rest = a:list -> match a with
+                Nil -> none
+                | Cons(_, r) -> r
+            
+            fun length(a:list) = match a with
+                Nil -> 0
+                | Cons(_, r) -> 1 + length(r)
+                
+            fun copy(a:list) = match a with
+                Nil -> a 
+                Cons(f, r) -> ^Cons(f, copy(r))
+                
+            fun append(a:list, b:list) = match a with
+                Nil -> b
+                | Cons(f, r) -> ^Cons(f, append(r, b))
+
+            /*
+            Potential issues
+            Type is BinaryOperator<list>
+
+            */
+            let append_as_lambda = (a:list, b:list) -> append(a, b)
+
+            /*
+            Potential issues
+            * Type is BinaryOperator<list>
+            * Method is append_as_lambda.apply
+
+            */
+            let double_list = a:list -> append_as_lambda(a, a)
+
+
+            let nil = ^Nil()
+
+            // let list_666 = ^Cons(666, nil)
+
+            // let list_777 = ^Cons(777, list_666)
+
+            // let list_888 = ^Cons(888, list_777)
+
+            // let myList = list_888
+               
             """;
         
         testExpressoProgram(input, "Saturn");
