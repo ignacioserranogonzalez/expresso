@@ -325,8 +325,16 @@ public class JavaCodeGenerator {
             case Paren(var value) ->
                 "(" + generateExpression(value) + ")";
             
-            case RelOp(var left, var op, var right) ->
-                "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";
+            case RelOp(var left, var op, var right) -> {
+                String leftCode = generateExpression(left);
+                String rightCode = generateExpression(right);
+                
+                yield switch (op) {
+                    case "==" -> "(" + leftCode + ".equals(" + rightCode + "))";
+                    case "!=" -> "(!(" + leftCode + ".equals(" + rightCode + ")))";
+                    default -> "(" + leftCode + " " + op + " " + rightCode + ")";
+                };
+            }
 
             case LogicalOp(var left, var op, var right) ->
                 "(" + generateExpression(left) + " " + op + " " + generateExpression(right) + ")";

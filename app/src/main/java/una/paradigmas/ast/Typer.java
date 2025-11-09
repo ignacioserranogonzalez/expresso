@@ -202,7 +202,9 @@ public class Typer implements Visitor<String> {
                 String param1Type = toWrapperType(ctxParams.get(0).type());
                 String param2Type = toWrapperType(ctxParams.get(1).type());
                 
-                if (returnType.equals("Boolean") || returnType.equals("boolean")) {
+                if (shouldBeConsumer) {
+                    yield "BiConsumer<" + param1Type + ", " + param2Type + ">";
+                } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
                     yield "BiPredicate<" + param1Type + ", " + param2Type + ">";
                 } else if (param1Type.equals(param2Type) && param1Type.equals(returnType)) {
                     yield "BinaryOperator<" + returnType + ">";
