@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import una.paradigmas.ast.SymbolTable.SymbolInfo;
 import una.paradigmas.node.*;
 
 /**
@@ -329,9 +331,13 @@ public class JavaCodeGenerator {
                 String leftCode = generateExpression(left);
                 String rightCode = generateExpression(right);
                 
-                yield switch (op) {
-                    case "==" -> "(" + leftCode + ".equals(" + rightCode + "))";
-                    case "!=" -> "(!(" + leftCode + ".equals(" + rightCode + ")))";
+                yield switch(op) {
+                    case "==" -> isPrimitiveOrPrimitiveId(left) ? 
+                        "(" + leftCode + " == " + rightCode + ")" : 
+                        "(" + leftCode + ".equals(" + rightCode + "))";
+                    case "!=" -> isPrimitiveOrPrimitiveId(left) ? 
+                        "(" + leftCode + " != " + rightCode + ")" : 
+                        "(!(" + leftCode + ".equals(" + rightCode + ")))";
                     default -> "(" + leftCode + " " + op + " " + rightCode + ")";
                 };
             }
@@ -344,7 +350,6 @@ public class JavaCodeGenerator {
 
             case TernaryCondition(var condition, var value1, var value2) -> {
                 String conditionExpr = Optional.of(condition)
-                    // .filter(this::isBooleanExpression)
                     .map(this::generateExpression)
                     .orElse(generateExpression(condition) + " != 0");
                 
@@ -369,21 +374,6 @@ public class JavaCodeGenerator {
                 }
             }
 
-            // case Lambda(var _, var params, var _, var body) -> {
-            //     imports.add("java.util.function.*");
-                
-            //     String args = params.stream()
-            //         .map(param -> {
-            //             String paramName = generateExpression(param.id());
-            //             return paramName;
-            //         })
-            //         .collect(Collectors.joining(", "));
-                
-            //     String bodyCode = generateExpression(body);
-                
-            //     yield (params.size() == 1 ? args : "(" + args + ")") + " -> " + bodyCode;
-            // }
-
             case Call(var callee, var paramList) -> {
                 String params = paramList.stream()
                     .map(this::generateExpression)
@@ -392,9 +382,13 @@ public class JavaCodeGenerator {
                 yield generateCall(callee, params);
             }
 
-            case Print(var printExpr) -> {
+            case Print(var exprList) -> {
                 extraMethods.add("print");
-                yield "print(" + generateExpression(printExpr) + ");";
+                yield exprList.isEmpty() ? 
+                    "print();" :
+                    exprList.stream()
+                        .map(e -> "print(" + generateExpression(e) + ");")
+                        .collect(Collectors.joining("\n        "));
             }
 
             case ConstructorInvocation(var id, var args) -> {
@@ -421,7 +415,23 @@ public class JavaCodeGenerator {
 
             case NoneLiteral() -> "null"; 
 
-            default -> throw new IllegalArgumentException("Expresión no soportada: " + expr.getClass().getSimpleName());
+            default -> throw new IllegalArgumentException("Expression not supported: " + expr.getClass().getSimpleName());
+        };
+    }
+
+    private boolean isPrimitiveOrPrimitiveId(Node node) {
+        return switch (node) {
+            case IntLiteral _, DoubleLiteral _, BooleanLiteral _ -> true;
+            case Id id -> {
+                SymbolInfo symbolInfo = findSymbolInAllContexts(id.value());
+                if (symbolInfo != null) {
+                    String type = symbolInfo.type();
+                    yield type.equals("int") || type.equals("double") || type.equals("boolean") ||
+                           type.equals("Integer") || type.equals("Double") || type.equals("Boolean");
+                }
+                yield false;
+            }
+            default -> false;
         };
     }
 
@@ -453,12 +463,27 @@ public class JavaCodeGenerator {
                 "case " + bp.value() + " -> " + bodyCode + ";";
             case NonePattern _ -> 
                 "case null -> " + bodyCode + ";";
-            default -> throw new IllegalArgumentException("Patrón no soportado: " + rule.pattern().getClass().getSimpleName());
+            default -> throw new IllegalArgumentException("Pattern not supported: " + rule.pattern().getClass().getSimpleName());
         };
     }
     
     private String generateType(Node typeNode) {
         return switch (typeNode) {
+            case ArrowType arrowType -> {
+                imports.add("java.util.function.*");
+                String fromType = generateType(arrowType.from());
+                String toType = generateType(arrowType.to());
+                
+                if (fromType.equals("Object") && toType.equals("Object")) {
+                    yield "UnaryOperator<Object>";
+                }
+                else if (fromType.equals(toType)) {
+                    yield "UnaryOperator<" + fromType + ">";
+                }
+                else {
+                    yield "Function<" + fromType + ", " + toType + ">";
+                }
+            }
             case TypeNode(var typeName) -> switch (typeName) {
                 case "int" -> "int";
                 case "double" -> "double";
@@ -504,59 +529,66 @@ public class JavaCodeGenerator {
             case Id id -> {
                 String idValue = id.value();
                 
-                yield switch (idValue) {
-                    case String name when globalContext().isConstructor(name) -> 
-                        "new " + capitalizeFirst(name) + "(" + params + ")";
-                        
-                    case String name when globalContext().isLambda(name) -> {
-                        String lambdaType = globalContext().getFunctionType(name);
-                        
-                        yield switch (lambdaType) {
-                            case String lt when lt.startsWith("Supplier") -> 
-                                name + ".get()";
-                                
-                            case String lt when lt.startsWith("Consumer") -> 
-                                name + ".accept(" + params + ")";
-                                
-                            case String lt when lt.startsWith("Function") -> 
-                                name + ".apply(" + params + ")";
-                                
-                            case String lt when lt.startsWith("BiConsumer") -> 
-                                name + ".accept(" + params + ")";
-                                
-                            case String lt when lt.startsWith("BiFunction") -> 
-                                name + ".apply(" + params + ")";
-            
-                            case String lt when lt.startsWith("BiPredicate") -> 
-                                name + ".test(" + params + ")";
-                                
-                            case String lt when lt.startsWith("Function") && lt.contains("Function") -> 
-                                name + ".apply(" + params + ")";
-                                
-                            default -> 
-                                name + ".apply(" + params + ")";
-                        };
-                    }
-                    
-                    case String name when globalContext().getMethodNames().contains(name) -> 
-                        name + "(" + params + ")";
-                        
-                    default -> 
-                        idValue + "(" + params + ")";
-                };
+                if (isConstructorInAnyContext(idValue)) {
+                    yield "new " + capitalizeFirst(idValue) + "(" + params + ")";
+                }
+                
+                SymbolInfo symbolInfo = findSymbolInAllContexts(idValue);
+                
+                if (symbolInfo != null) {
+                    String functionalType = symbolInfo.functionType();
+                    String callResult = switch (symbolInfo.symbolType()) {
+                        case LAMBDA_PARAMETER -> idValue + ".apply(" + params + ")";
+                        case LAMBDA -> generateLambdaCall(idValue, functionalType, params);
+                        case METHOD -> idValue + "(" + params + ")";
+                        default -> idValue + "(" + params + ")";
+                    };
+                    yield callResult;
+                }
+                yield idValue + "(" + params + ")";
             }
-
+    
             case ConstructorInvocation constructor -> 
                 "new " + capitalizeFirst(constructor.id()) + "(" + params + ")";
-            
-            case Call _ -> {
-                var calleeCode = generateExpression(callee);
-                yield calleeCode + ".apply(" + params + ")";
-            }
-            
+                        
             default -> 
                 generateExpression(callee) + ".apply(" + params + ")";
         };
+    }
+    
+    private String generateLambdaCall(String name, String functionalType, String params) {
+        if (functionalType == null || functionalType.equals("unknown")) {
+            return name + ".apply(" + params + ")"; 
+        }
+        
+        return switch (functionalType) {
+            case String ft when ft.startsWith("Supplier") -> name + ".get()";
+            case String ft when ft.startsWith("Consumer") -> name + ".accept(" + params + ")";
+            case String ft when ft.startsWith("BiConsumer") -> name + ".accept(" + params + ")";
+            case String ft when ft.startsWith("Predicate") -> name + ".test(" + params + ")";
+            case String ft when ft.startsWith("BiPredicate") -> name + ".test(" + params + ")";
+            case String ft when ft.startsWith("UnaryOperator") -> name + ".apply(" + params + ")";
+            case String ft when ft.startsWith("BinaryOperator") -> name + ".apply(" + params + ")";
+            case String ft when ft.startsWith("Function") -> name + ".apply(" + params + ")";
+            case String ft when ft.startsWith("BiFunction") -> name + ".apply(" + params + ")";
+            default -> name + ".apply(" + params + ")";
+        };
+    }
+
+    private SymbolInfo findSymbolInAllContexts(String symbolName) {
+        return contextMap.values().stream()
+            .flatMap(context -> 
+                Stream.iterate(context, ctx -> ctx != null, SymbolTable::getParent)
+            )
+            .map(context -> context.getSymbolInfo(symbolName))
+            .filter(info -> info != null && info.type() != null && !info.type().equals("unknown"))
+            .findFirst()
+            .orElse(null);
+    }
+    
+    private boolean isConstructorInAnyContext(String name) {
+        return contextMap.values().stream()
+            .anyMatch(context -> context.isConstructor(name));
     }
     
     private String escapeString(String value) {

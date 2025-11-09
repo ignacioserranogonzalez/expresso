@@ -36,7 +36,7 @@ expr
     | lambdaParams LAMBDA expr                      # Lambda
     | expr '(' argList? ')'                         # CallChain
     | ID '(' argList? ')'                           # Call
-    | PRINT '(' expr ')'                            # Print
+    | PRINT '(' argList? ')'                        # Print
     | '^' constructorExpr                           # ConstructorInvocation
     | '(' expr ')'                                  # Paren
     | '(' expr (',' expr)+ ')'                      # TupleLiteral

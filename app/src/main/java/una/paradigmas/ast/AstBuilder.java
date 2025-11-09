@@ -231,8 +231,12 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     @Override
     public Node visitPrint(PrintContext ctx) {
-        Node expr = visit(ctx.expr());
-        return new Print(expr);
+        List<Node> args = Optional.ofNullable(ctx.argList())
+            .map(argList -> argList.expr().stream()
+                .map(this::visit)
+                .collect(Collectors.toList()))
+            .orElse(List.of());
+        return new Print(args);
     }
 
     @Override
@@ -246,7 +250,7 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
                     String paramId = paramCtx.ID().getText();
                     
                     Node paramType = paramCtx.type() != null ? 
-                    typeAstBuilder.visit(paramCtx.type()) : new TypeNode("any");
+                    typeAstBuilder.visit(paramCtx.type()) : new TypeNode("Object");
                     return new Fun.Param(new Id(paramId), paramType);
                 })
                 .collect(Collectors.toList());

@@ -45,6 +45,7 @@ public class SymbolTable {
         LAMBDA,
         VARIABLE,   
         PARAMETER, 
+        LAMBDA_PARAMETER, 
         CONSTRUCTOR,
         DATA_TYPE
     }
@@ -82,6 +83,18 @@ public class SymbolTable {
         return info != null && info.symbolType() == SymbolType.LAMBDA;
     }
 
+    public boolean isLambdaParameter(String name) {
+        SymbolInfo info = symbols.get(name);
+        return info != null && info.symbolType() == SymbolType.LAMBDA_PARAMETER;
+    }
+    
+    public boolean isFunctional(String name) {
+        SymbolInfo info = symbols.get(name);
+        return info != null && 
+               (info.symbolType() == SymbolType.LAMBDA || 
+                info.symbolType() == SymbolType.LAMBDA_PARAMETER);
+    }
+
     public boolean isDataType(String name) {
         SymbolInfo info = symbols.get(name);
         return info != null && info.symbolType() == SymbolType.DATA_TYPE;
@@ -90,6 +103,11 @@ public class SymbolTable {
     public SymbolType getSymbolType(String name) {
         SymbolInfo info = symbols.get(name);
         return info != null ? info.symbolType() : null;
+    }
+
+    public SymbolInfo getSymbolInfo(String name) {
+        SymbolInfo info = symbols.get(name);
+        return info != null ? info : null;
     }
     
     public String getType(String name) {

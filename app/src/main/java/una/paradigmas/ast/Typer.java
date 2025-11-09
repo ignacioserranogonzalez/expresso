@@ -3,7 +3,6 @@ package una.paradigmas.ast;
 import una.paradigmas.node.*;
 import una.paradigmas.node.Lambda.Param;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -221,6 +220,17 @@ public class Typer implements Visitor<String> {
         };
     }
 
+    private boolean isFunctionalType(String type) {
+        return type != null && 
+               (type.startsWith("UnaryOperator") ||
+                type.startsWith("Function") ||
+                type.startsWith("BiFunction") ||
+                type.startsWith("BinaryOperator") ||
+                type.startsWith("Supplier") ||
+                type.startsWith("Consumer") ||
+                type.startsWith("Predicate"));
+    }
+
     private String capitalizeFirst(String s) {
         return s == null || s.isEmpty() ? s 
             : s.substring(0, 1).toUpperCase() + s.substring(1);
@@ -269,40 +279,6 @@ public class Typer implements Visitor<String> {
             .orElseThrow(() -> new TypeException("Cannot find symbol: " + id.value()));
     }
 
-    // @Override
-    // public String visitLet(Let let) {
-    //     String id = let.id().value();
-
-    //     System.out.println(let);
-        
-    //     if (currentContext().getAllSymbols().contains(id)) 
-    //         throw new TypeException("Variable '" + id + "' already declared");
-        
-    //     String valueType = let.value().accept(this);
-    //     String declaredType = let.type() != null ? let.type().accept(this) : valueType;
-        
-    //     // Si el valor es una invocación de constructor, usar el tipo del constructor
-    //     if (let.value() instanceof ConstructorInvocation) {
-    //         String constructorType = valueType;
-    //         if (declaredType.equals("Object") && !constructorType.equals("Object")) {
-    //             declaredType = constructorType;
-    //         }
-    //     }
-        
-    //     if (!isCompatible(declaredType, valueType))  
-    //         throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
-        
-    //     SymbolType symbolType = determineSymbolType(let.value(), let.type());
-        
-    //     // Usar el tipo correcto (no siempre el declarado)
-    //     String finalType = declaredType.equals("Object") && !valueType.equals("Object") ? valueType : declaredType;
-        
-    //     if (!(let.value() instanceof Lambda))
-    //         currentContext().addSymbol(id, symbolType, finalType);
-
-    //     return finalType;
-    // }
-
     @Override
     public String visitLet(Let let) {
         String id = let.id().value();
@@ -340,7 +316,11 @@ public class Typer implements Visitor<String> {
                 String paramName = param.id().value();
                 String paramType = param.type().accept(this);
                 paramTypes.put(paramName, paramType);
-                currentContext().addSymbol(paramName, SymbolType.PARAMETER, paramType);
+
+                SymbolType symbolType = isFunctionalType(paramType) ? 
+                    SymbolType.LAMBDA_PARAMETER : SymbolType.PARAMETER;
+
+                currentContext().addSymbol(paramName, symbolType, paramType);
             });
     
             String bodyType = fun.body().accept(this);
@@ -497,8 +477,8 @@ public class Typer implements Visitor<String> {
     }
 
     @Override public String visitPrint(Print print) {
-        print.expr().accept(this);
-        return "void";
+        print.exprList().forEach(e -> e.accept(this));
+        return "null";
     }
 
     @Override public String visitPow(Pow pow) {
@@ -702,6 +682,26 @@ public class Typer implements Visitor<String> {
         return cast.type().accept(this);
     }
 
-    @Override public String visitTupleType(TupleType tupleType) { return ""; }
-    @Override public String visitArrowType(ArrowType arrowType) { return ""; }
+    @Override
+    public String visitArrowType(ArrowType arrowType) {
+
+        String fromType = arrowType.from().accept(this);
+        String toType = arrowType.to().accept(this);
+        
+        // Convertir any -> any a UnaryOperator<Object>
+        if (fromType.equals("any") && toType.equals("any")) {
+            return "UnaryOperator<Object>";
+        }
+        // Si los tipos son iguales, usar operadores especializados
+        else if (fromType.equals(toType)) {
+            return "UnaryOperator<" + fromType + ">";
+        }
+        // Caso general: Function<From, To>
+        else {
+            return "Function<" + fromType + ", " + toType + ">";
+        }
+    }
+
+    @Override 
+    public String visitTupleType(TupleType tupleType) { return ""; }
 }

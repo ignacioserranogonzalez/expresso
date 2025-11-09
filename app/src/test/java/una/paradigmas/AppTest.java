@@ -435,198 +435,198 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
     //-------------------------------------------------------------------
 
-    // @Test
-    // public void testJupyter1() {
-    //     System.out.println("\n====== Test Jupyter 1 ======");
+    @Test
+    public void testJupyter1() {
+        System.out.println("\n====== Test Jupyter 1 ======");
         
-    //     String input = """                
-    //             /*
-    //             Drafts for test cases and demo 11/06/2025
-    //             loriacarlos@gmail.com
-    //             Warnings: 
-    //             * They could have some syntax issues (I haven't checked it)
-    //             * They might be very much "involved" (beyond Earth?)
+        String input = """                
+                /*
+                Drafts for test cases and demo 11/06/2025
+                loriacarlos@gmail.com
+                Warnings: 
+                * They could have some syntax issues (I haven't checked it)
+                * They might be very much "involved" (beyond Earth?)
                 
-    //             In this file only TC1 and TC2 type examples
+                In this file only TC1 and TC2 type examples
                 
-    //         */
+            */
             
-    //         ////////////// TC1 /////////////////
+            ////////////// TC1 /////////////////
             
-    //         /*
+            /*
             
-    //             Repeats a string n-times using a recursive two-parameters fun
-    //             Uses == 
-    //             Potential Issue two-parameters type
+                Repeats a string n-times using a recursive two-parameters fun
+                Uses == 
+                Potential Issue two-parameters type
                 
-    //             Define a Lambda (recognize type Function<Integer, String> and generate .apply)
+                Define a Lambda (recognize type Function<Integer, String> and generate .apply)
                 
-    //         */
+            */
             
-    //         fun fill(n:int, s:string):string = n == 0 ? "" : ( s + fill(n - 1, s) )
+            fun fill(n:int, s:string):string = n == 0 ? "" : ( s + fill(n - 1, s) )
             
-    //         print(fill(80, "-"))
+            print(fill(80, "-"))
             
             
-    //         /*
-    //             Potential issues:
-    //             * Defines a lambda of type Function<Integer, String>
-    //             * Generate line.apply
-    //         */
-    //         let line = n -> fill(n, "_") + "\n"
-    //         print(line(80))
+            /*
+                Potential issues:
+                * Defines a lambda of type Function<Integer, String>
+                * Generate line.apply
+            */
+            let line = n -> fill(n, "_") + "\n"
+            print(line(80))
             
-    //         /*
-    //         * Defines a lambda returning 'void'; recognize type as a Consumer<Integer>
-    //         * Generate .accept)
-    //         */
-    //         let print_line = (n:int) -> print( line(n) )
+            /*
+            * Defines a lambda returning 'void'; recognize type as a Consumer<Integer>
+            * Generate .accept)
+            */
+            let print_line = (n:int) -> print( line(n) )
             
-    //         // Call it. Potential Issue: generate as Cosumer<Integer> type and .accept 
-    //         print_line(80) // print_line.accept(80)
+            // Call it. Potential Issue: generate as Cosumer<Integer> type and .accept 
+            print_line(80) // print_line.accept(80)
             
-    //         // Potential Issue: String concat "+"
-    //         print("The only " + true + " answer to the meaning of life is: " + (1 + 666 / 666 + 20 * 2))
-    //         print_line(80)
+            // Potential Issue: String concat "+"
+            print("The only " + true + " answer to the meaning of life is: " + (1 + 666 / 666 + 20 * 2))
+            print_line(80)
             
-    //         """;
+            """;
         
-    //     testExpressoProgram(input, "Jupyter");
-    // }
+        testExpressoProgram(input, "Jupyter");
+    }
 
-    // @Test
-    // public void testJupyter2() {
-    //     System.out.println("\n====== Test Jupyter 2 ======");
+    @Test
+    public void testJupyter2() {
+        System.out.println("\n====== Test Jupyter 2 ======");
         
-    //     String input = """                
-    //         /////////////// TC2 //////////////////
+        String input = """                
+            /////////////// TC2 //////////////////
             
-    //         print("*** Newton-Raphson TC2 **** ")
+            print("*** Newton-Raphson TC2 **** ")
             
-    //         let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
-    //         //  Potential issue: type is UnaryOperator<Double> and method is apply
-    //         print("Test abs:" + (abs((-666):float) == abs((--666):float)) )
+            let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
+            //  Potential issue: type is UnaryOperator<Double> and method is apply
+            print("Test abs:" + (abs((-666):float) == abs((--666):float)) )
             
-    //         let EPSILON =  1e-11 // Fully uppercased id. Issue floating-point using scientific notation
-    //         print("EPSILON="  + EPSILON)
+            let EPSILON =  1e-11 // Fully uppercased id. Issue floating-point using scientific notation
+            print("EPSILON="  + EPSILON)
             
-    //         let improve = (a:float, x:float) -> 0.5 * (x + a / x) // BinaryOperator<Double> .apply
+            let improve = (a:float, x:float) -> 0.5 * (x + a / x) // BinaryOperator<Double> .apply
             
-    //         /* 
-    //             Potential Issues: 
-    //             Type is BiPredicate<Double>
-    //             abs --> abs.apply
+            /* 
+                Potential Issues: 
+                Type is BiPredicate<Double>
+                abs --> abs.apply
                 
-    //         */
-    //         let converges = (a:float, x:float) -> abs(x ** 2 - a) < EPSILON
+            */
+            let converges = (a:float, x:float) -> abs(x ** 2 - a) < EPSILON
             
             
-    //         /* 
-    //             Potential Issues: 
-    //             Type is BinaryOperator<Double>
-    //             converges --> converges.test
+            /* 
+                Potential Issues: 
+                Type is BinaryOperator<Double>
+                converges --> converges.test
                 
-    //         */
+            */
             
-    //         let next = (a:float, x:float) -> converges(a, x) ? x : improve(a, x)
+            let next = (a:float, x:float) -> converges(a, x) ? x : improve(a, x)
             
-    //         /*
-    //             Potential Issues:
-    //             converges --> converges.test
+            /*
+                Potential Issues:
+                converges --> converges.test
                 
-    //         */
+            */
             
-    //         fun sqrt_iterate(a:float, x0:float):float = converges(a, x0) ? x0 : sqrt_iterate(a, improve(a, x0))
+            fun sqrt_iterate(a:float, x0:float):float = converges(a, x0) ? x0 : sqrt_iterate(a, improve(a, x0))
             
-    //         fun sqrt(a:float) = sqrt_iterate(a, a * 0.5)
+            fun sqrt(a:float) = sqrt_iterate(a, a * 0.5)
             
-    //         let test_sqrt = a:float -> a + " -sqrt-> " + sqrt(a)
-    //         print(test_sqrt(4))
-    //         print(sqrt(4) ** 2 + " ==? " + 4.0)
-    //         print(sqrt(2)  + " ==? " + 1.4142135623730951)
+            let test_sqrt = a:float -> a + " -sqrt-> " + sqrt(a)
+            print(test_sqrt(4:double))
+            print(sqrt(4) ** 2 + " ==? " + 4.0)
+            print(sqrt(2)  + " ==? " + 1.4142135623730951)
             
-    //         //////////////////////////////
+            //////////////////////////////
             
-    //         """;
+            """;
         
-    //     testExpressoProgram(input, "Jupyter");
-    // }
+        testExpressoProgram(input, "Jupyter");
+    }
 
-    // @Test
-    // public void testSaturn() {
-    //     System.out.println("\n====== Test Saturn ======");
+    @Test
+    public void testSaturn() {
+        System.out.println("\n====== Test Saturn ======");
         
-    //     String input = """                
-    //         data list = {
-    //             Nil,
-    //             Cons(car:any, cdr:list)
-    //         }
+        String input = """                
+            data list = {
+                Nil,
+                Cons(car:any, cdr:list)
+            }
 
-    //         let first = a:list -> match a with
-    //                             Nil -> none 
-    //                             | Cons(f, _) -> f
+            let first = a:list -> match a with
+                                Nil -> none 
+                                | Cons(f, _) -> f
 
-    //         let rest = a:list -> match a with
-    //             Nil -> none
-    //             | Cons(_, r) -> r
+            let rest = a:list -> match a with
+                Nil -> none
+                | Cons(_, r) -> r
             
-    //         fun length(a:list) = match a with
-    //             Nil -> 0
-    //             | Cons(_, r) -> 1 + length(r)
+            fun length(a:list) = match a with
+                Nil -> 0
+                | Cons(_, r) -> 1 + length(r)
                 
-    //         fun copy(a:list) = match a with
-    //             Nil -> a 
-    //             Cons(f, r) -> ^Cons(f, copy(r))
+            fun copy(a:list) = match a with
+                Nil -> a 
+                Cons(f, r) -> ^Cons(f, copy(r))
                 
-    //         fun append(a:list, b:list) = match a with
-    //             Nil -> b
-    //             | Cons(f, r) -> ^Cons(f, append(r, b))
+            fun append(a:list, b:list) = match a with
+                Nil -> b
+                | Cons(f, r) -> ^Cons(f, append(r, b))
 
-    //         /*
-    //         Potential issues
-    //         Type is BinaryOperator<list>
+            /*
+            Potential issues
+            Type is BinaryOperator<list>
 
-    //         */
-    //         let append_as_lambda = (a:list, b:list) -> append(a, b)
+            */
+            let append_as_lambda = (a:list, b:list) -> append(a, b)
 
-    //         /*
-    //         Potential issues
-    //         * Type is BinaryOperator<list>
-    //         * Method is append_as_lambda.apply
+            /*
+            Potential issues
+            * Type is BinaryOperator<list>
+            * Method is append_as_lambda.apply
 
-    //         */
-    //         let double_list = a:list -> append_as_lambda(a, a)
+            */
+            let double_list = a:list -> append_as_lambda(a, a)
 
 
-    //         let nil = ^Nil()
+            let nil = ^Nil()
 
-    //         let list_666 = ^Cons(666, nil)
+            let list_666 = ^Cons(666, nil)
 
-    //         let list_777 = ^Cons(777, list_666)
+            let list_777 = ^Cons(777, list_666)
 
-    //         let list_888 = ^Cons(888, list_777)
+            let list_888 = ^Cons(888, list_777)
 
-    //         let myList = list_888
+            let myList = list_888
 
-    //         print("myList=" + myList)
+            print("myList=" + myList)
 
-    //         print("myList first=" + first(myList)) 
+            print("myList first=" + first(myList)) 
 
-    //         print("myList rest=" + rest(myList)) 
+            print("myList rest=" + rest(myList)) 
 
-    //         print("myList length=" + length(myList)) 
+            print("myList length=" + length(myList)) 
 
-    //         print("myList twice =" + double_list(myList))
+            print("myList twice =" + double_list(myList))
 
-    //         let myList_copy = copy(myList)
+            let myList_copy = copy(myList)
 
-    //         print("myList copy =" + myList_copy)
-    //         print("myList == myList_copy should be true?" + myList == myList_copy) 
+            print("myList copy =" + myList_copy)
+            print("myList == myList_copy should be true?" + myList == myList_copy) 
                
-    //         """;
+            """;
         
-    //     testExpressoProgram(input, "Saturn");
-    // }
+        testExpressoProgram(input, "Saturn");
+    }
 
     @Test
     public void testPluto() {
@@ -656,11 +656,14 @@ import org.antlr.v4.runtime.CommonTokenStream;
             */
             
             
+            // fun map(f:any -> any, a:list):list = print("test")
             fun map(f:any -> any, a:list):list = match a with
                    Nil -> a 
                 |  Cons(first, rest) -> ^Cons(f(first), map(f, rest))
                 
             // print("myList mapped", map(x:any -> x:int + 1, myList) )
+            print("myList mapped")
+            print(map(x:any -> x:int + 1, myList))
             """;
         
         testExpressoProgram(input, "Pluto");

@@ -1,5 +1,7 @@
 package una.paradigmas.node;
 
+import java.util.List;
+
 import una.paradigmas.ast.Visitor;
 
 /**
@@ -16,7 +18,7 @@ import una.paradigmas.ast.Visitor;
  * Codigo de grupo: 02-1PM
  */
 
-public record Print(Node expr) implements Node {
+public record Print(List<Node> exprList) implements Node {
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visitPrint(this);
