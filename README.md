@@ -169,7 +169,7 @@ expressor build --verbose ..\..\..\..\testcloria\jupyter.expresso
 expressor run --verbose ..\..\..\..\testcloria\jupyter.expresso
 ```
 
-## Test 3: jupyter.expresso
+## Test 3: saturn.expresso
 ```bash
 expressor transpile --verbose ..\..\..\..\testcloria\saturn.expresso
 ```
