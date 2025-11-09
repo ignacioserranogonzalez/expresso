@@ -157,6 +157,54 @@ expressor run {ruta__al_.expresso}
    
 `--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
 
+# Casos de Prueba del Sprint Final (Testcases)
+
+El proyecto incluye los dos archivos de prueba `pluto.expresso`, `jupyter.expresso` y `saturn.expresso`.
+
+**Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final obtendrán el mensaje: missing NEWLINE at 'EOF', sin embargo no afecta a la ejecución de los casos de prueba.
+
+### Ejecutar los tests manualmente
+
+(Es requisito haber ejecutado el comando `gradlew clean build` y `gradlew jpackageImage` en la raiz del proyecto (`...\expresso`) con anterioridad)
+
+Ubicarse en la ruta del ejecutable (app\build\jpackage\expressor):
+_(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
+```bash
+cd app\build\jpackage\expressor
+```
+
+## Test 1: pluto.expresso
+
+```bash
+expressor transpile --verbose ..\..\..\..\testcloria\pluto.expresso
+```
+```bash
+expressor build --verbose ..\..\..\..\testcloria\pluto.expresso
+```
+```bash
+expressor run --verbose ..\..\..\..\testcloria\pluto.expresso
+```
+## Test 2: jupyter.expresso
+```bash
+expressor transpile --verbose ..\..\..\..\testcloria\jupyter.expresso
+```
+```bash
+expressor build --verbose ..\..\..\..\testcloria\jupyter.expresso
+```
+```bash
+expressor run --verbose ..\..\..\..\testcloria\jupyter.expresso
+```
+## Test 3: saturn.expresso
+```bash
+expressor transpile --verbose ..\..\..\..\testcloria\saturn.expresso
+```
+```bash
+expressor build --verbose ..\..\..\..\testcloria\saturn.expresso
+```
+```bash
+expressor run --verbose ..\..\..\..\testcloria\saturn.expresso
+```
+
 ## Prompts de IA (Íntegros)
 
 Modelos de inteligencia artificial consultados: Grok, DeepSeek, Gemini, ChatGPT
@@ -324,3 +372,32 @@ Es decir, si no defino el `outputDir`, este se vuelve `null` y me genera el erro
 - me esta imprimiendo un ; despues del comentario. cual es el problema en el javacodegenerator
 - ocupo que la salida sea: print(f.apply(x) + f.apply(y)); // expected 445010
 - eso es un error de java ? no se supone que las variables de los lambdas son independientes ?
+- estoy implementando data types y records que en expresso se ven asi 
+ data nat = {
+    Zero,
+    S(n:nat)
+ }
+ data list = {
+    Nil,
+    Cons(car:any, cdr:list)
+ }
+ data gender = {
+    Male,
+    Female
+ }
+ y al transpilarse se verían asi 
+ sealed interface Nat permits Zero, S {}
+ record Zero() implements Nat {}
+ record S(Nat n) implements Nat {}
+
+- cual es la mejor manera de implementarlo siguiendo mi paradigma actual en el proyecto.
+
+- Necesito que me expliques esta tarea que consiste Expresión print como valor (none). El print puede ser también expresión. En que consiste dame ejemplos.
+
+- let x = none
+- let y = print(42)
+
+- Object x = null;
+- Object y = printAndReturnNull(42);
+
+- Porque es necesario printAndReturnNull como método auxiliar? es porque el print no puede retornar un valor e imprimir? 
