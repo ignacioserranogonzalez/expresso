@@ -94,9 +94,14 @@ task copyDependencies(type: Copy) {
     into 'build/libs' 
 }
 
+task cleanJpackage(type: Delete) {
+    delete 'build/jpackage/expressor'
+}
+
 task jpackageImage(type: Exec) {
     dependsOn jar
     dependsOn copyDependencies
+    dependsOn cleanJpackage
     
     commandLine 'jpackage',
         '--name', 'expressor',

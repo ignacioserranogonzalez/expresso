@@ -63,6 +63,9 @@ public class JavaCodeGenerator {
         resetBuilders();
         this.contextMap = ast.contextMap();
 
+        if (this.contextMap == null) 
+            throw new IllegalStateException("contextMap is null. Make sure the AST has been typed first");
+
         extractDataDeclarations(ast);
         dataDeclarations.forEach(dataDecl -> 
             generateDataDecl(dataDecl.id(), dataDecl.constructors()));

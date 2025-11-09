@@ -56,7 +56,7 @@ public class Typer implements Visitor<String> {
         TYPE_COMPATIBILITY.put("Object", Set.of("Object", "any", "String"));
     }
 
-    private SymbolTable globalContext() {
+    private SymbolTable globalContext(){
         return contextMap.get("Global");
     }
 

@@ -15,6 +15,7 @@ import una.paradigmas.ast.AstBuilder;
 import una.paradigmas.ast.ExpressoLexer;
 import una.paradigmas.ast.ExpressoParser;
 import una.paradigmas.ast.JavaCodeGenerator;
+import una.paradigmas.ast.Typer;
 import una.paradigmas.node.Program;
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
@@ -86,23 +87,30 @@ public class TranspileCommand implements Runnable {
             throw new IllegalArgumentException("El archivo .expresso está vacío");
         }
 
-        // Parseo con ANTLR4
-        CharStream charStream = CharStreams.fromString(expressoCode);
-        ExpressoLexer lexer = new ExpressoLexer(charStream);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        ExpressoParser parser = new ExpressoParser(tokens);
-       
-        // Construir AST con AstBuilder
-        AstBuilder astBuilder = new AstBuilder();
-        Program ast = astBuilder.visitProgram(parser.program());
+        try {
+            CharStream charStream = CharStreams.fromString(expressoCode);
+            ExpressoLexer lexer = new ExpressoLexer(charStream);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            ExpressoParser parser = new ExpressoParser(tokens);
 
-        // Genera código Java
-        String className = outputFile.getFileName().toString().replace(".java", "");
-        JavaCodeGenerator generator = new JavaCodeGenerator(className);
-        String javaCode = generator.generate(ast);
+            AstBuilder astBuilder = new AstBuilder();
+            Program ast = astBuilder.visitProgram(parser.program());
 
-        // Escribe el archivo .java en output dir
-        Files.writeString(outputFile, javaCode, StandardCharsets.UTF_8);
+            Typer typer = new Typer(ast.symbolTable(), ast.contextMap());
+
+            if (commonOptions.verbose) 
+
+            typer.typeCheck(ast);
+
+            String className = outputFile.getFileName().toString().replace(".java", "");
+            JavaCodeGenerator generator = new JavaCodeGenerator(className);
+            String javaCode = generator.generate(ast);
+    
+            Files.writeString(outputFile, javaCode, StandardCharsets.UTF_8);
+        } catch(Exception exception){
+            throw exception;
+        }
+
     }
     
     private static void log(String msg) {

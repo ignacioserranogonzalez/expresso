@@ -85,7 +85,7 @@ print("myList twice =" + double_list(myList))
 let myList_copy = copy(myList)
 
 print("myList copy =" + myList_copy)
-print("myList == myList_copy should be true?" + copy == myList_copy) 
+print("myList == myList_copy should be true?" + myList == myList_copy) 
 
 
 

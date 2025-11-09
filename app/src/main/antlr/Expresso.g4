@@ -1,7 +1,7 @@
 grammar Expresso;
 import ExpressoTypes;
 
-program: stat* EOF; 
+program: stat* (NEWLINE)? EOF; 
 
 // statements
 stat: NEWLINE                                                               # blank
