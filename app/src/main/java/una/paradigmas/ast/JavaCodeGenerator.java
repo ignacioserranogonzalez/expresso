@@ -1,8 +1,10 @@
 package una.paradigmas.ast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,21 +34,31 @@ public class JavaCodeGenerator {
 
     private final Set<String> imports = new HashSet<>();
     private final String className;
-    private final StringBuilder methodDefinitions = new StringBuilder();
     private final Set<String> extraMethods = new HashSet<>();
+    private final StringBuilder methodDefinitions = new StringBuilder();
     private final StringBuilder constructorTypes = new StringBuilder();
     private final StringBuilder mainCodeBuilder = new StringBuilder();
     private final StringBuilder globalDeclarations = new StringBuilder();
-    private final List<DataDecl> dataDeclarations = new ArrayList<>(); // revisar
-    private SymbolTable symbolTable = new SymbolTable();
+    private final List<DataDecl> dataDeclarations = new ArrayList<>(); // revisar, stringuilder ?
 
-     public JavaCodeGenerator(String className) {
+    private Map<String, SymbolTable> contextMap = new HashMap<>();
+
+    public JavaCodeGenerator(String className) {
         this.className = capitalizeFirst(className);
+    }
+
+    public SymbolTable globalContext(){
+        return contextMap.get("Global");
+    }
+
+    public SymbolTable getContext(String key){
+        return contextMap.get(key);
     }
 
     public String generate(Program ast) {
         resetBuilders();
-        this.symbolTable = ast.symbolTable();
+        // this.symbolTable = ast.symbolTable();
+        this.contextMap = ast.contextMap();
 
         extractDataDeclarations(ast);
         dataDeclarations.forEach(dataDecl -> 
@@ -227,7 +239,7 @@ public class JavaCodeGenerator {
         return switch (stat) {
             case Let(var id, var value, var typeNode) -> {
                 String valueCode = generateExpression(value);
-                String varType = symbolTable.getType(id.value());
+                String varType = globalContext().getType(id.value());
                 
                 if (varType == null) {
                     varType = typeNode != null ? generateType(typeNode) : "Object";
@@ -235,7 +247,7 @@ public class JavaCodeGenerator {
                 
                 String declaration = switch (value) {
                     case Lambda lambda -> { // para las lambdas
-                        String functionType = symbolTable.getFunctionType(id.value());
+                        String functionType = globalContext().getFunctionType(id.value());
                         int paramCount = lambda.params().size();
                         if(paramCount > 2) generateFunctionInterface(paramCount);
                         yield functionType + " " + generateExpression(id) + " = " + valueCode + ";";
@@ -256,7 +268,7 @@ public class JavaCodeGenerator {
                 })
                 .collect(Collectors.joining(", "));
                 
-                String returnTypeJava = symbolTable.getType(name.value());
+                String returnTypeJava = globalContext().getType(name.value());
                 String bodyCode = generateExpression(body);
                 
                 String methodDef = "    public static " + returnTypeJava + " " + 
@@ -274,6 +286,8 @@ public class JavaCodeGenerator {
                 var params = paramList.stream()
                     .map(this::generateExpression)
                     .collect(Collectors.joining(", "));
+
+                
             
                 yield generateCall(callee, params) + ";";
             }
@@ -470,8 +484,8 @@ public class JavaCodeGenerator {
     private String generateCall(Node callee, String params){
         return switch (callee) {
 
-            case Id id when symbolTable.isLambda(id.value()) -> {
-                String lambdaType = symbolTable.getFunctionType(id.value());
+            case Id id when globalContext().isLambda(id.value()) -> {
+                String lambdaType = globalContext().getFunctionType(id.value());
                 
                 yield switch (lambdaType) {
                     case String lt when lt.startsWith("Supplier") -> 
@@ -501,9 +515,9 @@ public class JavaCodeGenerator {
             }
 
             case Id id -> {
-                yield symbolTable.isConstructor(id.value()) ? 
+                yield globalContext().isConstructor(id.value()) ? 
                     "new " + capitalizeFirst(id.value()) + "(" + params + ")" 
-                    : symbolTable.getMethodNames().contains(id.value()) ?
+                    : globalContext().getMethodNames().contains(id.value()) ?
                         id.value() + "(" + params + ")" 
                         : id.value() + ".apply(" + params + ")";
             }

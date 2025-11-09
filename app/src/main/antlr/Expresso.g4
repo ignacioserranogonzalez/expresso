@@ -32,7 +32,7 @@ expr
     | <assoc=right> expr '?' expr ':' expr          # TernaryCondition
     | (PLUS | MINUS) expr                           # UnaryOp
     | expr (MINUS MINUS | PLUS PLUS)                # PostOp
-    | 'match' expr 'with' NEWLINE* matchRule+       # Match
+    | 'match' expr 'with' NEWLINE* matchRule ('|'? NEWLINE* matchRule)* NEWLINE*   # Match
     | lambdaParams LAMBDA expr                      # Lambda
     | expr '(' argList? ')'                         # CallChain
     | ID '(' argList? ')'                           # Call
@@ -48,7 +48,9 @@ expr
     | ID                                            # Id
     ;
 
-matchRule: pattern ('if' expr)? '->' expr NEWLINE+;
+matchRule
+    : pattern ('if' expr)? '->' expr NEWLINE*
+;
 
 pattern
     : data_pattern

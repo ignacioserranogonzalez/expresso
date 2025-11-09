@@ -5,7 +5,9 @@ import una.paradigmas.ast.SymbolTable.SymbolType;
 import una.paradigmas.node.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -31,12 +33,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
 
     private final TypeAstBuilder typeAstBuilder = new TypeAstBuilder();
     private final SymbolTable symbolTable = new SymbolTable();
+    private final Map<String, SymbolTable> contextMap = new HashMap<>();
 
     @Override
     public Program visitProgram(ProgramContext ctx) {
         List<Node> statements = ctx.stat().stream().map(this::visit).filter(expr -> expr != null)
                                     .collect(Collectors.toList());
-        return new Program(statements, symbolTable);
+        return new Program(statements, symbolTable, contextMap);
     }
 
     @Override

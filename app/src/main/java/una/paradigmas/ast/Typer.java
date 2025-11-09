@@ -1,6 +1,7 @@
 package una.paradigmas.ast;
 
 import una.paradigmas.node.*;
+import una.paradigmas.node.Lambda.Param;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +17,7 @@ import una.paradigmas.ast.SymbolTable.SymbolType;
 
 public class Typer implements Visitor<String> {
     private final Stack<SymbolTable> contextStack = new Stack<>();
-    private final Map<String, SymbolTable> contextMap = new HashMap<>();
+    private final Map<String, SymbolTable> contextMap;
     private final Stack<Call> callStack = new Stack<>();
 
     private static final Map<String, Set<String>> TYPE_COMPATIBILITY = Map.of(
@@ -30,9 +31,9 @@ public class Typer implements Visitor<String> {
         "Object", Set.of("Object", "any")
     );
 
-    public Typer(SymbolTable context) {
-        this.contextStack.push(context);
-        contextMap.put("Global", context);
+    public Typer(SymbolTable context, Map<String, SymbolTable> contextMap) {
+        this.contextStack.push(context); contextMap.put("Global", context);
+        this.contextMap = contextMap;
     }
 
     private SymbolTable currentContext() {
@@ -73,6 +74,7 @@ public class Typer implements Visitor<String> {
             return switch(value){
                 case Fun _ -> SymbolType.METHOD;
                 case Lambda _ -> SymbolType.LAMBDA;
+                case Match _ -> SymbolType.LAMBDA;
                 default -> SymbolType.VARIABLE;
             };
         }
@@ -129,10 +131,30 @@ public class Typer implements Visitor<String> {
 
     private boolean isVoidLikeBody(Node body) {
         return switch (body) {
-            case Print _ -> true;        // print retorna null
-            case NoneLiteral _ -> true;  // none es como void
-            default -> false;            // Otros casos retornan valor
+            case Print _ -> true;
+            case NoneLiteral _ -> true; 
+            default -> false; 
         };
+    }
+
+    public void inferTypesByCallParams(List<Param> params){
+        params.forEach(param -> { // inferir tipos basandose en los calls
+            String paramName = param.id().value();
+
+            Stack<Call> currentLambdaCalls = new Stack<>();
+            currentLambdaCalls.addAll(callStack);
+
+            if(!currentLambdaCalls.isEmpty()) {
+                Call call = currentLambdaCalls.pop();
+
+                String inferredType = switch (call.callee()) {
+                    case Id id -> this.contextMap.get(id.value()).getType(paramName);
+                    default -> "Object";
+                };
+
+                currentContext().setType(paramName, inferredType);
+            }
+        });
     }
 
     private String calculateFunctionalType(Lambda lambda, String returnType) {
@@ -186,7 +208,7 @@ public class Typer implements Visitor<String> {
             : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
-    //--------------------------------------------
+    //-----------------------------------------------------------
 
     @Override
     public String visitInt(IntLiteral intLiteral) {
@@ -316,6 +338,8 @@ public class Typer implements Visitor<String> {
                                 toWrapperType(bodyType) : 
                                 declaredReturnType;
 
+            inferTypesByCallParams(lambda.params());
+
             String functionalType = calculateFunctionalType(lambda, returnType);
             
             currentContext().getParent().addSymbol(
@@ -420,7 +444,7 @@ public class Typer implements Visitor<String> {
     @Override public String visitPow(Pow pow) {
         pow.left().accept(this);
         pow.right().accept(this);
-        return "void";
+        return "double";
     }
 
     @Override
