@@ -161,6 +161,16 @@ expressor build --verbose ..\..\..\..\testcloria\jupyter.expresso
 ```bash
 expressor run --verbose ..\..\..\..\testcloria\jupyter.expresso
 ```
+## Test 3: saturn.expresso
+```bash
+expressor transpile --verbose ..\..\..\..\testcloria\saturn.expresso
+```
+```bash
+expressor build --verbose ..\..\..\..\testcloria\saturn.expresso
+```
+```bash
+expressor run --verbose ..\..\..\..\testcloria\saturn.expresso
+```
 
 ## Prompts de IA (Íntegros)
 
@@ -329,3 +339,32 @@ Es decir, si no defino el `outputDir`, este se vuelve `null` y me genera el erro
 - me esta imprimiendo un ; despues del comentario. cual es el problema en el javacodegenerator
 - ocupo que la salida sea: print(f.apply(x) + f.apply(y)); // expected 445010
 - eso es un error de java ? no se supone que las variables de los lambdas son independientes ?
+- estoy implementando data types y records que en expresso se ven asi 
+ data nat = {
+    Zero,
+    S(n:nat)
+ }
+ data list = {
+    Nil,
+    Cons(car:any, cdr:list)
+ }
+ data gender = {
+    Male,
+    Female
+ }
+ y al transpilarse se verían asi 
+ sealed interface Nat permits Zero, S {}
+ record Zero() implements Nat {}
+ record S(Nat n) implements Nat {}
+
+- cual es la mejor manera de implementarlo siguiendo mi paradigma actual en el proyecto.
+
+- Necesito que me expliques esta tarea que consiste Expresión print como valor (none). El print puede ser también expresión. En que consiste dame ejemplos.
+
+- let x = none
+- let y = print(42)
+
+- Object x = null;
+- Object y = printAndReturnNull(42);
+
+- Porque es necesario printAndReturnNull como método auxiliar? es porque el print no puede retornar un valor e imprimir? 
