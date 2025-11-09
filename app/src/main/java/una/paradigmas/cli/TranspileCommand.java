@@ -84,7 +84,7 @@ public class TranspileCommand implements Runnable {
         // lee archivo .expresso
         String expressoCode = Files.readString(input, StandardCharsets.UTF_8);
         if (expressoCode.trim().isEmpty()) {
-            throw new IllegalArgumentException("El archivo .expresso está vacío");
+            throw new IllegalArgumentException("El archivo .expresso esta vacio");
         }
 
         try {
@@ -98,9 +98,8 @@ public class TranspileCommand implements Runnable {
 
             Typer typer = new Typer(ast.symbolTable(), ast.contextMap());
 
-            if (commonOptions.verbose) 
-
-            typer.typeCheck(ast);
+            if (typer.typeCheck(ast) && commonOptions.verbose) 
+                System.out.println("\nType checking passed !\n"); 
 
             String className = outputFile.getFileName().toString().replace(".java", "");
             JavaCodeGenerator generator = new JavaCodeGenerator(className);

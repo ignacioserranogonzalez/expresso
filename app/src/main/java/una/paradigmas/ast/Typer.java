@@ -71,14 +71,11 @@ public class Typer implements Visitor<String> {
 
     public boolean typeCheck(Program program) {
         try {
-            System.out.println();
             visitProgram(program);
-            System.out.println("Type checking passed !\n");
             return true;
         } catch (TypeException e) {
-            System.err.println("[Type error]: " + e.getMessage());
+            throw new RuntimeException("[Type error]: " + e.getMessage());
         }
-        return false;
     }
 
     private String toWrapperType(String primitiveType) {
