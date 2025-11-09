@@ -80,6 +80,11 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     }
 
     @Override
+    public Node visitNone(NoneContext ctx) {
+        return new NoneLiteral();
+    }
+
+    @Override
     public Node visitId(IdContext ctx) {
         String id = ctx.ID().getText();
         return new Id(id);

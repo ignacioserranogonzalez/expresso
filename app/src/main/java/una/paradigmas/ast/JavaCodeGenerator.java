@@ -56,8 +56,8 @@ public class JavaCodeGenerator {
     }
 
     public String generate(Program ast) {
+
         resetBuilders();
-        // this.symbolTable = ast.symbolTable();
         this.contextMap = ast.contextMap();
 
         extractDataDeclarations(ast);
@@ -348,16 +348,33 @@ public class JavaCodeGenerator {
                 imports.add("java.util.function.*");
                 
                 String args = params.stream()
-                    .map(param -> {
-                        String paramName = generateExpression(param.id());
-                        return paramName;
-                    })
+                    .map(param -> generateExpression(param.id()))
                     .collect(Collectors.joining(", "));
                 
                 String bodyCode = generateExpression(body);
+                boolean isMatch = body instanceof Match;
                 
-                yield (params.size() == 1 ? args : "(" + args + ")") + " -> " + bodyCode;
+                if (isMatch) {
+                    yield (params.size() == 1 ? args : "(" + args + ")") + " -> {\n        return " + bodyCode + ";\n    }";
+                } else {
+                    yield (params.size() == 1 ? args : "(" + args + ")") + " -> " + bodyCode;
+                }
             }
+
+            // case Lambda(var _, var params, var _, var body) -> {
+            //     imports.add("java.util.function.*");
+                
+            //     String args = params.stream()
+            //         .map(param -> {
+            //             String paramName = generateExpression(param.id());
+            //             return paramName;
+            //         })
+            //         .collect(Collectors.joining(", "));
+                
+            //     String bodyCode = generateExpression(body);
+                
+            //     yield (params.size() == 1 ? args : "(" + args + ")") + " -> " + bodyCode;
+            // }
 
             case Call(var callee, var paramList) -> {
                 String params = paramList.stream()
@@ -381,17 +398,13 @@ public class JavaCodeGenerator {
                 yield "new " + capitalizedId + "(" + argCode + ")";
             }
 
-            case Match(var exprToMatch, var rules) -> {
-                String exprCode = generateExpression(exprToMatch);
-                StringBuilder sb = new StringBuilder();
-                sb.append("switch (").append(exprCode).append(") {\n");
-                for (Node ruleNode : rules) {
-                    MatchRule rule = (MatchRule) ruleNode;
-                    sb.append("            ").append(generateMatchRule(rule)).append("\n");
-                }
-                sb.append("        }");
-                yield sb.toString();
-            }
+            case Match(var exprToMatch, var rules) -> 
+                rules.stream()
+                    .map(rule -> (MatchRule) rule)
+                    .map(this::generateMatchRule)
+                    .collect(Collectors.joining("\n            ", 
+                        "switch (" + generateExpression(exprToMatch) + ") {\n            ", 
+                        "\n        }"));
 
             case Cast(var expr4, var typeNode) -> {
                 String exprCode = generateExpression(expr4);

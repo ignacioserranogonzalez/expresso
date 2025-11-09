@@ -74,7 +74,6 @@ public class Typer implements Visitor<String> {
             return switch(value){
                 case Fun _ -> SymbolType.METHOD;
                 case Lambda _ -> SymbolType.LAMBDA;
-                case Match _ -> SymbolType.LAMBDA;
                 default -> SymbolType.VARIABLE;
             };
         }
@@ -211,6 +210,12 @@ public class Typer implements Visitor<String> {
     //-----------------------------------------------------------
 
     @Override
+    public String visitProgram(Program program) {
+        program.statements().forEach(stat -> stat.accept(this));
+        return "Program";
+    }
+
+    @Override
     public String visitInt(IntLiteral intLiteral) {
         return "int";
     }
@@ -231,9 +236,8 @@ public class Typer implements Visitor<String> {
     }
 
     @Override
-    public String visitProgram(Program program) {
-        program.statements().forEach(stat -> stat.accept(this));
-        return "Program";
+    public String visitNoneLiteral(NoneLiteral noneLiteral) {
+        return "none";
     }
 
     @Override
@@ -511,7 +515,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitMatch(Match match) {
-        return match.expr().accept(this);
+        return "Object"; // tipo comun para todos por ahora
     }
 
     @Override

@@ -21,8 +21,9 @@ public interface Visitor<T> {
     T visitType(TypeNode type);
     T visitInt(IntLiteral num);
     T visitDouble(DoubleLiteral num);
-    T visitBoolean(BooleanLiteral num);
-    T visitString(StringLiteral num);
+    T visitBoolean(BooleanLiteral bool);
+    T visitString(StringLiteral string);
+    T visitNoneLiteral(NoneLiteral none);
     T visitId(Id id);
     T visitPow(Pow pow);
     T visitMultDiv(MultDiv multDiv);
