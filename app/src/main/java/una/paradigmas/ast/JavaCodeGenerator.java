@@ -236,7 +236,7 @@ public class JavaCodeGenerator {
             """.formatted(mainCodeBuilder.toString()));
     }
 
-    //------------------------------------------
+    //----------------------------------------------------
 
     private String generateStatement(Node stat) {
         return switch (stat) {
@@ -252,13 +252,12 @@ public class JavaCodeGenerator {
                     case Lambda lambda -> {
                         String functionType = globalContext().getFunctionType(id.value());
                         
-                        // Si no hay tipo funcional, inferirlo usando el mapper
                         if (functionType == null || functionType.equals("unknown")) {
                             int paramCount = lambda.params().size();
                             List<String> paramTypes = lambda.params().stream()
                                 .map(param -> generateType(param.type()))
                                 .collect(Collectors.toList());
-                            String returnType = "Object"; // default
+                            String returnType = "Object";
                             
                             functionType = FunctionalTypeMapper.mapFunctionalType(
                                 paramTypes, returnType, paramCount, false
@@ -277,7 +276,6 @@ public class JavaCodeGenerator {
             }                            
 
             case Fun(var name, var params, var _, var body) -> {
-                // parametros con tipos
                 String paramDecls = params.stream()
                 .map(param -> {
                     String paramType = generateType(param.type());

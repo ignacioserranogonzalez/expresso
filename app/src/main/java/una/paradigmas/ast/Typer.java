@@ -200,7 +200,6 @@ public class Typer implements Visitor<String> {
         int argCount = lambda.params().size();
         boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
     
-        // Obtener tipos de parámetros del contexto
         List<String> paramTypes = currentContext().getParametersList().stream()
             .map(SymbolInfo::type)
             .map(this::toWrapperType)
@@ -209,60 +208,12 @@ public class Typer implements Visitor<String> {
         return FunctionalTypeMapper.mapFunctionalType(paramTypes, returnType, argCount, shouldBeConsumer);
     }
 
-    // private String calculateFunctionalType(Lambda lambda, String returnType) {
-    //     if (lambda.body() instanceof Lambda) { // lambda anidada
-    //         String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
-    //         return "Function<" + paramType + ", " + returnType + ">";
-    //     }
-
-    //     int argCount = lambda.params().size();
-    //     boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
-
-    //     List<SymbolInfo> ctxParams = currentContext().getParametersList();
-        
-    //     return switch (argCount) {
-    //         case 0 -> "Supplier<" + returnType + ">";
-    //         case 1 -> {
-    //             String paramType = toWrapperType(ctxParams.get(0).type());
-    //             if (shouldBeConsumer) {
-    //                 yield "Consumer<" + paramType + ">";  
-    //             } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
-    //                 yield "Predicate<" + paramType + ">";
-    //             } else if (returnType.equals(ctxParams.get(0).type())) {
-    //                 yield "UnaryOperator<" + returnType + ">";
-    //             } else {
-    //                 yield "Function<" + paramType + ", " + returnType + ">";
-    //             }
-    //         }
-    //         case 2 -> {
-    //             String param1Type = toWrapperType(ctxParams.get(0).type());
-    //             String param2Type = toWrapperType(ctxParams.get(1).type());
-                
-    //             if (shouldBeConsumer) {
-    //                 yield "BiConsumer<" + param1Type + ", " + param2Type + ">";
-    //             } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
-    //                 yield "BiPredicate<" + param1Type + ", " + param2Type + ">";
-    //             } else if (param1Type.equals(param2Type) && param1Type.equals(returnType)) {
-    //                 yield "BinaryOperator<" + returnType + ">";
-    //             } else {
-    //                 yield "BiFunction<" + param1Type + ", " + param2Type + ", " + returnType + ">";
-    //             }
-    //         }
-    //         default -> {
-    //             String paramTypes = ctxParams.stream()
-    //                 .map(p -> p.type())
-    //                 .collect(Collectors.joining(", "));
-    //             yield "Function" + argCount + "<" + paramTypes + ", " + returnType + ">";
-    //         }
-    //     };
-    // }
-
     private String capitalizeFirst(String s) {
         return s == null || s.isEmpty() ? s 
             : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
-    //-----------------------------------------------------------
+    //---------------------------------------------------------------
 
     @Override
     public String visitProgram(Program program) {
@@ -296,8 +247,80 @@ public class Typer implements Visitor<String> {
     }
 
     @Override
+    public String visitUnderscorePattern(UnderscorePattern underscore) {
+        return "any";
+    }
+
+    @Override
+    public String visitIntPattern(IntPattern intPattern) {
+        return "int";
+    }
+
+    @Override
+    public String visitFloatPattern(FloatPattern floatPattern) {
+        return "double";
+    }
+
+    @Override
+    public String visitStringPattern(StringPattern stringPattern) {
+        return "string";
+    }
+
+    @Override
+    public String visitBooleanPattern(BooleanPattern booleanPattern) {
+        return "boolean";
+    }
+
+    @Override
+    public String visitNonePattern(NonePattern nonePattern) {
+        return "Object";
+    }
+
+    @Override  
+    public String visitVariablePattern(VariablePattern variablePattern) {
+        currentContext().addSymbol(variablePattern.name(), SymbolType.VARIABLE, "Object");
+        return "any";
+    }
+
+    @Override
+    public String visitNone(NoneLiteral noneLiteral) {
+        return "Object";
+    }
+
+    @Override
+    public String visitLogicalOp(LogicalOp boolOp) {
+        return "boolean";
+    }
+
+    @Override
+    public String visitRelOp(RelOp relOp) {
+        return "boolean";
+    }
+
+    @Override
+    public String visitNotOp(NotOp notOp) {
+        return "boolean";
+    }
+
+    @Override public String visitPrint(Print print) {
+        print.exprList().forEach(e -> e.accept(this));
+        return "null";
+    }
+
+    @Override public String visitPow(Pow pow) {
+        pow.left().accept(this);
+        pow.right().accept(this);
+        return "double";
+    }
+
+    @Override
+    public String visitCast(Cast cast) {
+        return cast.type().accept(this);
+    }
+
+    @Override
     public String visitId(Id id) { // busca en currentContext y si no en su getParent() hasta que sea null
-        return java.util.stream.Stream
+        return Stream
             .iterate(currentContext(), Objects::nonNull, SymbolTable::getParent)
             .map(ctx -> ctx.getType(id.value()))
             .filter(type -> !"unknown".equals(type))
@@ -317,7 +340,7 @@ public class Typer implements Visitor<String> {
         if (!isCompatible(declaredType, valueType))  // verificar inconsistencia entre el valor inferido y declarado con :
             throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
         
-        SymbolType symbolType = determineSymbolType(let.value(), let.type()); // VARIABLE, LAMBDA, METHOD etc
+        SymbolType symbolType = determineSymbolType(let.value(), let.type()); // VARIABLE, LAMBDA, METHOD, etc
         
         if (!(let.value() instanceof Lambda))
             currentContext().addSymbol(id, symbolType, declaredType);
@@ -426,7 +449,7 @@ public class Typer implements Visitor<String> {
         return switch (call.callee()) {
             case Id id -> {
 
-                SymbolTable context = Stream.iterate( // primero buscar si esta definido en un contexto
+                SymbolTable context = Stream.iterate( // buscar si esta definido en un contexto
                         currentContext(), 
                         ctx -> ctx != null, 
                         SymbolTable::getParent
@@ -440,7 +463,7 @@ public class Typer implements Visitor<String> {
                 callStack.push(call); // callStack es local para cada lambda
                 
                 if (context.isMethod(id.value()) || context.isLambda(id.value())) {
-                    yield context.getType(id.value()); // return type de method/lambda
+                    yield context.getType(id.value()); // returnType de method/lambda
                 } else yield "Object";
             }
             case ConstructorInvocation constructor ->{
@@ -465,8 +488,10 @@ public class Typer implements Visitor<String> {
             throw new TypeException("Right operand of " + addSub.op() + " must be numeric or string, got: " + rightType);
         }
 
-        // queda pendiente NO permitir si es resta (restar solo numericos).
-        // reglas de tipo para suma
+        if (addSub.op().equals("-") && 
+            (leftType.toLowerCase().equals("string") || rightType.toLowerCase().equals("string"))) 
+                throw new TypeException("Cannot use subtraction with string operands");
+
         String returnType = additionType(leftType, rightType);
         return returnType;
     }
@@ -500,17 +525,6 @@ public class Typer implements Visitor<String> {
             throw new TypeException("Incompatible types in ternary: " + thenType + " vs " + elseType);
 
         return thenType;
-    }
-
-    @Override public String visitPrint(Print print) {
-        print.exprList().forEach(e -> e.accept(this));
-        return "null";
-    }
-
-    @Override public String visitPow(Pow pow) {
-        pow.left().accept(this);
-        pow.right().accept(this);
-        return "double";
     }
 
     @Override
@@ -620,67 +634,6 @@ public class Typer implements Visitor<String> {
         }
         
         return type != null ? type : "Object";
-    }
-
-    @Override  
-    public String visitVariablePattern(VariablePattern variablePattern) {
-        currentContext().addSymbol(variablePattern.name(), SymbolType.VARIABLE, "Object");
-        return "any";
-    }
-
-    @Override
-    public String visitUnderscorePattern(UnderscorePattern underscore) {
-        return "any";
-    }
-
-    @Override
-    public String visitIntPattern(IntPattern intPattern) {
-        return "int";
-    }
-
-    @Override
-    public String visitFloatPattern(FloatPattern floatPattern) {
-        return "double";
-    }
-
-    @Override
-    public String visitStringPattern(StringPattern stringPattern) {
-        return "string";
-    }
-
-    @Override
-    public String visitBooleanPattern(BooleanPattern booleanPattern) {
-        return "boolean";
-    }
-
-    @Override
-    public String visitNonePattern(NonePattern nonePattern) {
-        return "Object";
-    }
-
-    @Override
-    public String visitNone(NoneLiteral noneLiteral) {
-        return "Object";
-    }
-
-    @Override
-    public String visitLogicalOp(LogicalOp boolOp) {
-        return "boolean";
-    }
-
-    @Override
-    public String visitRelOp(RelOp relOp) {
-        return "boolean";
-    }
-
-    @Override
-    public String visitNotOp(NotOp notOp) {
-        return "boolean";
-    }
-
-    @Override
-    public String visitCast(Cast cast) {
-        return cast.type().accept(this);
     }
 
     @Override
