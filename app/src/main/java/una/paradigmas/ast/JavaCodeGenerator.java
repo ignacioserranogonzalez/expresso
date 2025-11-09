@@ -36,6 +36,7 @@ public class JavaCodeGenerator {
     private final Set<String> extraMethods = new HashSet<>();
     private final StringBuilder constructorTypes = new StringBuilder();
     private final StringBuilder mainCodeBuilder = new StringBuilder();
+    private final StringBuilder globalDeclarations = new StringBuilder();
     private final List<DataDecl> dataDeclarations = new ArrayList<>(); // revisar
     private SymbolTable symbolTable = new SymbolTable();
 
@@ -53,8 +54,6 @@ public class JavaCodeGenerator {
 
         generateMethodDefinitions(ast);
         generateMainMethod(ast);
-
-        // System.out.println("\n[symbolTable JavaCodeGenerator]\n" + symbolTable);
         
         return buildFinalCode();
     }
@@ -64,9 +63,16 @@ public class JavaCodeGenerator {
         methodDefinitions.setLength(0);
         constructorTypes.setLength(0);
         mainCodeBuilder.setLength(0);
+        globalDeclarations.setLength(0);
         extraMethods.clear();
         dataDeclarations.clear();
     }
+
+    private void addGlobalDeclaration(String declaration) {
+        if (!globalDeclarations.toString().contains(declaration)) {
+            globalDeclarations.append("    static ").append(declaration + "\n\n");
+        }
+    }      
 
     private void extractDataDeclarations(Program ast) {
         dataDeclarations.addAll(ast.statements().stream()
@@ -122,7 +128,7 @@ public class JavaCodeGenerator {
             .toList();
             
             methodStatements.forEach(line -> 
-            methodDefinitions.append("    ").append(line).append("\n"));
+            methodDefinitions.append("    ").append(line + "\n"));
     }
 
     private void generateMainMethod(Program ast) {
@@ -142,6 +148,7 @@ public class JavaCodeGenerator {
         generateImports(codeBuilder);
         generateClassHeader(codeBuilder);
         generateConstructorTypesSection(codeBuilder);
+        generateDeclarationsSection(codeBuilder);
         generateMethodsSection(codeBuilder);
         generateExtraMethods(codeBuilder);
         generateMainMethodSection(codeBuilder);
@@ -164,6 +171,12 @@ public class JavaCodeGenerator {
     private void generateConstructorTypesSection(StringBuilder codeBuilder) {
         if (constructorTypes.length() > 0) {
             codeBuilder.append(constructorTypes);
+        }
+    }
+    
+    private void generateDeclarationsSection(StringBuilder codeBuilder) {
+        if (globalDeclarations.length() > 0) {
+            codeBuilder.append(globalDeclarations);
         }
     }
 
@@ -220,7 +233,7 @@ public class JavaCodeGenerator {
                     varType = typeNode != null ? generateType(typeNode) : "Object";
                 }
                 
-                yield switch (value) {
+                String declaration = switch (value) {
                     case Lambda lambda -> { // para las lambdas
                         String functionType = symbolTable.getFunctionType(id.value());
                         int paramCount = lambda.params().size();
@@ -228,10 +241,13 @@ public class JavaCodeGenerator {
                         yield functionType + " " + generateExpression(id) + " = " + valueCode + ";";
                     }
                     default -> varType + " " + generateExpression(id) + " = " + valueCode + ";";
-                };
+                }; 
+
+                addGlobalDeclaration(declaration);
+                yield "";
             }                            
 
-            case Fun(var name, var params, var returnType, var body) -> {
+            case Fun(var name, var params, var _, var body) -> {
                 // parametros con tipos
                 String paramDecls = params.stream()
                 .map(param -> {
@@ -240,7 +256,7 @@ public class JavaCodeGenerator {
                 })
                 .collect(Collectors.joining(", "));
                 
-                String returnTypeJava = generateType(returnType);
+                String returnTypeJava = symbolTable.getType(name.value());
                 String bodyCode = generateExpression(body);
                 
                 String methodDef = "    public static " + returnTypeJava + " " + 

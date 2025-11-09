@@ -58,17 +58,13 @@ public class SymbolTable {
     public SymbolTable getParent(){
         return this.parent;
     }
-
-    // public void setCtxId(String id){
-    //     this.ctxId = id;
-    // }
-
-    // public String getCtxId(){
-    //     return this.ctxId;
-    // }
     
     public void addSymbol(String name, SymbolType symbolType, String type, String functionType) {
         symbols.put(name, new SymbolInfo(symbolType, type, functionType));
+    }
+
+    public void addSymbol(String name, SymbolType symbolType, String type) {
+        addSymbol(name, symbolType, type, "");
     }
 
     public boolean isConstructor(String name) {
@@ -166,8 +162,15 @@ public class SymbolTable {
     public String toString() {
         return symbols.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
-            .map(e -> String.format("  %s: [%s, %s, %s]", 
-                e.getKey(), e.getValue().symbolType(), e.getValue().type(), e.getValue().functionType()))
+            .map(e -> {
+                SymbolInfo info = e.getValue();
+                String functionTypeStr = info.functionType() != null && !info.functionType().isEmpty() 
+                    ? ", " + info.functionType() 
+                    : "";
+                    
+                return String.format("  %s: [%s, %s%s]", 
+                    e.getKey(), info.symbolType(), info.type(), functionTypeStr);
+            })
             .collect(Collectors.joining("\n", 
                 symbols.isEmpty() ? " {empty}" : " {\n", 
                 symbols.isEmpty() ? "" : "\n}"));

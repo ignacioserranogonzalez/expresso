@@ -6,7 +6,7 @@ program: stat* EOF;
 // statements
 stat: NEWLINE                                                               # blank
     | LET ID (':' type)? ASSIGN expr NEWLINE                                # letDecl
-    | FUN ID '(' paramList? ')' ':' type '=' expr NEWLINE                   # funDecl
+    | FUN ID '(' paramList? ')' (':' type)? '=' expr NEWLINE                # funDecl
     | DATA ID ASSIGN '{' NEWLINE* constructorList NEWLINE* '}' NEWLINE      # dataDecl
     | expr NEWLINE                                                          # expression
 ;

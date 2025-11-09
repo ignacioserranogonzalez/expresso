@@ -456,7 +456,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
                 print("*** Newton-Raphson TC1 **** ")
 
                 let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
-                print("Test abs:" + (abs(-666.0) == abs(--666.0)) )
+                print("Test abs:" + (abs(-666:float) == abs(--666:float)) )
 
                 let EPSILON =  1e-11 // Fully uppercased id. Issue floating-point using scientific notation
                 print("EPSILON="  + EPSILON)
@@ -466,6 +466,15 @@ import org.antlr.v4.runtime.CommonTokenStream;
                 let converges = (a:float, x:float) -> abs(x ** 2 - a) < EPSILON
 
                 let next = (a:float, x:float) -> converges(a, x) ? x : improve(a, x)
+
+                fun sqrt_iterate(a:float, x0:float):float = converges(a, x0) ? x0 : sqrt_iterate(a, improve(a, x0))
+
+                fun sqrt(a:float) = sqrt_iterate(a, a * 0.5)
+
+                let test_sqrt = a:float -> a + " -sqrt-> " + sqrt(a)
+                print(test_sqrt(4:float) ** 2 + " ==? " + 4.0)
+                print(test_sqrt(2:float)  + " ==? " + 1.4142135623730951)
+
             """;
         
         testExpressoProgram(input, "Jupyter");

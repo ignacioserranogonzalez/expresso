@@ -231,7 +231,6 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     public Node visitFunDecl(FunDeclContext ctx) {
         String name = ctx.ID().getText();
         
-        // parametros
         List<Fun.Param> params = List.of();
         if (ctx.paramList() != null) {
             params = ctx.paramList().param().stream()
@@ -244,8 +243,11 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
                 })
                 .collect(Collectors.toList());
         }
-    
-        Node returnType = typeAstBuilder.visit(ctx.type());
+
+        Node returnType;
+        if (ctx.type() != null) returnType = typeAstBuilder.visit(ctx.type());
+        else returnType = new TypeNode("any"); 
+        
         Node body = visit(ctx.expr());
         
         return new Fun(new Id(name), params, returnType, body);

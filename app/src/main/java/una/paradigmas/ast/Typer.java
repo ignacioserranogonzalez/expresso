@@ -48,7 +48,7 @@ public class Typer implements Visitor<String> {
         try {
             System.out.println();
             visitProgram(program);
-            System.out.println("Type checking passed !");
+            System.out.println("Type checking passed !\n");
             return true;
         } catch (TypeException e) {
             System.err.println("[Type error]: " + e.getMessage());
@@ -118,6 +118,9 @@ public class Typer implements Visitor<String> {
         if (expected == null || actual == null) return false;
 
         if (expected.equalsIgnoreCase(actual))
+            return true;
+
+        if ("Object".equals(expected) || "any".equals(expected))
             return true;
 
         Set<String> compatibles = TYPE_COMPATIBILITY.get(expected);
@@ -236,7 +239,7 @@ public class Typer implements Visitor<String> {
         SymbolType symbolType = determineSymbolType(let.value(), let.type()); // VARIABLE, LAMBDA, METHOD etc
         
         if (!(let.value() instanceof Lambda))
-            currentContext().addSymbol(id, symbolType, declaredType, null);
+            currentContext().addSymbol(id, symbolType, declaredType);
 
         return declaredType;
     }
@@ -250,18 +253,25 @@ public class Typer implements Visitor<String> {
         contextMap.put(fun.name().value(), funContext);
 
         try{
-            currentContext().getParent().addSymbol(fun.name().value(), SymbolType.METHOD, fun.returnType().accept(this), null);
+
+            currentContext().getParent().addSymbol(fun.name().value(), SymbolType.METHOD, fun.returnType().accept(this));
 
             Map<String, String> paramTypes = new HashMap<>();
             fun.params().forEach(param -> {
                 String paramName = param.id().value();
                 String paramType = param.type().accept(this);
                 paramTypes.put(paramName, paramType);
-                currentContext().addSymbol(paramName, SymbolType.PARAMETER, paramType, null);
+                currentContext().addSymbol(paramName, SymbolType.PARAMETER, paramType);
             });
     
             String bodyType = fun.body().accept(this);
-            String returnType = fun.returnType().accept(this);
+            String declaredReturnType = fun.returnType().accept(this);
+            String returnType = declaredReturnType.equals("Object") ? 
+                                toWrapperType(bodyType) : 
+                                declaredReturnType;
+
+                currentContext().getParent().addSymbol(fun.name().value(), SymbolType.METHOD, returnType);
+            
     
             if (!isCompatible(returnType, bodyType)) {
                 throw new TypeException("Function body type " + bodyType + " doesn't match return type " + returnType);
@@ -272,6 +282,87 @@ public class Typer implements Visitor<String> {
         } finally { contextStack.pop(); }        
     }
 
+    @Override 
+    public String visitLambda(Lambda lambda) {
+        SymbolTable lambdaContext = new SymbolTable();
+        lambdaContext.setParent(currentContext());
+        contextStack.push(lambdaContext);
+        contextMap.put(lambda.name(), lambdaContext);
+
+        Stack<Call> previousCallStack = new Stack<>();
+        previousCallStack.addAll(callStack); 
+        callStack.clear(); 
+        
+        try {
+            lambda.params().forEach(param -> {
+                String paramName = param.id().value();
+                String paramType = param.type().accept(this);
+                
+                boolean existsInParent = Stream.iterate(
+                    currentContext().getParent(),
+                    ctx -> ctx != null, 
+                    SymbolTable::getParent
+                    )
+                    .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
+                    
+                if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
+                
+                currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType));
+            });
+                
+            String bodyType = lambda.body().accept(this);
+            String declaredReturnType = lambda.returnType().accept(this);
+            String returnType = declaredReturnType.equals("Object") ? 
+                                toWrapperType(bodyType) : 
+                                declaredReturnType;
+
+            String functionalType = calculateFunctionalType(lambda, returnType);
+            
+            currentContext().getParent().addSymbol(
+                lambda.name(), 
+                SymbolType.LAMBDA, 
+                returnType,
+                functionalType 
+            );
+
+            return functionalType;
+            
+        } finally { 
+            contextStack.pop(); 
+            callStack.clear();
+            callStack.addAll(previousCallStack);
+        }
+    }
+
+    @Override
+    public String visitCall(Call call) {
+        return switch (call.callee()) {
+            case Id id -> {
+
+                SymbolTable context = Stream.iterate( // primero buscar si esta definido en un contexto
+                        currentContext(), 
+                        ctx -> ctx != null, 
+                        SymbolTable::getParent
+                    )
+                    .filter(ctx -> ctx.isMethod(id.value()) || ctx.isLambda(id.value()))
+                    .findFirst()
+                    .orElseThrow(() -> new TypeException("Symbol " + id.value() + " is not defined")); 
+
+                call.args().forEach(arg -> arg.accept(this));
+
+                callStack.push(call); // callStack es local para cada lambda
+                
+                if (context.isMethod(id.value()) || context.isLambda(id.value())) {
+                    yield context.getType(id.value()); // return type de method/lambda
+                } else yield "Object";
+            }
+            default -> {
+                call.args().forEach(arg -> arg.accept(this));
+                yield "Object";
+            }
+        };
+    }
+    
     @Override
     public String visitAddSub(AddSub addSub) {
         String leftType = addSub.left().accept(this);
@@ -321,210 +412,6 @@ public class Typer implements Visitor<String> {
         return thenType;
     }
 
-    @Override
-    public String visitCall(Call call) {
-        return switch (call.callee()) {
-            case Id id -> {
-
-                SymbolTable context = Stream.iterate( // primero buscar si esta definido en un contexto
-                        currentContext(), 
-                        ctx -> ctx != null, 
-                        SymbolTable::getParent
-                    )
-                    .filter(ctx -> ctx.isMethod(id.value()) || ctx.isLambda(id.value()))
-                    .findFirst()
-                    .orElseThrow(() -> new TypeException("Symbol " + id.value() + " is not defined")); 
-
-                call.args().forEach(arg -> arg.accept(this));
-
-                callStack.push(call); // callStack es local para cada lambda
-                
-                if (context.isMethod(id.value())) {
-                    yield context.getType(id.value()); // return type de fun
-                } else if(context.isLambda(id.value())) {
-                    yield context.getType(id.value()); // return type de lambda
-                } else { yield "Object"; }
-            }
-            default -> {
-                call.args().forEach(arg -> arg.accept(this));
-                yield "Object";
-            }
-        };
-    }
-
-    
-    @Override 
-    public String visitLambda(Lambda lambda) {
-        SymbolTable lambdaContext = new SymbolTable();
-        lambdaContext.setParent(currentContext());
-        contextStack.push(lambdaContext);
-        contextMap.put(lambda.name(), lambdaContext);
-
-        Stack<Call> previousCallStack = new Stack<>();
-        previousCallStack.addAll(callStack); 
-        callStack.clear(); 
-
-        String declaredReturnType = lambda.returnType().accept(this);
-        
-        try {
-            lambda.params().forEach(param -> {
-                String paramName = param.id().value();
-                String paramType = param.type().accept(this);
-                
-                boolean existsInParent = Stream.iterate(
-                    currentContext().getParent(),
-                    ctx -> ctx != null, 
-                    SymbolTable::getParent
-                    )
-                    .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
-                    
-                if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
-                
-                currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType), null);
-            });
-                
-            String bodyType = lambda.body().accept(this);
-            String returnType = declaredReturnType.equals("Object") ? toWrapperType(bodyType) : declaredReturnType;
-
-            System.out.println(lambda.name() + " bodyType: " + bodyType);
-            System.out.println("returnType: "+ returnType);
-
-            String functionalType = calculateFunctionalType(lambda, returnType);
-            
-            currentContext().getParent().addSymbol(
-                lambda.name(), 
-                SymbolType.LAMBDA, 
-                returnType,
-                functionalType 
-            );
-
-            return functionalType;
-            
-        } finally { 
-            contextStack.pop(); 
-            callStack.clear();
-            callStack.addAll(previousCallStack);
-        }
-    }
-
-    // @Override 
-    // public String visitLambda(Lambda lambda) {
-    //     SymbolTable lambdaContext = new SymbolTable();
-    //     lambdaContext.setParent(currentContext());
-    //     contextStack.push(lambdaContext);
-    //     contextMap.put(lambda.name(), lambdaContext);
-
-    //     Stack<Call> previousCallStack = new Stack<>();
-    //     previousCallStack.addAll(callStack); 
-    //     callStack.clear(); 
-
-    //     String returnType = lambda.returnType().accept(this);
-        
-    //     try {
-
-    //         lambda.params().forEach(param -> {
-    //             String paramName = param.id().value();
-    //             String paramType = param.type().accept(this);
-                
-    //             // verificar shadowing - quizas se tenga que renombrar
-    //             boolean existsInParent = Stream.iterate(
-    //                 currentContext().getParent(),
-    //                 ctx -> ctx != null, 
-    //                 SymbolTable::getParent
-    //                 )
-    //                 .anyMatch(ctx -> !ctx.getType(paramName).equals("unknown"));
-                    
-    //                 if (existsInParent) throw new TypeException("Variable '" + paramName + "' is already defined");
-                    
-    //                 currentContext().addSymbol(paramName, SymbolType.PARAMETER, toWrapperType(paramType), null);
-    //         });
-                
-    //         String bodyType = lambda.body().accept(this);
-    //         returnType = returnType.equals("Object") ? toWrapperType(bodyType) : returnType;
-
-    //         System.out.println(lambda.name() + " bodyType: " + bodyType);
-    //         System.out.println("returnType: "+returnType);
-
-    //         lambda.params().forEach(param -> { // inferir tipos basandose en los calls
-    //             String paramName = param.id().value();
-
-    //             Stack<Call> currentLambdaCalls = new Stack<>();
-    //             currentLambdaCalls.addAll(callStack);
-
-    //             if(!currentLambdaCalls.isEmpty()) {
-    //                 Call call = currentLambdaCalls.pop();
-
-    //                 String inferredType = switch (call.callee()) {
-    //                     case Id id -> {
-    //                         yield this.contextMap.get(id.value()).getType(paramName);
-    //                     }
-
-    //                     default -> "Object";
-    //                 };
-
-    //                 currentContext().setType(paramName, inferredType);
-    //             }
-    //         });
-            
-    //         // verificar que el cuerpo coincide con el return type declarado [ !!! puede dar problemas mas adelante]
-    //         // if (!isCompatible(returnType, bodyType)) {
-    //         //     throw new TypeException("Lambda return type mismatch: expected " + 
-    //         //                         returnType + ", got " + bodyType);
-    //         // }
-
-    //         if (lambda.body() instanceof Lambda) { // lambda anidada
-    //             String paramType = toWrapperType(lambda.params().get(0).type().accept(this));
-    //             return "Function<" + paramType + ", " + bodyType + ">";
-    //         }
-
-    //         int argCount = lambda.params().size();
-
-    //         boolean shouldBeConsumer = isVoidLikeBody(lambda.body());
-
-    //         List<SymbolInfo> ctxParams = currentContext().getParametersList();
-    //         return switch (argCount) {
-    //             case 0 -> "Supplier<" + returnType + ">";
-    //             case 1 -> {
-    //                 String paramType = toWrapperType(ctxParams.get(0).type());
-    //                 if (shouldBeConsumer) {
-    //                     yield "Consumer<" + paramType + ">";  
-    //                 } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
-    //                     yield "Predicate<" + paramType + ">";
-    //                 } else if (returnType.equals(ctxParams.get(0).type())) {
-    //                     yield "UnaryOperator<" + returnType + ">";
-    //                 } else {
-    //                     yield "Function<" + paramType + ", " + returnType + ">";
-    //                 }
-    //             }
-    //             case 2 -> {
-    //                 String param1Type = toWrapperType(ctxParams.get(0).type());
-    //                 String param2Type = toWrapperType(ctxParams.get(1).type());
-                    
-    //                 if (returnType.equals("Boolean") || returnType.equals("boolean")) {
-    //                     yield "BiPredicate<" + param1Type + ", " + param2Type + ">";
-    //                 } else if (param1Type.equals(param2Type) && param1Type.equals(returnType)) {
-    //                     yield "BinaryOperator<" + returnType + ">";
-    //                 } else {
-    //                     yield "BiFunction<" + param1Type + ", " + param2Type + ", " + returnType + ">";
-    //                 }
-    //             }
-    //             default -> {
-    //                 String paramTypes = ctxParams.stream()
-    //                     .map(p -> p.type())
-    //                     .collect(Collectors.joining(", "));
-    //                 yield "Function" + argCount + "<" + paramTypes + ", " + returnType + ">";
-    //             }
-    //         };
-            
-    //     } finally { 
-    //         // currentContext().getParent().addSymbol(lambda.name(), SymbolType.LAMBDA, returnType, returnType);
-    //         // lambda = new Lambda(lambda.name(), lambda.params(), new TypeNode(returnType), lambda.body());
-    //         contextStack.pop(); 
-    //         callStack.clear();
-    //         callStack.addAll(previousCallStack);
-    //     }
-    // }
-
     @Override public String visitPrint(Print print) {
         print.expr().accept(this);
         return "void";
@@ -571,7 +458,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitDataDecl(DataDecl dataDecl) {
-        currentContext().addSymbol(dataDecl.id(), SymbolType.DATA_TYPE, capitalizeFirst(dataDecl.id()), null);
+        currentContext().addSymbol(dataDecl.id(), SymbolType.DATA_TYPE, capitalizeFirst(dataDecl.id()));
 
         if(dataDecl.constructors() != null) 
             dataDecl.constructors().stream()
@@ -579,8 +466,7 @@ public class Typer implements Visitor<String> {
                     currentContext().addSymbol(
                             c.id(), 
                             SymbolType.CONSTRUCTOR, 
-                            capitalizeFirst(dataDecl.id()),
-                            null
+                            capitalizeFirst(dataDecl.id())
                     )
                 );
 
