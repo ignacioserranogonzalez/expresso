@@ -249,33 +249,6 @@ Es decir, si no defino el `outputDir`, este se vuelve `null` y me genera el erro
 
 - Tengo esta gramatica para trabajar con ANTLR4, actualmente esta para un proyecto con JavaScript, sin embargo la quiero migrar para un proyecto en java, y adicional la gramática debe ser extendida para manejar let y lambas , manteniendo el estilo de programación DRY y Knuth
 
-grammar Expr;
-
-
-// Punto de entrada: cero o más sentencias terminadas por NEWLINE
-prog : stat* EOF ;
-
-
-// Una sentencia puede ser una expresión -> imprimir, o línea vacía
-stat : expr NEWLINE         # printExpr
-       | NEWLINE            # blank
-;
-
-
-// Expresiones con precedencia y unario '-'
-expr :    '-' expr 					# unaryMinus
-		| expr op=('*'|'/') expr 	# MulDiv
-		| expr op=('+'|'-') expr 	# AddSub
-		| INT # int
-		| '(' expr ')' 				# parens
-;
-
-
-// LEXER
-INT : [0-9]+ ;
-NEWLINE: ('\r'? '\n') ;
-WS : [ \t]+ -> skip ;
-
 - Estas son las tareas asignadas por el coordinador
 
 - que podría ir haciendo o investigando para realizar las tareas que me corresponden. Tengo que esperar que los otros compañeros avancen con el proyecto?
@@ -309,7 +282,6 @@ WS : [ \t]+ -> skip ;
 - Ya tengo mi javaCodeGeneratorConstruido, siguiendo tus recomendaciones, pero a la hora de construir el codigo a partir del program, nos imports no se estan mostrando, a que se debe?
 - El javaCodeGenerator genera el codigo adecuadamente, pero los comentarios `(//)` solo aparecen dentro del main, no fuera de el, como hago para cambiar esto.
 - La manera en las que se recorren los statements del program es muy ineficiente, en el aspecto que se hacen 2 recorridos uno par los comentarios fuera del main y otro para los internos, como puedo unificar ese recorrido?
-
 - para q sirve el sourcesets ? esta siendo utilizado ?
 - COMMENT: '//' ~[\r\n] -> skip ; Q SIGNIFICA ~ en antlr.
 - el id es parte del lexer ? que cosas es parte del Lexer
