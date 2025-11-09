@@ -110,7 +110,6 @@ task jpackageImage(type: Exec) {
         '--main-class', 'una.paradigmas.App',
         '--type', 'app-image',
         '--dest', 'build/jpackage',
-        '--verbose',
         '--win-console',
         '--java-options', '-Dfile.encoding=UTF-8'
 }

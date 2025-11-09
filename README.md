@@ -56,9 +56,9 @@ gradlew jpackageImage
 ```
 Resultado esperado:
 ```bash
-BUILD SUCCESSFUL in 5s
-5 actionable tasks: 2 executed, 3 up-to-date
-Configuration cache entry reused.
+BUILD SUCCESSFUL in 10s
+6 actionable tasks: 2 executed, 4 up-to-date
+Configuration cache entry stored.
 ```
 
 Se generará un archivo ejecutable (.exe) en la siguiente ruta: `.\expresso\app\build\jpackage\expressor\expressor.exe`.
@@ -90,7 +90,7 @@ Por ejemplo: `expressor run "C:/UNA/CICLO II 2025/PARADIGMAS/HelloWorld.expresso
 Ejemplos de uso:
 
  ```bash
-expressor transpile --verbose --out output {ruta__al_.expresso}
+expressor transpile --out output {ruta__al_.expresso} --verbose
 ```
  ```bash
 expressor transpile {ruta__al_.expresso}
@@ -101,7 +101,7 @@ expressor transpile {ruta__al_.expresso}
 Ejemplos de uso:
 
  ```bash
-expressor build --verbose --out output {ruta__al_.expresso}
+expressor build --out output {ruta__al_.expresso} --verbose
 ```
  ```bash
 expressor build {ruta__al_.expresso}
@@ -112,7 +112,7 @@ expressor build {ruta__al_.expresso}
 Ejemplos de uso:
 
  ```bash
-expressor run --verbose --out output {ruta__al_.expresso}
+expressor run --out output {ruta__al_.expresso} --verbose
 ```
  ```bash
 expressor run {ruta__al_.expresso}

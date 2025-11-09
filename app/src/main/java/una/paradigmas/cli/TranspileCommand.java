@@ -17,6 +17,7 @@ import una.paradigmas.ast.ExpressoParser;
 import una.paradigmas.ast.JavaCodeGenerator;
 import una.paradigmas.ast.Typer;
 import una.paradigmas.node.Program;
+
 /**
  * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
  * Curso: [EIF400-II-2025] Paradigmas de Programacion
@@ -50,26 +51,26 @@ public class TranspileCommand implements Runnable {
         transpileCommon(input, commonOptions.outputDir);
     }
 
-    protected static Path transpileCommon(Path input, Path outputDir) {
+    public static Path transpileCommon(Path input, Path outputDir) {
         try {
             validateInput(input);
             Path outputFile = prepareOutputFile(input, outputDir);
             transpile(input, outputFile);
             
-            if (commonOptions.verbose) System.out.println("SUCCESS - Archivo .java guardado en: " + outputFile.toAbsolutePath());
+            if (commonOptions.verbose) System.out.println("\n[SUCCESS] - .java file saved at: " + outputFile.toAbsolutePath() + "\n");
             return outputFile;
             
         } catch (Exception e) {
-            System.err.println("ERROR - " + e.getMessage());
+            System.err.println("\n[ERROR] - " + e.getMessage() + "\n");
             return null;
         }
     }
     
     private static void validateInput(Path input) throws IOException {
-        log("Leyendo .expresso...");
+        log("\nReading .expresso file...");
         String filename = input.getFileName().toString();
         if (!Files.exists(input) || Files.size(input) == 0 || !filename.toLowerCase().endsWith(".expresso")) {
-            throw new IllegalArgumentException("Archivo .expresso no existe o esta vacio");
+            throw new IllegalArgumentException(".expresso file does not exist or is empty");
         }
     }
     
@@ -81,10 +82,9 @@ public class TranspileCommand implements Runnable {
     }
 
     private static void transpile(Path input, Path outputFile) throws IOException {
-        // lee archivo .expresso
         String expressoCode = Files.readString(input, StandardCharsets.UTF_8);
         if (expressoCode.trim().isEmpty()) {
-            throw new IllegalArgumentException("El archivo .expresso esta vacio");
+            throw new IllegalArgumentException(".expresso file is empty");
         }
 
         try {
@@ -98,8 +98,8 @@ public class TranspileCommand implements Runnable {
 
             Typer typer = new Typer(ast.symbolTable(), ast.contextMap());
 
-            if (typer.typeCheck(ast) && commonOptions.verbose) 
-                System.out.println("\nType checking passed !\n"); 
+            if (typer.typeCheck(ast)) 
+                log("\nType checking passed !\n");
 
             String className = outputFile.getFileName().toString().replace(".java", "");
             JavaCodeGenerator generator = new JavaCodeGenerator(className);
@@ -107,16 +107,15 @@ public class TranspileCommand implements Runnable {
     
             Files.writeString(outputFile, javaCode, StandardCharsets.UTF_8);
         } catch(Exception exception){
-            throw exception;
+            throw new IOException("Transpilation failed: " + exception.getMessage(), exception);
         }
-
     }
     
     private static void log(String msg) {
         if (commonOptions.verbose) System.out.println(msg);
     }
 
-     private static String capitalize(String name) {
+    private static String capitalize(String name) {
         if (name == null || name.isEmpty()) return name;
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }

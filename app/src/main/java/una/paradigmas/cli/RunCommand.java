@@ -39,64 +39,66 @@ public class RunCommand implements Runnable {
     @Parameters(index = "0")
     private Path input;
 
-    @Override
-    public void run() {
-        if (input == null) {
-            throw new IllegalArgumentException("Debe proporcionar la ruta de un archivo .expresso como argumento.");
-        }
-        Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : Path.of("generated");
-        Path classFile = prepareClassFile(input, outputDir);
-        try {
-            // Verifica que el .class exista
-            if (!Files.exists(classFile)) {
-                new BuildCommand();
-                BuildCommand.buildCommon(input, outputDir);
-                if (!Files.exists(classFile)) {
-                    throw new IOException("Archivo .class no encontrado: " + classFile + ". Ejecuta 'build' primero.");
-                }
-            }
-            // Ejecuta el .class
-            runClassFile(classFile, outputDir);
-            log("SUCCESS - Ejecución completada exitosamente.");
-        
-        } catch (IOException | InterruptedException e) {
-            System.err.println("ERROR - " + e.getMessage());
-        }
-    }
-
     private void runClassFile(Path classFile, Path outputDir) throws IOException, InterruptedException {
         String className = classFile.getFileName().toString().replaceAll("\\.class$", "");
-        log("Ejecutando " + className + "...");
+        log("\nRunning " + className + "...");
+        System.out.println();
+        
         ProcessBuilder pb = new ProcessBuilder("java", "-cp", outputDir.toString(), className);
         pb.redirectErrorStream(true);
         Process process = pb.start();
 
-        // Captura la salida
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
         }
-
+    
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-            throw new IOException("Ejecución falló con código de salida: " + exitCode);
+            throw new IOException("Code execution failed. Exit code: " + exitCode);
         }
+    }
+    
+    @Override
+    public void run() {
+        if (input == null) {
+            throw new IllegalArgumentException("Must provide the path to an .expresso file as an argument");
+        }
+        Path outputDir = commonOptions.outputDir != null ? commonOptions.outputDir : Path.of("generated");
+        
+        try {
+            String className = capitalize(getBaseName(input));
+            Path classFile = outputDir.resolve(className + ".class");
+        
+            boolean originalVerbose = commonOptions.verbose;
+            commonOptions.verbose = true;
+            
+            if (!Files.exists(classFile)) {
+                BuildCommand.buildCommon(input, outputDir);
+            }
+
+            commonOptions.verbose = originalVerbose;
+            
+            if (!Files.exists(classFile)) {
+                throw new IOException("Class file not generated: " + classFile);
+            }
+            
+            runClassFile(classFile, outputDir);
+            log("\n[SUCCESS] - Code Execution Successful\n");
+        
+        } catch (IOException | InterruptedException e) {
+            System.err.println("[ERROR] - " + e.getMessage());
+        }
+    }
+    
+    private String getBaseName(Path input) {
+        return input.getFileName().toString().replaceAll("(?i)\\.expresso$", "");
     }
 
     private static void log(String msg) {
         if (commonOptions.verbose) System.out.println(msg);
-    }
-
-     private Path prepareClassFile(Path input, Path outputDir) {
-        String baseName = getBaseName(input);
-        String capitalizedName = capitalize(baseName) + ".class";
-        return outputDir.resolve(capitalizedName);
-    }
-
-    private String getBaseName(Path input) {
-        return input.getFileName().toString().replaceAll("(?i)\\.expresso$", "");
     }
 
     private static String capitalize(String name) {
