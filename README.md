@@ -390,24 +390,24 @@ WS : [ \t]+ -> skip ;
         at picocli.CommandLine.execute(CommandLine.java:2174)
         at una.paradigmas.App.main(App.java:32)
 
--LA respuesta que me diste no funciono, pero ya lo solucione. No cambie las clases TranspileCommand.java ni CommonOptions.java. lo que hice fue que introducir los medodo protected static Path buildCommon(Path input, Path outputDir) como el del Traspile con la logica de run, pero run llama a este medodo. analiza si esta bien este cambio ó hay una mejor manera.
+- LA respuesta que me diste no funciono, pero ya lo solucione. No cambie las clases TranspileCommand.java ni CommonOptions.java. lo que hice fue que introducir los medodo protected static Path buildCommon(Path input, Path outputDir) como el del Traspile con la logica de run, pero run llama a este medodo. analiza si esta bien este cambio ó hay una mejor manera.
 
--olvida las tareas de sprint medio, el profe hizo unos cambios. ya esto está listo. ahora vamos a empezar con el sprint 3. Para eso analizemos el SPEC
+- olvida las tareas de sprint medio, el profe hizo unos cambios. ya esto está listo. ahora vamos a empezar con el sprint 3. Para eso analizemos el SPEC
 
--Estas son las nuevas tareas asignada por el coordinador. A mí me corresponde realizar la tarea 14, 17 y 22. analiza si puedo empezar a implementarlas y que debería investigar al respecto.
+- Estas son las nuevas tareas asignada por el coordinador. A mí me corresponde realizar la tarea 14, 17 y 22. analiza si puedo empezar a implementarlas y que debería investigar al respecto.
 
--tengo un problema a la hora de implemerta este cambio: lambdaParams: '(' ')'                         
+- tengo un problema a la hora de implemerta este cambio: lambdaParams: '(' ')'                         
             | '(' ID ':' TYPE (',' ID ':' TYPE)? ')'  // 1-2 args con tipos
             | ID ':' TYPE                      // 1 arg sin () con tipo
 ;
--hagamos que la gramatica tambien pueda soportar lo anterior: lambdaParams: '(' ')'         
+- hagamos que la gramatica tambien pueda soportar lo anterior: lambdaParams: '(' ')'         
     | '(' ID (',' ID )? ')'    // 1-2 args con ()
     | ID                       // 1 arg sin ()
 ;
 
--en el javaCodeGenerator como podríamos modificar call para que acepte a fun
+- en el javaCodeGenerator como podríamos modificar call para que acepte a fun
 
--explicame porque no usar el .apply aquí: "case Call(var id, var paramList) -> {
+- explicame porque no usar el .apply aquí: "case Call(var id, var paramList) -> {
                 String params = paramList.stream()
                     .map(this::generateExpression)
                     .reduce((a, b) -> a + ", " + b)
@@ -416,7 +416,7 @@ WS : [ \t]+ -> skip ;
             }" si en java cuando se usa alguno de los casos de Lambda 1 del lambdaType este se debe llamar con .apply
 			
 			
--En que parte de esta gramática debería agregar un operador ^ (es prefijo y no es associativo) que es para instanciar constructores de data types. Se transpila como un new. 
+- En que parte de esta gramática debería agregar un operador ^ (es prefijo y no es associativo) que es para instanciar constructores de data types. Se transpila como un new. 
 Gramatica:
 expr: <assoc=right> expr POW expr                    # Pow
     | <assoc=right> expr '?' expr ':' expr           # TernaryCondition
@@ -434,9 +434,9 @@ expr: <assoc=right> expr POW expr                    # Pow
     | ID                                             # Id
 ;
 
--por que match en la expresiones quedo tan abajo?
+- por que match en la expresiones quedo tan abajo?
 
--No sería mejor poner los tipos en otro método, esto no va a interferir con las tareas anteriores. private String inferTypeFromValue(Node value) {
+- No sería mejor poner los tipos en otro método, esto no va a interferir con las tareas anteriores. private String inferTypeFromValue(Node value) {
     return switch (value) {
         case IntLiteral _ -> "int";
         case FloatLiteral _ -> "float";
@@ -450,18 +450,18 @@ expr: <assoc=right> expr POW expr                    # Pow
     };
 }
 
--genera un test para probar los operaciones booleanas y relacionales
+- genera un test para probar los operaciones booleanas y relacionales
 
--genera el archivo .expresso
+- genera el archivo .expresso
 
--mi código cambio, ya está implementado todo lo necesario para cumplir la tarea 21. Revisa y Explícame el nuevo código (SymbolTable).
+- mi código cambio, ya está implementado todo lo necesario para cumplir la tarea 21. Revisa y Explícame el nuevo código (SymbolTable).
 
--ayudame a analizar la tarea 12 que tiene que ver con esto: 12. Hay una expressión para casting , se usa el operador binario : No es asociativa. Tiene más precedencia que ** .
+- ayudame a analizar la tarea 12 que tiene que ver con esto: 12. Hay una expressión para casting , se usa el operador binario : No es asociativa. Tiene más precedencia que ** .
 expr:
  ... | expr ':' id
 ...
 ;
 
--donde podria poner el expr ':' ID . 
+- donde podria poner el expr ':' ID . 
 
--Cambie el  expr ':' ID por expr ':' type y me funciono mejor, analiza si esta bien este cambio ó hay una mejor manera.
+- Cambie el  expr ':' ID por expr ':' type y me funciono mejor, analiza si esta bien este cambio ó hay una mejor manera.
