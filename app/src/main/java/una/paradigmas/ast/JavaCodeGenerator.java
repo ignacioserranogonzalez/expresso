@@ -419,34 +419,32 @@ public class JavaCodeGenerator {
 
     private String generateMatchRule(MatchRule rule) {
         String bodyCode = generateExpression(rule.body());
-        String guardCode = rule.guard() != null ? 
-            " when " + generateExpression(rule.guard()) : "";
         
         return switch (rule.pattern()) {
             case DataPattern dp -> {
                 String patternName = capitalizeFirst(dp.name());
                 if (dp.subPatterns().isEmpty()) {
                     String varName = patternName.toLowerCase() + "_var";
-                    yield "case " + patternName + " " + varName + guardCode + " -> " + bodyCode + ";";
+                    yield "case " + patternName + " " + varName + " -> " + bodyCode + ";";
                 } else {
                     String vars = dp.subPatterns().stream()
-                        .map(p -> p instanceof VariablePattern vp ? "var " + vp.name() : "var _")
+                        .map(p -> p instanceof VariablePattern vp ? "var " + vp.name() : "var ignored")
                         .collect(Collectors.joining(", "));
-                    yield "case " + patternName + "(" + vars + ")" + guardCode + " -> " + bodyCode + ";";
+                    yield "case " + patternName + "(" + vars + ") -> " + bodyCode + ";";
                 }
             }
             case VariablePattern vp -> 
-                "case var " + vp.name() + guardCode + " -> " + bodyCode + ";";
+                "case var " + vp.name() + " -> " + bodyCode + ";";
             case WildcardPattern _ -> 
-                "default" + guardCode + " -> " + bodyCode + ";";
+                "default -> " + bodyCode + ";";
             case IntPattern ip -> 
-                "case " + ip.value() + guardCode + " -> " + bodyCode + ";";
+                "case " + ip.value() + " -> " + bodyCode + ";";
             case StringPattern sp -> 
-                "case \"" + escapeString(sp.value()) + "\"" + guardCode + " -> " + bodyCode + ";";
+                "case \"" + escapeString(sp.value()) + "\" -> " + bodyCode + ";";
             case BooleanPattern bp -> 
-                "case " + bp.value() + guardCode + " -> " + bodyCode + ";";
+                "case " + bp.value() + " -> " + bodyCode + ";";
             case NonePattern _ -> 
-                "case null" + guardCode + " -> " + bodyCode + ";";
+                "case null -> " + bodyCode + ";";
             default -> throw new IllegalArgumentException("Patrón no soportado: " + rule.pattern().getClass().getSimpleName());
         };
     }
@@ -494,7 +492,6 @@ public class JavaCodeGenerator {
     }
 
     private String generateCall(Node callee, String params) {
-        System.out.println(callee);
         return switch (callee) {
             case Id id -> {
                 String idValue = id.value();

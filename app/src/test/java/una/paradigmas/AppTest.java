@@ -588,13 +588,28 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
             let nil = ^Nil()
 
-            // let list_666 = ^Cons(666, nil)
+            let list_666 = ^Cons(666, nil)
 
-            // let list_777 = ^Cons(777, list_666)
+            let list_777 = ^Cons(777, list_666)
 
-            // let list_888 = ^Cons(888, list_777)
+            let list_888 = ^Cons(888, list_777)
 
-            // let myList = list_888
+            let myList = list_888
+
+            print("myList=" + myList)
+
+            print("myList first=" + first(myList)) 
+
+            print("myList rest=" + rest(myList)) 
+
+            print("myList length=" + length(myList)) 
+
+            print("myList twice =" + double_list(myList))
+
+            // let myList_copy = copy(myList)
+
+            // print("myList copy =" + myList_copy)
+            // print("myList == myList_copy should be true?" + copy == myList_copy) 
                
             """;
         

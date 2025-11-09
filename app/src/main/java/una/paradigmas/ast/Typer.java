@@ -3,6 +3,7 @@ package una.paradigmas.ast;
 import una.paradigmas.node.*;
 import una.paradigmas.node.Lambda.Param;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,24 +21,31 @@ public class Typer implements Visitor<String> {
     private final Map<String, SymbolTable> contextMap;
     private final Stack<Call> callStack = new Stack<>();
 
-    private static final Map<String, Set<String>> TYPE_COMPATIBILITY = Map.of(
-        "int", Set.of("Integer", "double", "Double", "any", "Object"),
-        "Integer", Set.of("int", "double", "Double", "any", "Object"),
-        "double", Set.of("Double", "int", "Integer", "any", "Object"),
-        "Double", Set.of("double", "int", "Integer", "any", "Object"),
-        "string", Set.of("String", "any", "Object"),
-        "String", Set.of("string", "any", "Object"),
-        "any", Set.of("any", "Object"),
-        "Object", Set.of("Object", "any")
-    );
+    private Map<String, Set<String>> TYPE_COMPATIBILITY = new HashMap<>();
 
     public Typer(SymbolTable context, Map<String, SymbolTable> contextMap) {
         this.contextStack.push(context); contextMap.put("Global", context);
         this.contextMap = contextMap;
+        this.buildTypeCompatibility();
+    }
+
+    private SymbolTable globalContext() {
+        return contextMap.get("Global");
     }
 
     private SymbolTable currentContext() {
         return contextStack.peek();
+    }
+
+    private void buildTypeCompatibility(){
+        TYPE_COMPATIBILITY.put("int", Set.of("Integer", "double", "Double", "any", "Object"));
+        TYPE_COMPATIBILITY.put("Integer", Set.of("int", "double", "Double", "any", "Object"));
+        TYPE_COMPATIBILITY.put("double", Set.of("Double", "int", "Integer", "any", "Object"));
+        TYPE_COMPATIBILITY.put("Double", Set.of("double", "int", "Integer", "any", "Object"));
+        TYPE_COMPATIBILITY.put("string", Set.of("String", "any", "Object"));
+        TYPE_COMPATIBILITY.put("String", Set.of("string", "any", "Object"));
+        TYPE_COMPATIBILITY.put("any", Set.of("any", "Object"));
+        TYPE_COMPATIBILITY.put("Object", Set.of("Object", "any", "String"));
     }
 
     @Override
@@ -86,10 +94,19 @@ public class Typer implements Visitor<String> {
     }
 
     public boolean isValidOperand(String type){
-        return switch(type){
-            case "int", "Integer", "double", "Double", "string", "String", "boolean", "Boolean","call" -> true;
-            default -> false;
-        };
+
+        TYPE_COMPATIBILITY.get(type);
+
+        if(globalContext().isConstructor(type) || 
+                globalContext().isDataType(type.toLowerCase()) ||
+                type.equals("Object")){
+            return true;
+        } else{
+            return switch(type){
+                case "int", "Integer", "double", "Double", "string", "String", "boolean", "Boolean" -> true;
+                default -> false;
+            };
+        }
     }
 
     public boolean isValidCondition(String type){
@@ -237,7 +254,7 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitNoneLiteral(NoneLiteral noneLiteral) {
-        return "none";
+        return "null";
     }
 
     @Override
@@ -249,6 +266,40 @@ public class Typer implements Visitor<String> {
             .findFirst()
             .orElseThrow(() -> new TypeException("Cannot find symbol: " + id.value()));
     }
+
+    // @Override
+    // public String visitLet(Let let) {
+    //     String id = let.id().value();
+
+    //     System.out.println(let);
+        
+    //     if (currentContext().getAllSymbols().contains(id)) 
+    //         throw new TypeException("Variable '" + id + "' already declared");
+        
+    //     String valueType = let.value().accept(this);
+    //     String declaredType = let.type() != null ? let.type().accept(this) : valueType;
+        
+    //     // Si el valor es una invocación de constructor, usar el tipo del constructor
+    //     if (let.value() instanceof ConstructorInvocation) {
+    //         String constructorType = valueType;
+    //         if (declaredType.equals("Object") && !constructorType.equals("Object")) {
+    //             declaredType = constructorType;
+    //         }
+    //     }
+        
+    //     if (!isCompatible(declaredType, valueType))  
+    //         throw new TypeException("Incompatible types in let: " + declaredType + " vs " + valueType);
+        
+    //     SymbolType symbolType = determineSymbolType(let.value(), let.type());
+        
+    //     // Usar el tipo correcto (no siempre el declarado)
+    //     String finalType = declaredType.equals("Object") && !valueType.equals("Object") ? valueType : declaredType;
+        
+    //     if (!(let.value() instanceof Lambda))
+    //         currentContext().addSymbol(id, symbolType, finalType);
+
+    //     return finalType;
+    // }
 
     @Override
     public String visitLet(Let let) {
@@ -384,6 +435,9 @@ public class Typer implements Visitor<String> {
                     yield context.getType(id.value()); // return type de method/lambda
                 } else yield "Object";
             }
+            case ConstructorInvocation constructor ->{
+                yield constructor.id();
+            }
             default -> {
                 call.args().forEach(arg -> arg.accept(this));
                 yield "Object";
@@ -487,15 +541,19 @@ public class Typer implements Visitor<String> {
     @Override
     public String visitDataDecl(DataDecl dataDecl) {
         currentContext().addSymbol(dataDecl.id(), SymbolType.DATA_TYPE, capitalizeFirst(dataDecl.id()));
+        TYPE_COMPATIBILITY.put(dataDecl.id(), Set.of("String"));
 
         if(dataDecl.constructors() != null) 
             dataDecl.constructors().stream()
-                .forEach(c -> 
-                    currentContext().addSymbol(
-                            c.id(), 
-                            SymbolType.CONSTRUCTOR, 
-                            capitalizeFirst(dataDecl.id())
-                    )
+                .forEach(c -> {
+                        currentContext().addSymbol(
+                                c.id(), 
+                                SymbolType.CONSTRUCTOR, 
+                                capitalizeFirst(dataDecl.id())
+                        );
+
+                        TYPE_COMPATIBILITY.put(c.id(), Set.of("String"));
+                    }
                 );
 
         return dataDecl.id();
@@ -513,24 +571,77 @@ public class Typer implements Visitor<String> {
         return type != null ? type : "Object";
     }
 
+    // @Override
+    // public String visitMatch(Match match) {
+    //     return match.rules().stream()
+    //         .map(rule -> rule.accept(this))
+    //         .filter(type -> !type.equals("Object")) // Preferir tipos concretos
+    //         .findFirst()
+    //         .orElse("Object");
+    // }
+
+    // @Override
+    // public String visitMatchRule(MatchRule matchRule) {
+    //     return matchRule.body().accept(this);
+    // }
+
+    // @Override
+    // public String visitDataPattern(DataPattern dataPattern) {
+    //     String type = currentContext().getType(dataPattern.name());
+    //     return type != null ? type : "Object";
+    // }
+
+    // @Override  
+    // public String visitVariablePattern(VariablePattern variablePattern) {
+    //     return "any";
+    // }
+
     @Override
     public String visitMatch(Match match) {
-        return "Object"; // tipo comun para todos por ahora
+        match.expr().accept(this);
+        
+        return match.rules().stream()
+            .map(rule -> rule.accept(this))
+            .filter(type -> !type.equals("Object")) // Preferir tipos concretos
+            .findFirst()
+            .orElse("Object");
     }
 
     @Override
     public String visitMatchRule(MatchRule matchRule) {
-        return matchRule.body().accept(this);
+        SymbolTable ruleContext = new SymbolTable();
+        ruleContext.setParent(currentContext());
+        contextStack.push(ruleContext);
+        
+        try {
+            matchRule.pattern().accept(this);
+            return matchRule.body().accept(this);
+            
+        } finally {
+            contextStack.pop();
+        }
     }
 
     @Override
     public String visitDataPattern(DataPattern dataPattern) {
         String type = currentContext().getType(dataPattern.name());
+        
+        if (dataPattern.subPatterns() != null) {
+            dataPattern.subPatterns().forEach(subPattern -> {
+                if (subPattern instanceof VariablePattern vp) {
+                    String varName = vp.name();
+                    currentContext().addSymbol(varName, SymbolType.VARIABLE, "Object");
+                }
+                subPattern.accept(this);
+            });
+        }
+        
         return type != null ? type : "Object";
     }
 
     @Override  
     public String visitVariablePattern(VariablePattern variablePattern) {
+        currentContext().addSymbol(variablePattern.name(), SymbolType.VARIABLE, "Object");
         return "any";
     }
 
@@ -561,12 +672,12 @@ public class Typer implements Visitor<String> {
 
     @Override
     public String visitNonePattern(NonePattern nonePattern) {
-        return "none";
+        return "Object";
     }
 
     @Override
     public String visitNone(NoneLiteral noneLiteral) {
-        return "none";
+        return "Object";
     }
 
     @Override
