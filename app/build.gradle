@@ -111,5 +111,6 @@ task jpackageImage(type: Exec) {
         '--type', 'app-image',
         '--dest', 'build/jpackage',
         '--win-console',
+        '--verbose',
         '--java-options', '-Dfile.encoding=UTF-8'
 }

@@ -78,6 +78,39 @@ Se mostrará una lista de directorios y archivos en esa ubicación. Debe estar p
 
 Nota: expressor es un programa de CLI que se ejecuta a través de comandos en la misma ubicación en donde fue generado el ejecutable. Estar en una ruta diferente o cambiar la ubicación del ejecutable u otros archivos del proyecto podría resultar en mal funcionamiento o imposibilidad de utilizar expressor.  
 
+
+# Test Cases Sprint Final
+
+El proyecto incluye los tres archivos de prueba `jupyter.expresso`, `saturn.expresso`, `pluto.expresso`.
+
+**Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final obtendrán el mensaje: missing NEWLINE at 'EOF', sin embargo no afecta a la ejecución de los casos de prueba.
+
+### Ejecutar los tests manualmente
+
+(Es requisito haber ejecutado el comando `gradlew clean build` y `gradlew jpackageImage` en la raiz del proyecto (`...\expresso`) con anterioridad)
+
+(Si no lo esta) Ubicarse en la ruta del ejecutable (app\build\jpackage\expressor):
+_(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
+```bash
+cd app\build\jpackage\expressor
+```
+
+## Test Jupyter
+```bash
+expressor run ..\..\..\..\testcloria\jupyter.expresso
+```
+
+## Test Saturn
+```bash
+expressor run ..\..\..\..\testcloria\saturn.expresso
+```
+
+## Test Pluto
+```bash
+expressor run ..\..\..\..\testcloria\pluto.expresso
+```
+
+
 ## Comandos soportados por expressor
 
 Las rutas del archivo `.expresso` que se usen como input en los comando que contengan espacios en blanco deben ser encerradas entre comillas ("").
@@ -123,44 +156,6 @@ expressor run {ruta__al_.expresso}
 `--out`: define una ruta de carpeta en la que se guarda la salida en .java, si esa carpeta no existiera la crea en el directorio desde donde se esta ejecutando (ej. --out outputFolder). Es opcional (si no se especifica, se guarda todo en la misma ubicación desde donde se ejecuta el comando).
    
 `--verbose`: permite observar los pasos que se estan realizando al momento de la ejecución de un comando.
-
-# Casos de Prueba del Sprint Final (Testcases)
-
-El proyecto incluye los dos archivos de prueba `pluto.expresso` y `jupyter.expresso`.
-
-**Nota importante:** Todos los archivos .expresso que no terminen con una línea en blanco al final obtendrán el mensaje: missing NEWLINE at 'EOF', sin embargo no afecta a la ejecución de los casos de prueba.
-
-### Ejecutar los tests manualmente
-
-(Es requisito haber ejecutado el comando `gradlew clean build` y `gradlew jpackageImage` en la raiz del proyecto (`...\expresso`) con anterioridad)
-
-Ubicarse en la ruta del ejecutable (app\build\jpackage\expressor):
-_(Debe estar ubicado en la raiz del proyecto (`...\expresso`) antes de ejecutar el siguiente comando)_
-```bash
-cd app\build\jpackage\expressor
-```
-
-## Test 1: pluto.expresso
-
-```bash
-expressor transpile --verbose ..\..\..\..\testcloria\pluto.expresso
-```
-```bash
-expressor build --verbose ..\..\..\..\testcloria\pluto.expresso
-```
-```bash
-expressor run --verbose ..\..\..\..\testcloria\pluto.expresso
-```
-## Test 2: jupyter.expresso
-```bash
-expressor transpile --verbose ..\..\..\..\testcloria\jupyter.expresso
-```
-```bash
-expressor build --verbose ..\..\..\..\testcloria\jupyter.expresso
-```
-```bash
-expressor run --verbose ..\..\..\..\testcloria\jupyter.expresso
-```
 
 ## Prompts de IA (Íntegros)
 
