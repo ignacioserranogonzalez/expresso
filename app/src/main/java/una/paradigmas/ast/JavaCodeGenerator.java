@@ -41,7 +41,7 @@ public class JavaCodeGenerator {
     private final StringBuilder constructorTypes = new StringBuilder();
     private final StringBuilder mainCodeBuilder = new StringBuilder();
     private final StringBuilder globalDeclarations = new StringBuilder();
-    private final List<DataDecl> dataDeclarations = new ArrayList<>(); // revisar, stringuilder ?
+    private final List<DataDecl> dataDeclarations = new ArrayList<>(); 
 
     private Map<String, SymbolTable> contextMap = new HashMap<>();
 
@@ -469,6 +469,15 @@ public class JavaCodeGenerator {
     
     private String generateType(Node typeNode) {
         return switch (typeNode) {
+            case TypeNode(var typeName) -> switch (typeName) {
+                case "int" -> "int";
+                case "double" -> "double";
+                case "boolean" -> "boolean";
+                case "string" -> "String";
+                case "any" -> "Object";
+                case "void" -> "void";
+                default -> capitalizeFirst(typeName);
+            };
             case ArrowType arrowType -> {
                 imports.add("java.util.function.*");
                 String fromType = generateType(arrowType.from());
@@ -484,15 +493,6 @@ public class JavaCodeGenerator {
                     yield "Function<" + fromType + ", " + toType + ">";
                 }
             }
-            case TypeNode(var typeName) -> switch (typeName) {
-                case "int" -> "int";
-                case "double" -> "double";
-                case "boolean" -> "boolean";
-                case "string" -> "String";
-                case "any" -> "Object";
-                case "void" -> "void";
-                default -> capitalizeFirst(typeName);
-            };
             default -> "Object";
         };
     }

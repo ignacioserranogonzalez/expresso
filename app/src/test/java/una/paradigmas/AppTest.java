@@ -3,7 +3,6 @@ package una.paradigmas;
 import org.junit.Test;
 
 import una.paradigmas.ast.AstBuilder;
-// import una.paradigmas.ast.AstPrintVisitor;
 import una.paradigmas.ast.ExpressoLexer;
 import una.paradigmas.ast.ExpressoParser;
 import una.paradigmas.ast.JavaCodeGenerator;
@@ -45,13 +44,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
         AstBuilder builder = new AstBuilder();
         Program ast = builder.visitProgram(parser.program());
-
-        // AstPrintVisitor printer = new AstPrintVisitor();
-        // printer.visitProgram(ast);
-
-        Typer typer = new Typer(ast.symbolTable(), ast.contextMap());
-        typer.typeCheck(ast);
-        System.out.println(typer.toString());
 
         String art = switch(className){
             case "Jupyter" ->
@@ -113,11 +105,20 @@ import org.antlr.v4.runtime.CommonTokenStream;
             default -> "";
         };
 
-        System.out.println("\n" + art + "\n");
+        try {
+            Typer typer = new Typer(ast.symbolTable(), ast.contextMap());
+            typer.typeCheck(ast);
+            // System.out.println(typer.toString());
+    
+            System.out.println("\n" + art + "\n");
+    
+            JavaCodeGenerator generator = new JavaCodeGenerator(className);
+            String javaCode = generator.generate(ast);
+            System.out.println(javaCode);
+        } catch(Exception e){
+            System.out.println(e.getMessage());
+        }
 
-        JavaCodeGenerator generator = new JavaCodeGenerator(className);
-        String javaCode = generator.generate(ast);
-        System.out.println(javaCode);
     }
 
     // @Test 

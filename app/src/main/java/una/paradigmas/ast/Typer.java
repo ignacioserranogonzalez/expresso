@@ -15,6 +15,25 @@ import java.util.stream.Stream;
 import una.paradigmas.ast.SymbolTable.SymbolInfo;
 import una.paradigmas.ast.SymbolTable.SymbolType;
 
+/**
+ * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
+ * Curso: [EIF400-II-2025] Paradigmas de Programacion
+ * Universidad Nacional de Costa Rica
+ * 
+ * Autores:
+ * - Kendall Miso Chinchilla Araya  -   119310542
+ * - Ignacio Serrano Gonzalez       -   402600631
+ * - Minor Brenes Aguilar           -   116730106
+ * - Pablo Chavarria Alvarez        -   117810573
+ * 
+ * Codigo de grupo: 02-1PM
+ * 
+ * Nota: Este codigo fue desarrollado parcialmente con asistencia de IA,
+ * modificado, adaptado y validado por el equipo
+ * de desarrollo para cumplir con los requerimientos especificos
+ * del proyecto.
+ */
+
 public class Typer implements Visitor<String> {
     private final Stack<SymbolTable> contextStack = new Stack<>();
     private final Map<String, SymbolTable> contextMap;
@@ -28,14 +47,6 @@ public class Typer implements Visitor<String> {
         this.buildTypeCompatibility();
     }
 
-    private SymbolTable globalContext() {
-        return contextMap.get("Global");
-    }
-
-    private SymbolTable currentContext() {
-        return contextStack.peek();
-    }
-
     private void buildTypeCompatibility(){
         TYPE_COMPATIBILITY.put("int", Set.of("Integer", "double", "Double", "any", "Object"));
         TYPE_COMPATIBILITY.put("Integer", Set.of("int", "double", "Double", "any", "Object"));
@@ -45,6 +56,14 @@ public class Typer implements Visitor<String> {
         TYPE_COMPATIBILITY.put("String", Set.of("string", "any", "Object"));
         TYPE_COMPATIBILITY.put("any", Set.of("any", "Object"));
         TYPE_COMPATIBILITY.put("Object", Set.of("Object", "any", "String"));
+    }
+
+    private SymbolTable globalContext() {
+        return contextMap.get("Global");
+    }
+
+    private SymbolTable currentContext() {
+        return contextStack.peek();
     }
 
     @Override
@@ -120,7 +139,7 @@ public class Typer implements Visitor<String> {
             case "string", "String" -> "String";  // string + cualquier cosa = string
             case "double", "Double" -> switch (right) {
                 case "string", "String" -> "String";  // double + string = string
-                default -> "double";         // double + numérico = double
+                default -> "double";         // double + numeric = double
             };
             case "int", "Integer" -> switch (right) {
                 case "string", "String" -> "String";  // int + string = string
@@ -553,38 +572,13 @@ public class Typer implements Visitor<String> {
         return type != null ? type : "Object";
     }
 
-    // @Override
-    // public String visitMatch(Match match) {
-    //     return match.rules().stream()
-    //         .map(rule -> rule.accept(this))
-    //         .filter(type -> !type.equals("Object")) // Preferir tipos concretos
-    //         .findFirst()
-    //         .orElse("Object");
-    // }
-
-    // @Override
-    // public String visitMatchRule(MatchRule matchRule) {
-    //     return matchRule.body().accept(this);
-    // }
-
-    // @Override
-    // public String visitDataPattern(DataPattern dataPattern) {
-    //     String type = currentContext().getType(dataPattern.name());
-    //     return type != null ? type : "Object";
-    // }
-
-    // @Override  
-    // public String visitVariablePattern(VariablePattern variablePattern) {
-    //     return "any";
-    // }
-
     @Override
     public String visitMatch(Match match) {
         match.expr().accept(this);
         
         return match.rules().stream()
             .map(rule -> rule.accept(this))
-            .filter(type -> !type.equals("Object")) // Preferir tipos concretos
+            .filter(type -> !type.equals("Object"))
             .findFirst()
             .orElse("Object");
     }
@@ -688,15 +682,12 @@ public class Typer implements Visitor<String> {
         String fromType = arrowType.from().accept(this);
         String toType = arrowType.to().accept(this);
         
-        // Convertir any -> any a UnaryOperator<Object>
         if (fromType.equals("any") && toType.equals("any")) {
             return "UnaryOperator<Object>";
         }
-        // Si los tipos son iguales, usar operadores especializados
         else if (fromType.equals(toType)) {
             return "UnaryOperator<" + fromType + ">";
         }
-        // Caso general: Function<From, To>
         else {
             return "Function<" + fromType + ", " + toType + ">";
         }
