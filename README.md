@@ -1,4 +1,4 @@
-# Expresso - Sprint Final
+# Expresso (Transpilador)
 EIF400-II-2025 Paradigmas de Programación, Grupo 02-1PM  
 Universidad Nacional de Costa Rica, Escuela de Informática
 
