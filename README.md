@@ -1,6 +1,7 @@
 # Expresso - Sprint Final
 EIF400-II-2025 Paradigmas de Programación, Grupo 02-1PM  
 Universidad Nacional de Costa Rica, Escuela de Informática
+
 _Implementado en el marco del curso de Paradigmas de Programación, dirigido por el profesor Carlos Loría Saenz_
 
 ## Autores
