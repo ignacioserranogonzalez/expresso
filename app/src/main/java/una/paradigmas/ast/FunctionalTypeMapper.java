@@ -2,6 +2,24 @@ package una.paradigmas.ast;
 
 import java.util.List;
 
+/**
+ * Proyecto: Expresso - Transpilador de lenguaje Expresso a Java
+ * Curso: [EIF400-II-2025] Paradigmas de Programacion
+ * Universidad Nacional de Costa Rica
+ * 
+ * Autores:
+ * - Ignacio Serrano Gonzalez
+ * - Kendall Miso Chinchilla Araya
+ * - Minor Brenes Aguilar
+ * 
+ * Codigo de grupo: 02-1PM
+ * 
+ * Nota: Este codigo fue generado parcialmente con asistencia de IA
+ * y posteriormente modificado, adaptado y validado por el equipo
+ * de desarrollo para cumplir con los requerimientos especificos
+ * del proyecto.
+ */
+
 public record FunctionalTypeMapper() {
     
     public static String mapFunctionalType(List<String> paramTypes, String returnType, int paramCount, boolean isVoidLike) {

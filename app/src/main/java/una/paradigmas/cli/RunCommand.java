@@ -17,10 +17,9 @@ import java.lang.Process;
  * Universidad Nacional de Costa Rica
  * 
  * Autores:
- * - Kendall Miso Chinchilla Araya  -   119310542
- * - Ignacio Serrano Gonzalez       -   402600631
- * - Minor Brenes Aguilar           -   116730106
- * - Pablo Chavarria Alvarez        -   117810573
+ * - Ignacio Serrano Gonzalez
+ * - Kendall Miso Chinchilla Araya
+ * - Minor Brenes Aguilar
  * 
  * Codigo de grupo: 02-1PM
  * 

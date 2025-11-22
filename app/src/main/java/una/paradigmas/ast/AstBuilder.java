@@ -18,10 +18,9 @@ import java.util.stream.IntStream;
  * Universidad Nacional de Costa Rica
  * 
  * Autores:
- * - Kendall Miso Chinchilla Araya  -   119310542
- * - Ignacio Serrano Gonzalez       -   402600631
- * - Minor Brenes Aguilar           -   116730106
- * - Pablo Chavarria Alvarez        -   117810573
+ * - Ignacio Serrano Gonzalez
+ * - Kendall Miso Chinchilla Araya
+ * - Minor Brenes Aguilar
  * 
  * Codigo de grupo: 02-1PM
  * 
@@ -268,13 +267,13 @@ public class AstBuilder extends ExpressoBaseVisitor<Node> {
     @Override
     public Node visitDataDecl(DataDeclContext ctx) {
         String id = ctx.ID().getText();
-        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, id, null);
+        symbolTable.addSymbol(id, SymbolType.DATA_TYPE, id);
         
         List<DataDecl.Constructor> constructors = ctx.constructorList() != null
             ? ctx.constructorList().constructor().stream()
                 .map(constructorCtx -> {
                     String constructorId = constructorCtx.ID().getText();
-                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR, id, null);
+                    symbolTable.addSymbol(constructorId, SymbolType.CONSTRUCTOR, id);
                     
                     List<DataDecl.Argument> arguments = constructorCtx.arguments() != null
                         ? constructorCtx.arguments().argument().stream()

@@ -53,7 +53,7 @@ print("*** Newton-Raphson TC2 **** ")
 
 let abs = x:float -> x >= 0 ? x : -x // Uses >= and unary -
 //  Potential issue: type is UnaryOperator<Double> and method is apply
-print("Test abs:" + (abs((-666):float) == abs((--666):float)) )
+print("Test abs:" + (abs((-666):float) == abs((--666):float)) ) Double(666).eqalsDouble(666) false
 
 let EPSILON =  1e-11 // Fully uppercased id. Issue floating-point using scientific notation
 print("EPSILON="  + EPSILON)
@@ -84,6 +84,7 @@ let next = (a:float, x:float) -> converges(a, x) ? x : improve(a, x)
  
 */
 
+fill(n) ? dads : dsada
 fun sqrt_iterate(a:float, x0:float):float = converges(a, x0) ? x0 : sqrt_iterate(a, improve(a, x0))
 
 fun sqrt(a:float) = sqrt_iterate(a, a * 0.5)
