@@ -1,12 +1,13 @@
 # Expresso - Sprint Final
 EIF400-II-2025 Paradigmas de Programación, Grupo 02-1PM  
 Universidad Nacional de Costa Rica, Escuela de Informática
+_Implementado en el marco del curso de Paradigmas de Programación, dirigido por el profesor Carlos Loría Saenz_
 
 ## Autores
-- Ignacio Serrano Gonzalez - 402600631  
-- Kendall Miso Chinchilla Araya - 119310542
-- Minor Brenes Aguilar - 116730106  
-- Pablo Chavarria Alvarez - 117810573  
+- Ignacio Serrano Gonzalez
+- Kendall Miso Chinchilla Araya
+- Minor Brenes Aguilar  
+- Pablo Chavarria Alvarez  
 
 ## Descripción
 Transpilador CLI "expressor" para el minilenguaje Expresso, implementado en Java 23+. Realiza la transpilación, compilación y ejecución de archivos `.expresso` a Java, generando archivos `.java` y `.class` en el directorio especificado. Soporta tipos primitivos `(int, float, boolean, string, any)`, tipos de usuario con `data`, `lambdas`, funciones recursivas con `fun`, pattern matching con `match`, casting con `:` y operadores `relacionales/booleanos`. Usa Picocli para manejar argumentos, Gradle para la construcción, y `jpackage` para generar una imagen ejecutable en consola pura (Windows/cmd). El diseño sigue principios de OOP (clases por subcomando, encapsulación), modularidad (paquete `una.paradigmas.cli`), y un estilo de programación funcional.
